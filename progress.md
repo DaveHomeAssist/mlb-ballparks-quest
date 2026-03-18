@@ -6,3 +6,6 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 
 [2026-03-18] [MLB] [test] Validate lineup scoring and game switching
 [2026-03-18] [MLB] [test] Capture upgraded scorekeeper workflow screenshot
+
+[2026-03-18] [MLB] [feat] Add standalone theme token sheet for additional club palettes
+[2026-03-18] [MLB] [docs] Write project handoff with development details

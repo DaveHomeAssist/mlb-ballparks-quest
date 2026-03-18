@@ -1,0 +1,224 @@
+/*
+  MLB Ballparks Quest theme token sheet
+  Usage:
+  1. Keep the semantic token names the app already uses
+  2. Apply a theme with :root[data-theme="name"]
+  3. Copy one block into an inline style tag if a page stays single file
+*/
+
+:root,
+:root[data-theme="phillies"]{
+  --bg:#f7f0e4;
+  --panel:#fffaf4;
+  --panel-strong:#fffdf9;
+  --ink:#0a2342;
+  --muted:#5f6f83;
+  --line:#d8cab9;
+  --accent:#c41e3a;
+  --accent-strong:#9f172d;
+  --field:#0a2342;
+  --sun:#d9b15f;
+  --warn:#d9b15f;
+  --danger:#9f172d;
+  --shadow:0 18px 40px rgba(10,35,66,.08);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(196,30,58,.06) 0 2px, transparent 2px 18px),
+    linear-gradient(90deg, rgba(10,35,66,.045) 0 1px, transparent 1px 12px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.96), rgba(247,240,228,.78) 45%, rgba(236,226,212,.92)),
+    linear-gradient(180deg, #faf3e8 0%, #f1e6d7 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(196,30,58,.035) 0 2px, transparent 2px 20px),
+    linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.95));
+}
+
+:root[data-theme="yankees"]{
+  --bg:#f3f4f6;
+  --panel:#ffffff;
+  --panel-strong:#ffffff;
+  --ink:#10233f;
+  --muted:#5d6d82;
+  --line:#d7dce4;
+  --accent:#132448;
+  --accent-strong:#0d1830;
+  --field:#1c355e;
+  --sun:#c9a96a;
+  --warn:#c9a96a;
+  --danger:#8a1c2f;
+  --shadow:0 18px 40px rgba(16,35,63,.1);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(19,36,72,.05) 0 1px, transparent 1px 14px),
+    linear-gradient(90deg, rgba(201,169,106,.04) 0 2px, transparent 2px 28px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.98), rgba(243,244,246,.88) 46%, rgba(230,234,239,.96)),
+    linear-gradient(180deg, #f9fafb 0%, #eef1f5 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(19,36,72,.03) 0 1px, transparent 1px 16px),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,249,251,.95));
+}
+
+:root[data-theme="dodgers"]{
+  --bg:#eef5ff;
+  --panel:#f9fbff;
+  --panel-strong:#ffffff;
+  --ink:#0b2242;
+  --muted:#5a6f8e;
+  --line:#cad8eb;
+  --accent:#005a9c;
+  --accent-strong:#01487b;
+  --field:#0b2242;
+  --sun:#f0b44c;
+  --warn:#f0b44c;
+  --danger:#be3a34;
+  --shadow:0 18px 40px rgba(11,34,66,.08);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(0,90,156,.055) 0 2px, transparent 2px 18px),
+    linear-gradient(90deg, rgba(255,255,255,.28) 0 1px, transparent 1px 10px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.98), rgba(238,245,255,.86) 45%, rgba(221,233,247,.96)),
+    linear-gradient(180deg, #f7fbff 0%, #e9f2fd 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(0,90,156,.03) 0 2px, transparent 2px 20px),
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(249,251,255,.95));
+}
+
+:root[data-theme="cubs"]{
+  --bg:#f6f1e9;
+  --panel:#fffaf5;
+  --panel-strong:#fffdfb;
+  --ink:#0e2240;
+  --muted:#5e6f84;
+  --line:#d7cabd;
+  --accent:#0e3386;
+  --accent-strong:#0a2768;
+  --field:#cc3433;
+  --sun:#d9b45c;
+  --warn:#d9b45c;
+  --danger:#cc3433;
+  --shadow:0 18px 40px rgba(14,34,64,.09);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(14,51,134,.045) 0 1px, transparent 1px 12px),
+    linear-gradient(90deg, rgba(204,52,51,.04) 0 2px, transparent 2px 24px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.96), rgba(246,241,233,.84) 45%, rgba(236,227,214,.96)),
+    linear-gradient(180deg, #fbf6ef 0%, #f2e8da 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(14,51,134,.028) 0 1px, transparent 1px 16px),
+    linear-gradient(180deg, rgba(255,253,251,.98), rgba(255,250,245,.95));
+}
+
+:root[data-theme="mets"]{
+  --bg:#f7efe5;
+  --panel:#fffaf4;
+  --panel-strong:#fffdf9;
+  --ink:#08213f;
+  --muted:#5f6f83;
+  --line:#dcccb8;
+  --accent:#002d72;
+  --accent-strong:#012355;
+  --field:#f05d23;
+  --sun:#e2b35e;
+  --warn:#e2b35e;
+  --danger:#d6421b;
+  --shadow:0 18px 40px rgba(8,33,63,.09);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(240,93,35,.05) 0 2px, transparent 2px 18px),
+    linear-gradient(90deg, rgba(0,45,114,.04) 0 1px, transparent 1px 11px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.97), rgba(247,239,229,.84) 45%, rgba(238,225,209,.96)),
+    linear-gradient(180deg, #fbf4ea 0%, #f1e3d1 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(240,93,35,.03) 0 2px, transparent 2px 20px),
+    linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,244,.95));
+}
+
+:root[data-theme="red-sox"]{
+  --bg:#f5efe7;
+  --panel:#fff9f4;
+  --panel-strong:#fffdf9;
+  --ink:#0c2340;
+  --muted:#617184;
+  --line:#d8cabd;
+  --accent:#bd3039;
+  --accent-strong:#99262d;
+  --field:#0c2340;
+  --sun:#d8af62;
+  --warn:#d8af62;
+  --danger:#99262d;
+  --shadow:0 18px 40px rgba(12,35,64,.09);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(189,48,57,.05) 0 2px, transparent 2px 18px),
+    linear-gradient(90deg, rgba(12,35,64,.04) 0 1px, transparent 1px 12px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.97), rgba(245,239,231,.84) 45%, rgba(236,226,213,.96)),
+    linear-gradient(180deg, #faf3eb 0%, #f0e4d6 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(189,48,57,.03) 0 2px, transparent 2px 20px),
+    linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,249,244,.95));
+}
+
+:root[data-theme="giants"]{
+  --bg:#f5eee6;
+  --panel:#fff9f3;
+  --panel-strong:#fffdf8;
+  --ink:#111111;
+  --muted:#68645f;
+  --line:#d6cabc;
+  --accent:#fd5a1e;
+  --accent-strong:#d94812;
+  --field:#27251f;
+  --sun:#d6aa5f;
+  --warn:#d6aa5f;
+  --danger:#d94812;
+  --shadow:0 18px 40px rgba(17,17,17,.08);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(253,90,30,.045) 0 2px, transparent 2px 18px),
+    linear-gradient(90deg, rgba(39,37,31,.03) 0 1px, transparent 1px 12px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.97), rgba(245,238,230,.84) 45%, rgba(236,227,215,.96)),
+    linear-gradient(180deg, #faf3ea 0%, #f0e4d6 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(253,90,30,.028) 0 2px, transparent 2px 20px),
+    linear-gradient(180deg, rgba(255,253,248,.98), rgba(255,249,243,.95));
+}
+
+:root[data-theme="padres"]{
+  --bg:#f4ede2;
+  --panel:#fff9f0;
+  --panel-strong:#fffdf7;
+  --ink:#2f241d;
+  --muted:#726558;
+  --line:#d9ccb8;
+  --accent:#2f241d;
+  --accent-strong:#201814;
+  --field:#8c6a43;
+  --sun:#d9b15f;
+  --warn:#d9b15f;
+  --danger:#a13f2d;
+  --shadow:0 18px 40px rgba(47,36,29,.08);
+  --radius:18px;
+  --maxw:1180px;
+  --theme-stripes:
+    linear-gradient(90deg, rgba(47,36,29,.04) 0 1px, transparent 1px 12px),
+    linear-gradient(90deg, rgba(217,177,95,.05) 0 2px, transparent 2px 22px);
+  --theme-wash:
+    radial-gradient(circle at top, rgba(255,255,255,.97), rgba(244,237,226,.84) 45%, rgba(235,225,211,.96)),
+    linear-gradient(180deg, #faf3e8 0%, #efe1cd 100%);
+  --theme-panel-overlay:
+    linear-gradient(90deg, rgba(217,177,95,.028) 0 2px, transparent 2px 20px),
+    linear-gradient(180deg, rgba(255,253,247,.98), rgba(255,249,240,.95));
+}
