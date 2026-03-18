@@ -1,0 +1,153 @@
+MLB BALLPARKS QUEST
+
+Store Capsule
+
+A clean, local first MLB stadium tracker for planning trips, logging visited parks, and keeping the next route obvious without dragging in an app stack.
+
+Short Description
+
+Build your own ballpark run across all 30 Major League parks. Track what you have visited, rank what matters most, and keep your next targets clear in one fast static page.
+
+About This Project
+
+MLB Ballparks Quest is a lightweight stadium tracking project built around one simple idea: make the baseball road trip board feel sharp, personal, and easy to maintain.
+
+This build is intentionally small. It opens instantly, works as a static page, and keeps the whole experience focused on the useful loop:
+
+1. land
+2. understand your current progress
+3. explore the parks
+4. trust the notes and priorities
+5. act on the next trip
+
+Instead of hiding the data behind a heavy app shell, the project keeps the useful parts front and center:
+
+- current visited count
+- remaining parks
+- next route priorities
+- park by park detail views
+- visit notes and standout features
+- simple filtering for practical scanning
+
+It is a tracker with a collector mindset. The goal is not to simulate a baseball franchise. The goal is to make the pursuit of all 30 parks feel tangible, organized, and worth continuing.
+
+Why It Works
+
+- Static first: no build step needed to use the shipped artifact
+- Local friendly: fast to open, easy to host, easy to hand edit
+- Clear visual hierarchy: hero, route board, directory, detail panel, roadmap
+- Small surface area: enough structure to feel real without turning into bloat
+- Personal context: visited parks carry notes and best features, not just status flags
+
+Current Features
+
+Shipped in the current static build:
+
+- Single page stadium tracker with all 30 MLB parks
+- Hero summary with visited count, remaining count, and target focus
+- Route board for the current top priority parks
+- Visited highlight section using real notes from completed park visits
+- Filterable park directory
+- Search by team, stadium, or city
+- Filter by visited status
+- Filter by roof type
+- Sort by priority, opened year, capacity, or alphabetically
+- Sticky detail panel for the selected park
+- Tier tags for priority parks
+- Roadmap section for project milestones
+- Fully static deployment target suitable for GitHub Pages
+- No framework, no CDN dependency, no runtime download requirement in the shipped HTML
+
+Current Experience Loop
+
+1. Open the page and understand the quest immediately
+2. See how many parks are already done
+3. Review the next route targets
+4. Browse or filter the full league
+5. Select a park and inspect the details
+6. Use the page as a planning board for the next trip
+
+Who It Is For
+
+- baseball fans chasing all 30 parks
+- travelers planning stadium trips
+- collectors who want a clean progress board
+- people who prefer static tools over account driven web apps
+
+Design Direction
+
+The site is built like a lean field guide, not a glossy platform product.
+
+It favors:
+
+- readable structure
+- quick scanning
+- practical polish
+- low resource rendering
+- easy future editing
+
+This is closer to a travel log and route board than a social product.
+
+Technical Notes
+
+Current shipped artifact:
+
+- one self contained HTML file
+- embedded CSS
+- minimal inline JavaScript
+- static hosting friendly
+- offline friendly once opened
+
+Known Scope Boundary
+
+The current shipped page is a stadium tracker and route planning artifact.
+
+It does not yet ship:
+
+- persistent local editing UI
+- import or export workflow
+- account sync
+- map routing
+- ticket or schedule integrations
+
+Those are possible future directions, but they are not part of the current shipped feature set.
+
+Planned Expansion Hooks
+
+These are future candidates, not shipped claims:
+
+- local save and restore for personal edits
+- visit logging form in the browser
+- import and export for park notes
+- route presets by region
+- live trip checklist
+- richer ranking model for dream parks vs practical parks
+
+Feature Set Summary
+
+Core:
+
+- 30 park dataset
+- route priority board
+- visited highlights
+- searchable and filterable directory
+- detail panel
+- roadmap
+
+UX:
+
+- obvious primary CTA path
+- mobile friendly stacked layout
+- keyboard focus visibility
+- low DOM overhead
+- no decorative runtime waste
+
+Deployment:
+
+- GitHub Pages ready
+- static file ready
+- no dependency install required for the shipped page
+
+One Line Pitch
+
+A fast, static MLB ballpark quest board that makes the chase across all 30 parks feel organized, personal, and ready for the next trip.
