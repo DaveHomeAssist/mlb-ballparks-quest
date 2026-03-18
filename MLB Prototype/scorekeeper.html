@@ -262,6 +262,7 @@ body {
   border-radius: 10px;
   overflow: hidden;
   min-height: 240px;
+  aspect-ratio: 16 / 9;
   background:
     linear-gradient(180deg, rgba(15,31,56,0.18), rgba(15,31,56,0.5)),
     radial-gradient(circle at 15% 18%, rgba(240,184,67,0.22), transparent 28%),
@@ -270,20 +271,22 @@ body {
 
 .sk-story-video,
 .sk-story-poster {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.sk-story-poster {
-  position: absolute;
-  inset: 0;
-}
-
 .sk-story-video {
+  z-index: 0;
   opacity: 0;
   transition: opacity 180ms ease;
+}
+
+.sk-story-poster {
+  z-index: 0;
 }
 
 .sk-story-media.has-video .sk-story-video {
@@ -297,6 +300,7 @@ body {
 .sk-story-overlay {
   position: absolute;
   inset: auto 0 0 0;
+  z-index: 1;
   padding: 18px;
   background: linear-gradient(180deg, transparent, rgba(15,31,56,0.88));
 }

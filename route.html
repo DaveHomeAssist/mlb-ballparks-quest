@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB Ballparks Quest · Route</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F38">
+<link rel="stylesheet" href="shared.css">
+<link rel="stylesheet" href="route.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a href="index.html" class="nav-brand">
+    <span class="nav-brand-name">Ballparks Quest</span>
+    <span class="nav-brand-mark">MLB · 30 Parks</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="parks.html" class="nav-link">Parks</a>
+    <a href="route.html" class="nav-link active">Route</a>
+    <a href="scorekeeper.html" class="nav-link nav-cta">⬥ Scorekeeper</a>
+  </div>
+</nav>
+
+<main class="page-wrap">
+  <section class="route-planning-deck fade-up">
+    <div class="route-planning-grid">
+      <section class="trip-notes-card fade-up fade-up-1">
+        <div class="trip-notes-head">
+          <div>
+            <div class="section-label trip-notes-label">Trip notes</div>
+            <h2 class="trip-notes-title">Keep the live trip call in view.</h2>
+            <p class="trip-notes-context" id="tripNotesContext"></p>
+          </div>
+          <div class="trip-notes-kicker">Autosaves locally</div>
+        </div>
+        <div class="trip-window-grid">
+          <label class="trip-window-field" for="tripStartDate">
+            <span class="trip-window-label">Start date</span>
+            <input type="date" id="tripStartDate" class="trip-window-input">
+          </label>
+          <label class="trip-window-field" for="tripEndDate">
+            <span class="trip-window-label">End date</span>
+            <input type="date" id="tripEndDate" class="trip-window-input">
+          </label>
+        </div>
+        <textarea id="tripScratchpad" class="trip-notes-input" placeholder="Keep date windows, budget guardrails, hotel thoughts, and route wide tradeoffs here."></textarea>
+      </section>
+
+      <section class="route-summary-card fade-up fade-up-2" id="tripSummaryCard"></section>
+    </div>
+  </section>
+
+  <header class="route-hero fade-up">
+    <div class="section-label route-hero-label">Route board</div>
+    <h1 class="route-hero-headline">Your next run.</h1>
+    <p class="route-hero-sub">Pick the stops, compare the hassle, keep the notes.</p>
+  </header>
+
+  <section class="route-stops-block">
+    <div class="section-label fade-up fade-up-2">Current stops</div>
+    <h2 class="section-title fade-up fade-up-2 route-section-title">Pick your stops.</h2>
+    <div class="route-grid" id="routeGrid"></div>
+  </section>
+
+  <section class="route-legs-block">
+    <div class="section-label fade-up">Leg calls</div>
+    <h2 class="section-title fade-up route-section-title">Compare the hassle.</h2>
+    <section class="route-map-panel fade-up fade-up-1" id="routeMapPanel"></section>
+    <div class="logistics-grid" id="logisticsGrid"></div>
+  </section>
+
+  <div class="route-footer-cta">
+    <a href="parks.html" class="btn btn-browse">Browse all 30 parks</a>
+  </div>
+</main>
+
+<footer class="route-footer">
+  <p class="route-footer-copy">MLB Ballparks Quest · Static · Local first · No dependencies</p>
+</footer>
+
+<script src="storage.js"></script>
+<script src="utils.js"></script>
+<script src="data.js"></script>
+<script src="logos.js"></script>
+<script src="schedule.js"></script>
+<script src="device.js"></script>
+<script src="app.js"></script>
+<script src="route.js"></script>
+</body>
+</html>

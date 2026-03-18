@@ -1,2549 +1,1946 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MLB Ballparks Quest | Scorekeeper</title>
-  <meta name="description" content="A local first scorekeeper for MLB Ballparks Quest with tracker handoff, inning state, play log, and JSON export.">
-  <meta name="theme-color" content="#111111">
-  <link rel="stylesheet" href="theme-tokens.css">
-  <style>
-    :root{
-      --radius:18px;
-      --maxw:1180px;
-    }
-
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:var(--ink);
-      background:var(--theme-stripes), var(--theme-wash);
-      line-height:1.5;
-    }
-
-    h1,h2,h3,p{margin:0}
-    a{color:inherit}
-    button,input,select,textarea{font:inherit}
-
-    .shell{width:min(100% - 28px,var(--maxw));margin:0 auto}
-    .skip-link{
-      position:absolute;left:16px;top:-48px;padding:10px 14px;border-radius:999px;
-      background:var(--ink);color:#fff;text-decoration:none;z-index:20;
-    }
-    .skip-link:focus{top:16px}
-
-    .site-header{
-      position:sticky;top:0;z-index:10;
-      background:color-mix(in srgb, var(--bg) 92%, transparent);
-      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      backdrop-filter:blur(8px);
-    }
-
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;gap:18px;
-      padding:14px 0;
-    }
-
-    .brand{
-      display:flex;align-items:center;gap:12px;text-decoration:none;
-    }
-
-    .brand-mark{
-      width:42px;height:42px;border-radius:14px;border:1px solid rgba(20,36,51,.12);
-      background:
-        radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), rgba(255,255,255,.65) 45%, rgba(255,255,255,.2) 46%),
-        linear-gradient(140deg, var(--field), var(--accent));
-      position:relative;
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
-    }
-
-    .brand-mark::before,
-    .brand-mark::after{
-      content:"";
-      position:absolute;inset:10px;border-radius:50%;
-      border:2px solid color-mix(in srgb, var(--accent) 88%, transparent);
-      clip-path:inset(0 42% 0 42%);
-    }
-    .brand-mark::after{transform:rotate(90deg)}
-
-    .brand-copy strong{
-      display:block;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;
-    }
-    .brand-copy span{display:block;color:var(--muted);font-size:.78rem}
-
-    .nav{
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-    }
-    .nav a{
-      text-decoration:none;padding:10px 14px;border-radius:999px;color:var(--muted);
-      transition:background-color .14s ease,color .14s ease,transform .14s ease;
-    }
-    .nav a:hover,
-    .nav a:focus-visible{background:#fff;color:var(--ink);transform:translateY(-1px)}
-
-    .hero{padding:42px 0 24px}
-    .hero-grid{
-      display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:22px;
-      align-items:start;
-    }
-
-    .panel,
-    .hero-card,
-    .score-panel,
-    .diamond-card,
-    .controls-card,
-    .log-card,
-    .import-card{
-      background:linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.94));
-      border:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-    }
-
-    .panel,
-    .hero-card,
-    .score-panel,
-    .diamond-card,
-    .controls-card,
-    .log-card,
-    .import-card{
-      background:var(--theme-panel-overlay);
-    }
-
-    .hero-card,
-    .panel,
-    .score-panel,
-    .diamond-card,
-    .controls-card,
-    .log-card,
-    .import-card{padding:22px}
-
-    .eyebrow,
-    .section-kicker,
-    .meta-label,
-    .status-chip,
-    .mini-chip{
-      font-size:.72rem;
-      letter-spacing:.11em;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    h1{
-      margin-top:12px;
-      font-size:clamp(2.2rem,4vw,4rem);
-      line-height:.96;
-      letter-spacing:-.04em;
-      max-width:11ch;
-    }
-
-    .hero-card p{
-      margin-top:16px;
-      color:var(--muted);
-      max-width:56ch;
-    }
-
-    .hero-actions{
-      display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;
-    }
-
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:10px;
-      min-height:44px;padding:0 16px;border-radius:999px;border:1px solid transparent;
-      text-decoration:none;cursor:pointer;font-weight:700;
-      transition:transform .14s ease,background-color .14s ease,border-color .14s ease,color .14s ease;
-    }
-    .btn:hover,
-    .btn:focus-visible{transform:translateY(-1px)}
-    .btn-primary{background:var(--accent);color:#fff}
-    .btn-primary:hover,
-    .btn-primary:focus-visible{background:var(--accent-strong)}
-    .btn-secondary{background:#fff;border-color:rgba(19,38,58,.12);color:var(--ink)}
-    .btn-secondary:hover,
-    .btn-secondary:focus-visible{border-color:rgba(19,38,58,.22)}
-    .btn-danger{background:#fff3f1;border-color:rgba(183,64,50,.2);color:var(--danger)}
-
-    .hero-metrics{
-      margin-top:24px;
-      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
-    }
-    .metric{
-      padding:14px 16px;border-radius:16px;background:#fff;border:1px solid rgba(19,38,58,.08);
-    }
-    .metric strong{display:block;font-size:1.35rem}
-    .metric span{display:block;color:var(--muted);font-size:.88rem}
-
-    .import-card{display:grid;gap:14px}
-    .import-card p{color:var(--muted)}
-    .import-meta{display:flex;flex-wrap:wrap;gap:8px}
-    .mini-chip{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:6px 10px;border-radius:999px;
-      background:rgba(19,38,58,.05);
-      border:1px solid rgba(19,38,58,.08);
-      letter-spacing:.08em;
-    }
-    .status-chip{
-      display:inline-flex;align-items:center;gap:6px;
-      min-height:34px;padding:0 12px;border-radius:999px;
-      background:#fff;border:1px solid rgba(19,38,58,.08);
-      color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.04em;
-    }
-    .status-chip.is-success{
-      border-color:color-mix(in srgb, var(--field) 24%, transparent);
-      color:var(--field);
-    }
-    .status-chip.is-error{
-      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
-      color:var(--danger);
-    }
-
-    .layout{
-      display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.9fr);gap:18px;
-      padding:6px 0 28px;
-      align-items:start;
-    }
-
-    .stack{display:grid;gap:18px}
-
-    .panel-head{
-      display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px;
-    }
-    .panel-head p{color:var(--muted)}
-
-    .setup-grid{
-      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
-    }
-
-    label{
-      display:grid;gap:6px;
-      font-size:.9rem;
-      color:var(--ink);
-    }
-
-    input,select,textarea{
-      width:100%;
-      min-height:44px;
-      padding:10px 14px;
-      border-radius:12px;
-      border:1px solid rgba(19,38,58,.14);
-      background:#fff;
-      color:var(--ink);
-    }
-
-    .setup-actions,
-    .toolbar,
-    .event-grid{
-      display:flex;flex-wrap:wrap;gap:10px;
-    }
-
-    .setup-actions{margin-top:14px}
-    .toolbar{margin-top:14px}
-
-    .games-list,
-    .lineup-list{
-      display:grid;
-      gap:10px;
-    }
-
-    .library-controls{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 220px;
-      gap:12px;
-      margin:14px 0 10px;
-    }
-
-    .library-results{
-      margin-bottom:10px;
-      color:var(--muted);
-      font-size:.9rem;
-    }
-
-    .game-item{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      gap:10px;
-      align-items:stretch;
-    }
-
-    .game-main{
-      width:100%;
-      text-align:left;
-      padding:14px 16px;
-      border-radius:16px;
-      border:1px solid rgba(19,38,58,.1);
-      background:#fff;
-      color:var(--ink);
-      cursor:pointer;
-      transition:transform .14s ease,border-color .14s ease,background-color .14s ease;
-    }
-
-    .game-main:hover,
-    .game-main:focus-visible{
-      transform:translateY(-1px);
-      border-color:color-mix(in srgb, var(--ink) 22%, transparent);
-      background:#fffdfa;
-    }
-
-    .game-item.is-active .game-main{
-      border-color:color-mix(in srgb, var(--accent) 32%, transparent);
-      box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
-    }
-
-    .game-main strong{
-      display:block;
-      font-size:1rem;
-    }
-
-    .game-main span{
-      display:block;
-      color:var(--muted);
-      font-size:.88rem;
-      margin-top:6px;
-    }
-
-    .lineup-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:14px;
-    }
-
-    .lineup-card{
-      padding:16px;
-      border-radius:16px;
-      border:1px solid rgba(19,38,58,.08);
-      background:#fff;
-    }
-
-    .lineup-card h3{
-      margin-top:6px;
-      font-size:1.1rem;
-    }
-
-    .lineup-row{
-      display:grid;
-      grid-template-columns:38px minmax(0,1fr);
-      gap:10px;
-      align-items:center;
-    }
-
-    .lineup-row span{
-      min-height:44px;
-      display:grid;
-      place-items:center;
-      border-radius:12px;
-      border:1px solid rgba(19,38,58,.1);
-      background:#f7f0e6;
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    .notes-field{
-      margin-top:14px;
-    }
-
-    textarea{
-      min-height:120px;
-      resize:vertical;
-    }
-
-    .quick-grid{
-      display:grid;
-      gap:12px;
-    }
-
-    .quick-note{
-      padding:14px 16px;
-      border-radius:16px;
-      background:#f7f0e6;
-      border:1px solid rgba(19,38,58,.08);
-      color:var(--muted);
-    }
-
-    .reference-table{
-      width:100%;
-      border-collapse:collapse;
-      border:1px solid rgba(19,38,58,.08);
-      border-radius:16px;
-      overflow:hidden;
-      background:#fff;
-    }
-
-    .reference-table th,
-    .reference-table td{
-      text-align:left;
-      padding:10px 12px;
-      border-bottom:1px solid rgba(19,38,58,.08);
-      font-size:.92rem;
-    }
-
-    .reference-table tr:last-child td{
-      border-bottom:none;
-    }
-
-    .score-table-scroll{
-      width:100%;
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      border-radius:16px;
-      margin-bottom:14px;
-      background:var(--panel-strong);
-    }
-
-    .score-table{
-      width:100%;
-      min-width:650px;
-      border-collapse:collapse;
-      font-variant-numeric:tabular-nums;
-      background:#fff;
-    }
-
-    .score-table th,
-    .score-table td{
-      padding:10px 8px;
-      border-bottom:1px solid rgba(19,38,58,.08);
-      text-align:center;
-      font-size:.92rem;
-    }
-    .score-table th:first-child,
-    .score-table td:first-child{
-      text-align:left;padding-left:14px;font-weight:700;
-    }
-    .score-table tr:last-child td{border-bottom:none}
-
-    .scorebook-shell{
-      display:grid;
-      gap:18px;
-      padding:20px;
-      border-radius:20px;
-      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      background:
-        linear-gradient(180deg, color-mix(in srgb, var(--panel) 78%, white 22%), color-mix(in srgb, var(--panel-strong) 86%, white 14%));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
-    }
-
-    .scorebook-header{
-      display:flex;
-      justify-content:space-between;
-      gap:14px;
-      align-items:flex-start;
-    }
-
-    .scorebook-header h3{
-      margin-top:4px;
-      font-size:1.4rem;
-      line-height:1.05;
-    }
-
-    .scorebook-meta{
-      display:grid;
-      gap:6px;
-      justify-items:end;
-      color:var(--muted);
-      font-size:.84rem;
-      text-align:right;
-    }
-
-    .scorebook-outs-row{
-      display:flex;
-      flex-wrap:wrap;
-      align-items:center;
-      gap:10px;
-      padding:12px 14px;
-      border-radius:16px;
-      background:color-mix(in srgb, var(--panel) 72%, white 28%);
-      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
-    }
-
-    .scorebook-outs-label{
-      font-size:.72rem;
-      letter-spacing:.11em;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:700;
-    }
-
-    .scorebook-out-pip{
-      width:14px;
-      height:14px;
-      border-radius:999px;
-      border:1px solid color-mix(in srgb, var(--ink) 14%, transparent);
-      background:color-mix(in srgb, var(--panel) 70%, white 30%);
-      box-shadow:inset 0 1px 1px rgba(255,255,255,.5);
-    }
-
-    .scorebook-out-pip.is-on{
-      background:var(--accent);
-      border-color:color-mix(in srgb, var(--accent) 60%, black 10%);
-      box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
-    }
-
-    .scorebook-run-state{
-      display:inline-flex;
-      align-items:center;
-      min-height:34px;
-      padding:0 12px;
-      border-radius:999px;
-      background:#fff;
-      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
-      color:var(--ink);
-      font-size:.86rem;
-      font-weight:700;
-    }
-
-    .scorebook-grid-area{
-      display:grid;
-      grid-template-columns:220px minmax(0,1fr) 110px;
-      gap:0;
-      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      border-radius:18px;
-      overflow:hidden;
-      background:#fff;
-    }
-
-    .scorebook-lineup-col,
-    .scorebook-totals-col{
-      background:color-mix(in srgb, var(--panel) 82%, white 18%);
-    }
-
-    .scorebook-grid-head,
-    .scorebook-inning-head{
-      min-height:44px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 12px;
-      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      font-size:.72rem;
-      letter-spacing:.11em;
-      text-transform:uppercase;
-      color:var(--muted);
-      font-weight:700;
-      background:color-mix(in srgb, var(--panel) 76%, white 24%);
-    }
-
-    .scorebook-lineup-row,
-    .scorebook-totals-row{
-      min-height:56px;
-      display:grid;
-      align-items:center;
-      padding:10px 12px;
-      border-bottom:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-    }
-
-    .scorebook-lineup-row:last-child,
-    .scorebook-totals-row:last-child{
-      border-bottom:none;
-    }
-
-    .scorebook-lineup-row{
-      grid-template-columns:32px minmax(0,1fr);
-      gap:12px;
-    }
-
-    .scorebook-lineup-row.is-active,
-    .scorebook-totals-row.is-active{
-      background:color-mix(in srgb, var(--accent) 8%, white 92%);
-    }
-
-    .scorebook-slot{
-      width:32px;
-      height:32px;
-      display:grid;
-      place-items:center;
-      border-radius:10px;
-      background:#fff;
-      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      color:var(--muted);
-      font-size:.8rem;
-      font-weight:800;
-    }
-
-    .scorebook-batter-name{
-      display:grid;
-      gap:3px;
-    }
-
-    .scorebook-batter-name strong{
-      font-size:.92rem;
-      line-height:1.15;
-    }
-
-    .scorebook-batter-name span{
-      font-size:.74rem;
-      color:var(--muted);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-    }
-
-    .scorebook-innings-area{
-      display:grid;
-      grid-auto-flow:column;
-      grid-auto-columns:minmax(64px,1fr);
-      overflow-x:auto;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.96)),
-        linear-gradient(180deg, color-mix(in srgb, var(--field) 8%, transparent), transparent 35%);
-    }
-
-    .scorebook-inning-col{
-      display:grid;
-      grid-template-rows:44px repeat(9, 56px);
-      min-width:64px;
-      border-right:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
-    }
-
-    .scorebook-inning-col.is-live .scorebook-inning-head{
-      background:color-mix(in srgb, var(--accent) 10%, white 90%);
-      color:var(--accent-strong);
-    }
-
-    .scorebook-inning-col:last-child{
-      border-right:none;
-    }
-
-    .scorebook-cell{
-      position:relative;
-      display:grid;
-      place-items:center;
-      min-height:56px;
-      border-bottom:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,247,241,.92));
-    }
-
-    .scorebook-cell.is-active{
-      background:
-        linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, white 92%), color-mix(in srgb, var(--accent) 4%, white 96%));
-    }
-
-    .scorebook-cell:last-child{
-      border-bottom:none;
-    }
-
-    .scorebook-mark{
-      position:relative;
-      width:34px;
-      height:34px;
-      display:grid;
-      place-items:center;
-    }
-
-    .scorebook-mark::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      transform:rotate(45deg);
-      border-radius:8px;
-      border:1px solid color-mix(in srgb, var(--ink) 18%, transparent);
-      background:color-mix(in srgb, var(--panel) 64%, white 36%);
-    }
-
-    .scorebook-mark.is-hit::before{
-      background:color-mix(in srgb, var(--field) 18%, white 82%);
-      border-color:color-mix(in srgb, var(--field) 34%, transparent);
-    }
-
-    .scorebook-mark.is-out::before{
-      background:color-mix(in srgb, var(--danger) 12%, white 88%);
-      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
-    }
-
-    .scorebook-mark.is-error::before{
-      background:color-mix(in srgb, var(--sun) 24%, white 76%);
-      border-color:color-mix(in srgb, var(--sun) 34%, transparent);
-    }
-
-    .scorebook-cell-stack{
-      position:relative;
-      z-index:1;
-      display:grid;
-      justify-items:center;
-      gap:2px;
-    }
-
-    .scorebook-cell-code{
-      font-size:.7rem;
-      font-weight:800;
-      letter-spacing:.03em;
-      color:var(--ink);
-    }
-
-    .scorebook-cell-note{
-      font-size:.62rem;
-      color:var(--muted);
-      font-weight:700;
-      min-height:1em;
-    }
-
-    .scorebook-empty{
-      width:22px;
-      height:22px;
-      border-radius:6px;
-      border:1px dashed color-mix(in srgb, var(--ink) 12%, transparent);
-      background:color-mix(in srgb, var(--panel) 70%, white 30%);
-    }
-
-    .scorebook-totals-row{
-      gap:2px;
-      justify-items:center;
-      text-align:center;
-    }
-
-    .scorebook-totals-row strong{
-      font-size:.92rem;
-    }
-
-    .scorebook-totals-row span{
-      font-size:.72rem;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:var(--muted);
-    }
-
-    .scorebook-footer{
-      display:grid;
-      grid-template-columns:220px minmax(0,1fr);
-      gap:16px;
-      align-items:start;
-    }
-
-    .scorebook-diamond-wrap{
-      padding:16px;
-      border-radius:18px;
-      background:color-mix(in srgb, var(--panel) 74%, white 26%);
-      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
-      display:grid;
-      justify-items:center;
-      gap:14px;
-    }
-
-    .scorebook-diamond{
-      width:190px;
-      height:190px;
-      position:relative;
-      transform:rotate(45deg);
-      background:linear-gradient(135deg, color-mix(in srgb, var(--field) 18%, white 82%), color-mix(in srgb, var(--field) 6%, white 94%));
-      border:1px solid color-mix(in srgb, var(--field) 28%, transparent);
-      border-radius:24px;
-    }
-
-    .status-row{
-      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px;
-    }
-    .status-box{
-      padding:14px;border-radius:14px;background:#fff;border:1px solid rgba(19,38,58,.08);
-    }
-    .status-box strong{display:block;font-size:1.3rem}
-
-    .diamond-wrap{
-      display:grid;justify-items:center;gap:18px;
-    }
-
-    .diamond{
-      width:160px;height:160px;position:relative;
-      transform:rotate(45deg);
-      background:linear-gradient(135deg, rgba(39,84,63,.12), rgba(39,84,63,.04));
-      border:1px solid rgba(39,84,63,.2);
-      border-radius:18px;
-    }
-
-    .base{
-      position:absolute;width:32px;height:32px;border-radius:8px;
-      background:#fff;border:1px solid rgba(19,38,58,.18);
-      transform:translate(-50%,-50%);
-      display:grid;place-items:center;
-      font-size:.8rem;font-weight:800;color:var(--muted);
-    }
-
-    .base.is-hot{
-      background:var(--warn);
-      border-color:var(--warn);
-      color:#fff;
-    }
-
-    .base.first{left:100%;top:50%}
-    .base.second{left:50%;top:0}
-    .base.third{left:0;top:50%}
-    .base.home{left:50%;top:100%}
-    .diamond-label{
-      transform:none;
-      color:var(--muted);
-      text-align:center;
-      font-size:.95rem;
-    }
-
-    .event-grid{
-      display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
-      gap:10px;
-    }
-
-    .event-btn{
-      min-height:54px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(19,38,58,.12);
-      background:#fff;
-      color:var(--ink);
-      cursor:pointer;
-      font-weight:700;
-      transition:transform .14s ease,border-color .14s ease,background-color .14s ease;
-    }
-    .event-btn:hover,
-    .event-btn:focus-visible{
-      transform:translateY(-1px);
-      border-color:rgba(19,38,58,.24);
-      background:#fffdfa;
-    }
-
-    .event-btn.is-out{background:#f4ebe7}
-    .event-btn.is-special{background:#eef6f1}
-
-    .event-toolbar{
-      align-items:center;
-      justify-content:space-between;
-    }
-
-    .mini-chip.is-live{
-      border-color:color-mix(in srgb, var(--accent) 24%, transparent);
-      box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
-      color:var(--accent-strong);
-    }
-
-    .log-list{
-      display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px;
-    }
-    .play-row{
-      padding:14px;border-radius:14px;background:#fff;border:1px solid rgba(19,38,58,.08);
-      display:grid;gap:8px;
-    }
-    .play-top{
-      display:flex;justify-content:space-between;gap:12px;align-items:start;
-    }
-    .play-actions{
-      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-    }
-    .play-edit-btn{
-      min-height:34px;
-      padding:0 10px;
-      border-radius:999px;
-      border:1px solid color-mix(in srgb, var(--ink) 12%, transparent);
-      background:#fff;
-      color:var(--ink);
-      cursor:pointer;
-      font:inherit;
-      font-size:.82rem;
-      font-weight:700;
-    }
-    .play-edit-btn.is-active{
-      border-color:color-mix(in srgb, var(--accent) 28%, transparent);
-      color:var(--accent-strong);
-    }
-    .play-top strong{font-size:1rem}
-    .play-row p{color:var(--muted);font-size:.92rem}
-
-    .empty{
-      padding:18px;border-radius:14px;background:#fff;border:1px dashed rgba(19,38,58,.16);
-      color:var(--muted);
-    }
-
-    .footer{
-      padding:14px 0 40px;color:var(--muted);font-size:.92rem;
-    }
-    .footer-bar{
-      border-top:1px solid rgba(19,38,58,.08);
-      padding-top:16px;
-      display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
-    }
-
-    .toast{
-      position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
-      width:min(calc(100% - 28px), 560px);
-      display:flex;justify-content:space-between;align-items:center;gap:14px;
-      padding:14px 16px;border-radius:16px;background:var(--panel-strong);
-      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      box-shadow:var(--shadow);z-index:300;
-    }
-    .toast.is-success{border-color:color-mix(in srgb, var(--field) 24%, transparent)}
-    .toast.is-error{border-color:color-mix(in srgb, var(--danger) 28%, transparent)}
-    .toast.is-undo{border-color:color-mix(in srgb, var(--accent) 24%, transparent)}
-    .toast-copy{color:var(--ink);font-size:.94rem}
-    .toast-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .toast-action,
-    .toast-close{
-      min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(19,38,58,.08);
-      background:#fff;color:var(--ink);cursor:pointer;font:inherit;font-weight:700;
-    }
-
-    kbd{
-      display:inline-flex;align-items:center;justify-content:center;
-      min-width:1.45em;height:1.45em;padding:0 .34em;
-      border-radius:8px;border:1px solid rgba(19,38,58,.12);
-      background:#fff;font-size:.74em;font-weight:700;
-    }
-
-    :focus-visible{
-      outline:3px solid color-mix(in srgb, var(--accent) 72%, white 8%);
-      outline-offset:3px;
-    }
-
-    @media (max-width: 980px){
-      .hero-grid,
-      .layout{grid-template-columns:1fr}
-      .hero-metrics,
-      .status-row{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .event-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .scorebook-grid-area,
-      .scorebook-footer{grid-template-columns:1fr}
-      .scorebook-lineup-col,
-      .scorebook-totals-col{
-        display:none;
-      }
-    }
-
-    @media (max-width: 720px){
-      .topbar{flex-direction:column;align-items:flex-start}
-      .nav{width:100%}
-      .hero{padding-top:34px}
-      .hero-metrics,
-      .status-row,
-      .setup-grid,
-      .lineup-grid,
-      .event-grid,
-      .library-controls{grid-template-columns:1fr}
-      .panel,
-      .hero-card,
-      .score-panel,
-      .diamond-card,
-      .controls-card,
-      .log-card,
-      .import-card{padding:18px}
-      h1{max-width:12ch}
-      .scorebook-shell{padding:16px}
-      .scorebook-header{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-      .scorebook-meta{
-        justify-items:start;
-        text-align:left;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      html{scroll-behavior:auto}
-      *,
-      *::before,
-      *::after{transition:none !important}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB Ballparks Quest · Scorekeeper</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F38">
+<style>
+/* ═══════════════════════════════════════════
+   SCOREKEEPER · CENTERPIECE LAYOUT
+   The grid is the hero. Everything serves it.
+═══════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/playfair-display-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/playfair-display-italic-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/dm-mono-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/dm-mono-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('fonts/dm-sans-300.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/dm-sans-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/dm-sans-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Special Elite';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/special-elite-400.woff2') format('woff2');
+}
+
+:root {
+  /* Page */
+  --bg:            #F5EDD8;
+  --bg-mid:        #FBF6E9;
+
+  /* Scorecard */
+  --sc-cream:      #FBF6E9;
+  --sc-pebble:     #F0E8D4;
+  --sc-line:       #C9BA9B;
+  --sc-ink:        #1C1108;
+  --sc-ink-faded:  #6B5D44;
+  --sc-pencil:     #2A4A8A;
+  --sc-red:        #B03030;
+  --sc-gold:       #C8920A;
+
+  /* Team accent — overridden by theme switcher */
+  --team-primary:  #E81828;
+  --team-secondary:#002D72;
+
+  /* Cell */
+  --cell-size:     92px;
+  --lineup-w:      172px;
+  --totals-w:      58px;
+
+  /* Fonts */
+  --f-score:  'Special Elite', cursive;
+  --f-display:'Playfair Display', serif;
+  --f-mono:   'DM Mono', monospace;
+  --f-body:   'DM Sans', sans-serif;
+}
+
+/* ─── Theme accent overrides ──────────── */
+:root[data-theme="phillies"] { --team-primary:#E81828; --team-secondary:#002D72; --sc-gold:#C8920A; }
+:root[data-theme="yankees"]  { --team-primary:#132448; --team-secondary:#C9A24B; --sc-gold:#C9A24B; --sc-pencil:#132448; }
+:root[data-theme="dodgers"]  { --team-primary:#005A9C; --team-secondary:#EF3E42; --sc-gold:#D9A64A; --sc-pencil:#005A9C; }
+:root[data-theme="cubs"]     { --team-primary:#0E3386; --team-secondary:#CC3433; --sc-gold:#D4AD55; --sc-pencil:#0E3386; }
+:root[data-theme="mets"]     { --team-primary:#002D72; --team-secondary:#FF5910; --sc-gold:#D8AB4F; --sc-pencil:#002D72; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+
+body {
+  font-family: var(--f-body);
+  background: var(--bg);
+  color: var(--sc-ink);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Layout shell ──────────────────────── */
+/* desktop: [card | notes-panel]
+             [input-bar            ]
+   ipad:   [card full-width]
+             [input-drawer]
+             notes = slide-in
+   mobile: single column scroll
+*/
+
+.sk-nav {
+  background: rgba(15,31,56,0.98);
+  border-bottom: 1px solid rgba(200,168,100,0.24);
+  padding: 0 16px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 50;
+}
+
+.sk-nav-back {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.45);
+  text-decoration: none;
+  transition: color 140ms;
+}
+.sk-nav-back:hover { color: rgba(245,237,216,0.8); }
+
+.sk-nav-sep { color: rgba(245,237,216,0.2); font-size: 12px; }
+
+.sk-nav-title {
+  font-family: var(--f-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sc-cream);
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+
+.sk-nav-venue {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--sc-gold);
+  letter-spacing: 0.06em;
+}
+
+.sk-nav-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.sk-btn {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid rgba(200,168,100,0.2);
+  background: transparent;
+  color: rgba(245,237,216,0.55);
+  transition: all 140ms;
+}
+.sk-btn:hover { color: var(--sc-cream); border-color: rgba(200,168,100,0.4); background: rgba(255,255,255,0.04); }
+.sk-btn-amber {
+  border-color: rgba(200,146,10,0.32);
+  color: rgba(240,184,67,0.88);
+  background: rgba(200,146,10,0.08);
+}
+.sk-btn-amber:hover {
+  border-color: rgba(240,184,67,0.5);
+  background: rgba(200,146,10,0.14);
+}
+.sk-btn-green {
+  border-color: rgba(46,125,82,0.38);
+  color: #8ACA8A;
+  background: rgba(46,125,82,0.1);
+}
+.sk-btn-green:hover {
+  border-color: rgba(138,202,138,0.55);
+  background: rgba(46,125,82,0.16);
+}
+.sk-btn-red {
+  border-color: rgba(184,48,48,0.36);
+  color: #E08080;
+  background: rgba(176,48,48,0.09);
+}
+.sk-btn-red:hover { color: #F1A4A4; border-color: #B03030; background: rgba(176,48,48,0.16); }
+
+/* ─── Main area ─────────────────────────── */
+.sk-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── Scorecard column ──────────────────── */
+.sk-card-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sk-story-shell {
+  padding: 18px 18px 0;
+}
+
+.sk-story-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 240px;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid rgba(200,168,100,0.16);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,252,243,0.88), rgba(240,232,212,0.74));
+}
+
+.sk-story-card[hidden] {
+  display: none;
+}
+
+.sk-story-media {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 240px;
+  aspect-ratio: 16 / 9;
+  background:
+    linear-gradient(180deg, rgba(15,31,56,0.18), rgba(15,31,56,0.5)),
+    radial-gradient(circle at 15% 18%, rgba(240,184,67,0.22), transparent 28%),
+    linear-gradient(135deg, rgba(15,31,56,0.88), rgba(28,26,20,0.96));
+}
+
+.sk-story-video,
+.sk-story-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sk-story-video {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.sk-story-poster {
+  z-index: 0;
+}
+
+.sk-story-media.has-video .sk-story-video {
+  opacity: 1;
+}
+
+.sk-story-media.has-video .sk-story-poster {
+  opacity: 0;
+}
+
+.sk-story-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  padding: 18px;
+  background: linear-gradient(180deg, transparent, rgba(15,31,56,0.88));
+}
+
+.sk-story-kicker {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240,184,67,0.78);
+  margin-bottom: 8px;
+}
+
+.sk-story-title {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 700;
+  color: var(--sc-cream);
+  line-height: 1.08;
+}
+
+.sk-story-caption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: rgba(245,237,216,0.78);
+  max-width: 42ch;
+}
+
+.sk-story-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sk-story-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.sk-story-meta-row {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(200,168,100,0.12);
+}
+
+.sk-story-meta-label {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200,168,100,0.58);
+  margin-bottom: 4px;
+}
+
+.sk-story-meta-value {
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--sc-ink);
+}
+
+.sk-story-fallback {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255,252,243,0.78);
+  border: 1px solid rgba(200,168,100,0.22);
+}
+
+.sk-story-fallback-title {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(240,184,67,0.76);
+  margin-bottom: 6px;
+}
+
+.sk-story-fallback-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--sc-ink-faded);
+}
+
+/* ─── Notes panel ───────────────────────── */
+.sk-notes-panel {
+  width: 220px;
+  flex-shrink: 0;
+  background: #F2E8D2;
+  border-left: 1px solid rgba(200,168,100,0.24);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sk-notes-header {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(200,168,100,0.1);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(28,17,8,0.58);
+}
+
+.sk-notes-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-note-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sk-note-inning {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: rgba(28,17,8,0.56);
+}
+
+.sk-note-text {
+  font-family: var(--f-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sc-ink);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.sk-note-text.red { color: #E05050; }
+.sk-note-text.gold { color: var(--sc-gold); }
+
+.sk-notes-input-area {
+  padding: 10px 14px;
+  border-top: 1px solid rgba(200,168,100,0.18);
+  display: flex;
+  gap: 6px;
+}
+
+.sk-notes-input {
+  flex: 1;
+  background: rgba(255,252,243,0.9);
+  border: 1px solid rgba(200,168,100,0.22);
+  border-radius: 4px;
+  color: var(--sc-ink);
+  font-family: var(--f-mono);
+  font-size: 10px;
+  padding: 6px 8px;
+  outline: none;
+}
+
+.sk-notes-input:focus { border-color: rgba(200,168,100,0.35); }
+.sk-notes-input::placeholder { color: rgba(107,93,68,0.55); }
+
+/* ─── Linescore strip ───────────────────── */
+.sk-linescore-wrap {
+  background: var(--bg-mid);
+  border-bottom: 2px solid rgba(200,168,100,0.22);
+  padding: 0 8px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.sk-linescore {
+  border-collapse: collapse;
+  min-width: 100%;
+}
+
+.sk-linescore th, .sk-linescore td {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-align: center;
+  padding: 6px 8px;
+  border-right: 1px solid rgba(200,168,100,0.1);
+  min-width: 28px;
+  white-space: nowrap;
+}
+
+.sk-linescore th:last-child, .sk-linescore td:last-child { border-right: none; }
+
+.sk-linescore thead th {
+  color: rgba(107,93,68,0.82);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  border-bottom: 1px solid rgba(200,168,100,0.1);
+}
+
+.sk-linescore .ls-team {
+  text-align: left;
+  padding-left: 8px;
+  font-family: var(--f-display);
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 90px;
+  border-right: 1px solid rgba(200,168,100,0.2) !important;
+}
+.ls-team-logo {
+  width: 18px; height: 18px;
+  vertical-align: middle;
+  margin-right: 4px;
+  border-radius: 2px;
+}
+
+.sk-linescore .ls-rhe {
+  border-left: 1px solid rgba(200,168,100,0.2) !important;
+  font-weight: 500;
+}
+
+.ls-away-row td { color: #2A4A8A; }
+.ls-home-row td { color: var(--sc-ink); }
+.ls-away-row .ls-team,
+.ls-home-row .ls-team { color: var(--sc-ink); }
+
+/* ─── Outs + status bar ─────────────────── */
+.sk-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: rgba(255,252,243,0.82);
+  border-bottom: 1px solid rgba(200,168,100,0.16);
+  flex-shrink: 0;
+}
+
+.sk-outs-label {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.72);
+}
+
+.sk-out-pip {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(200,168,100,0.35);
+  background: transparent;
+  transition: background 140ms, border-color 140ms;
+}
+
+.sk-out-pip.filled {
+  background: var(--team-primary);
+  border-color: var(--team-primary);
+}
+
+.sk-batter-info {
+  margin-left: 8px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: #7EB4E0;
+  letter-spacing: 0.06em;
+}
+
+.sk-inning-info {
+  margin-left: auto;
+  font-family: var(--f-display);
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(200,168,100,0.6);
+}
+
+.sk-side-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 3px;
+  border: 1px solid rgba(200,168,100,0.22);
+  border-radius: 999px;
+  background: rgba(15,31,56,0.05);
+}
+
+.sk-side-tab {
+  border: none;
+  background: transparent;
+  color: rgba(28,17,8,0.72);
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 120ms, color 120ms, box-shadow 120ms;
+}
+
+.sk-side-tab:hover {
+  color: var(--sc-ink);
+}
+
+.sk-side-tab.is-viewing {
+  background: rgba(15,31,56,0.1);
+  color: var(--sc-ink);
+}
+
+.sk-side-tab.is-batting {
+  background: rgba(42,74,138,0.34);
+  box-shadow: inset 0 0 0 1px rgba(126,180,224,0.68);
+  color: #D8E8F8;
+}
+
+.sk-view-info {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.7);
+  margin-left: 4px;
+}
+
+/* ─── Diamond grid ──────────────────────── */
+.sk-grid-scroll {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.sk-grid-wrap {
+  display: flex;
+  min-width: max-content;
+}
+
+/* Lineup spine */
+.sk-lineup-col {
+  flex-shrink: 0;
+  width: var(--lineup-w);
+  border-right: 2px solid rgba(200,168,100,0.25);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: #F4E9D0;
+}
+
+.sk-lineup-head {
+  height: 30px;
+  background: #EFE3C7;
+  border-bottom: 2px solid rgba(200,168,100,0.25);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.76);
+}
+
+.sk-lineup-cell {
+  height: var(--cell-size);
+  border-bottom: 1px solid rgba(200,168,100,0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 10px;
+  gap: 8px;
+  transition: background 140ms;
+}
+
+.sk-lineup-cell.active-batter {
+  background: rgba(42,74,138,0.1);
+}
+
+.sk-bat-num {
+  font-family: var(--f-score);
+  font-size: 16px;
+  color: rgba(200,168,100,0.25);
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.sk-bat-pos {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  color: rgba(200,168,100,0.4);
+  border: 1px solid rgba(200,168,100,0.2);
+  border-radius: 2px;
+  padding: 1px 4px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sk-bat-name {
+  font-family: var(--f-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sc-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+/* Inning columns */
+.sk-innings-area {
+  display: flex;
+}
+
+.sk-inning-col {
+  flex-shrink: 0;
+  border-right: 1px solid rgba(200,168,100,0.08);
+}
+
+.sk-inning-col.break-3, .sk-inning-col.break-6 {
+  border-right: 1px solid rgba(200,168,100,0.2);
+}
+
+.sk-inning-head {
+  height: 30px;
+  background: #EFE3C7;
+  border-bottom: 2px solid rgba(200,168,100,0.25);
+  width: var(--cell-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-score);
+  font-size: 14px;
+  color: rgba(107,93,68,0.88);
+}
+
+/* ─── THE DIAMOND CELL ──────────────────── */
+.sk-diamond-cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-bottom: 1px solid rgba(200,168,100,0.08);
+  position: relative;
+  cursor: pointer;
+  transition: background 100ms;
+}
+
+.sk-diamond-cell:hover { background: rgba(42,74,138,0.05); }
+.sk-diamond-cell.active-cell { background: rgba(42,74,138,0.1); }
+
+.sk-diamond-cell svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Corner annotations */
+.cell-out-circle {
+  position: absolute;
+  top: 4px; right: 5px;
+  font-family: var(--f-mono);
+  font-size: 8px;
+  width: 13px; height: 13px;
+  border: 1px solid rgba(200,168,100,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(200,168,100,0.5);
+  line-height: 1;
+}
+
+.cell-out-circle.filled {
+  background: rgba(200,168,100,0.6);
+  color: #1C1A14;
+  border-color: transparent;
+}
+
+.cell-code-label {
+  position: absolute;
+  top: 4px; left: 4px;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.cell-count-dots {
+  position: absolute;
+  bottom: 3px; left: 4px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.count-dot-row { display: flex; gap: 2px; }
+
+.count-dot {
+  width: 3px; height: 3px;
+  border-radius: 50%;
+}
+
+.count-dot.ball   { background: #7EB4E0; opacity: 0.7; }
+.count-dot.strike { background: #E05050; opacity: 0.7; }
+
+/* Totals column */
+.sk-totals-col {
+  flex-shrink: 0;
+  width: var(--totals-w);
+  border-left: 2px solid rgba(200,168,100,0.25);
+  position: sticky;
+  right: 0;
+  background: #F4E9D0;
+  z-index: 10;
+}
+
+.sk-totals-head {
+  height: 30px;
+  background: #EFE3C7;
+  border-bottom: 2px solid rgba(200,168,100,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.76);
+}
+
+.sk-totals-cell {
+  height: var(--cell-size);
+  border-bottom: 1px solid rgba(200,168,100,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.totals-ab {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: rgba(200,168,100,0.4);
+}
+
+.totals-h {
+  font-family: var(--f-score);
+  font-size: 18px;
+  color: var(--sc-ink);
+}
+
+/* ─── Input bar (desktop bottom) ────────── */
+.sk-input-bar {
+  background: #F2E8D2;
+  border-top: 2px solid rgba(200,168,100,0.22);
+  padding: 10px 14px;
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.sk-input-section { display: flex; flex-direction: column; gap: 5px; }
+
+.sk-input-label {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.76);
+}
+
+.sk-chip-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sk-chip {
+  font-family: var(--f-score);
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 3px;
+  border: 1px solid rgba(200,168,100,0.15);
+  background: rgba(15,31,56,0.04);
+  color: rgba(28,17,8,0.86);
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.sk-chip:hover { border-color: rgba(200,168,100,0.4); color: var(--sc-ink); background: rgba(15,31,56,0.08); }
+.sk-chip.selected { background: rgba(42,74,138,0.48); border-color: #7EB4E0; color: #D8E8F8; }
+.sk-chip.hit-chip:hover, .sk-chip.hit-chip.selected { border-color: #4B8750; background: rgba(40,90,40,0.28); color: #A6E0AA; }
+.sk-chip.err-chip:hover, .sk-chip.err-chip.selected { border-color: var(--sc-red); background: rgba(176,48,48,0.22); color: #F1A4A4; }
+
+.sk-code-input {
+  background: rgba(255,252,243,0.9);
+  border: 1px solid rgba(200,168,100,0.18);
+  border-radius: 4px;
+  color: var(--sc-ink);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  padding: 7px 10px;
+  width: 90px;
+  outline: none;
+  letter-spacing: 0.06em;
+}
+
+.sk-code-input:focus { border-color: rgba(200,168,100,0.45); }
+.sk-code-input::placeholder { color: rgba(107,93,68,0.52); }
+
+.sk-count-input {
+  width: 58px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(200,168,100,0.18);
+  border-radius: 4px;
+  color: var(--sc-ink);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  padding: 7px 8px;
+  outline: none;
+}
+.sk-count-input:focus { border-color: rgba(200,168,100,0.45); }
+.sk-count-input::placeholder { color: rgba(107,93,68,0.52); }
+
+.sk-log-btn {
+  background: rgba(200,48,42,0.82);
+  border: 1px solid rgba(241,164,164,0.28);
+  border-radius: 4px;
+  color: #FCEAE8;
+  font-family: var(--f-score);
+  font-size: 13px;
+  padding: 8px 18px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 120ms;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+.sk-log-btn:hover { background: rgba(212,59,49,0.92); border-color: rgba(241,164,164,0.44); }
+
+/* ─── iPad layout overrides ─────────────── */
+[data-layout="ipad"] .sk-notes-panel {
+  position: fixed;
+  right: -220px;
+  top: 48px;
+  bottom: 0;
+  z-index: 40;
+  transition: right 300ms cubic-bezier(0.25,0.46,0.45,0.94);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+}
+
+[data-layout="ipad"] .sk-notes-panel.open { right: 0; }
+
+[data-layout="ipad"] .sk-card-col { flex: 1; }
+
+/* Pencil mode indicator */
+[data-input="pen"] .sk-nav-title::after {
+  content: ' · ✏';
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--sc-gold);
+  opacity: 0.7;
+}
+
+/* ─── Mobile (JS-driven layout attr) ──── */
+[data-layout="mobile"] body { overflow: auto; }
+[data-layout="mobile"] .sk-main { flex-direction: column; overflow: visible; }
+[data-layout="mobile"] .sk-notes-panel { width: 100%; border-left: none; border-top: 1px solid rgba(200,168,100,0.12); }
+[data-layout="mobile"] .sk-input-bar { flex-direction: column; }
+[data-layout="mobile"] .sk-chip-row { flex-wrap: wrap; }
+
+/* ─── Responsive fallbacks (CSS-only) ─── */
+@media (max-width: 1200px) {
+  :root { --cell-size: 84px; --lineup-w: 160px; --totals-w: 54px; }
+  .sk-notes-panel { width: 204px; }
+  .sk-story-card { grid-template-columns: 1fr 220px; }
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+  :root { --cell-size: 72px; --lineup-w: 140px; --totals-w: 48px; }
+  .sk-notes-panel { width: 240px; }
+}
+
+@media (max-width: 640px) {
+  :root { --cell-size: 56px; --lineup-w: 110px; --totals-w: 42px; }
+  body { overflow: auto; }
+  .sk-main { flex-direction: column; overflow: visible; }
+  .sk-notes-panel { width: 100%; border-left: none; border-top: 1px solid rgba(200,168,100,0.12); }
+  .sk-input-bar { flex-direction: column; gap: 6px; padding: 8px; }
+  .sk-chip-row { flex-wrap: wrap; }
+  .sk-nav { padding: 0 8px; gap: 6px; }
+  .sk-nav-actions { gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .sk-btn { font-size: 8px; padding: 4px 7px; }
+  .sk-story-shell { padding: 14px 14px 0; }
+  .sk-story-card { grid-template-columns: 1fr; gap: 14px; padding: 12px; }
+  .sk-story-media { min-height: 190px; }
+}
+
+/* ─── Pencil canvas overlay ─────────────── */
+.pencil-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+[data-input="pen"] .pencil-overlay {
+  pointer-events: auto;
+}
+
+/* ─── Theme switcher overrides for dark scorekeeper ── */
+.theme-switcher__trigger {
+  background: rgba(255,252,243,0.92);
+  color: var(--sc-ink);
+  border-color: rgba(200,168,100,0.28);
+  box-shadow: 0 10px 28px rgba(15,31,56,0.16);
+}
+.theme-switcher__panel {
+  background: #FBF6E9;
+  border-color: rgba(200,168,100,0.24);
+  box-shadow: 0 16px 40px rgba(15,31,56,0.14);
+}
+.theme-switcher__header { color: rgba(107,93,68,0.72); }
+.theme-switcher__option {
+  background: rgba(15,31,56,0.04);
+  border-color: rgba(200,168,100,0.18);
+  color: var(--sc-ink);
+}
+.theme-switcher__option[aria-pressed="true"] {
+  border-color: var(--sc-gold);
+  box-shadow: inset 0 0 0 1px rgba(200,146,10,0.25);
+}
+.theme-switcher__swatch { border-color: rgba(245,237,216,0.2); }
+
+</style>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
-    <div class="shell topbar">
-      <a class="brand" href="#top">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-copy">
-          <strong>MLB Ballparks Quest</strong>
-          <span>Scorekeeper · standalone local first game log</span>
-        </span>
-      </a>
-      <nav class="nav" aria-label="Primary">
-        <a href="index.html">Ballparks Quest</a>
-        <a href="#games">Games</a>
-        <a href="#lineup">Lineup</a>
-        <a href="#setup">Game setup</a>
-        <a href="#controls">Play input</a>
-        <a href="#log">Play log</a>
-      </nav>
-    </div>
-  </header>
 
-  <main id="main">
-    <section class="hero" id="top">
-      <div class="shell hero-grid">
-        <div class="hero-card">
-          <div class="eyebrow">Land • understand • log • review • export</div>
-          <h1>Score the game without breaking the Ballparks Quest workflow.</h1>
-          <p>This page stays lightweight, runs on its own, and pulls venue context from Ballparks Quest when you want it. Set lineups, log each plate appearance with one hand, let the score grid derive innings, and export a clean game record when the night is done.</p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="#controls">Start scoring</a>
-            <a class="btn btn-secondary" href="index.html">Back to tracker</a>
-          </div>
-          <div class="hero-metrics">
-            <div class="metric">
-              <strong id="heroGameStatus">Live</strong>
-              <span>current game state</span>
-            </div>
-            <div class="metric">
-              <strong id="heroVenueName">No import yet</strong>
-              <span>venue context</span>
-            </div>
-            <div class="metric">
-              <strong id="heroPlayCount">0</strong>
-              <span>logged plays</span>
-            </div>
+<!-- ═══ NAV ══════════════════════════════ -->
+<nav class="sk-nav">
+  <a href="index.html" class="sk-nav-back">← Quest</a>
+  <span class="sk-nav-sep">/</span>
+  <span class="sk-nav-title" id="sk-game-title">New Game</span>
+  <span class="sk-nav-venue" id="sk-venue-label"></span>
+  <div class="sk-nav-actions">
+    <button class="sk-btn" id="btn-setup">Setup</button>
+    <button class="sk-btn" id="btn-notes-toggle">Notes</button>
+    <button class="sk-btn sk-btn-amber" id="btn-undo">⌘Z Undo</button>
+    <button class="sk-btn sk-btn-green" id="btn-export">Export</button>
+    <button class="sk-btn sk-btn-red" id="btn-finish">Finish game</button>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ══════════════════════════════ -->
+<div class="sk-main">
+
+  <!-- Scorecard column -->
+  <div class="sk-card-col">
+
+    <section class="sk-story-shell">
+      <div class="sk-story-card" id="sk-story-card">
+        <div class="sk-story-media" id="sk-story-media">
+          <img class="sk-story-poster" src="icons/icon-512.png" alt="" aria-hidden="true">
+          <video
+            class="sk-story-video"
+            id="sk-story-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="icons/icon-512.png"
+          >
+            <source src="VIDEO-scoring-video-MLB-QUEST-v2.mp4" type="video/mp4">
+          </video>
+          <div class="sk-story-overlay">
+            <div class="sk-story-kicker">At the park</div>
+            <div class="sk-story-title">Keep the score where the trip pays off.</div>
+            <div class="sk-story-caption">When the game starts, this turns into the working card.</div>
           </div>
         </div>
-
-        <aside class="import-card" aria-labelledby="importTitle">
-          <div>
-            <div class="section-kicker">Tracker handoff</div>
-            <h2 id="importTitle">Selected park context from Ballparks Quest</h2>
+        <div class="sk-story-side">
+          <div class="sk-story-meta">
+            <div class="sk-story-meta-row">
+              <div class="sk-story-meta-label">Park</div>
+              <div class="sk-story-meta-value" id="sk-story-park">Waiting on the park</div>
+            </div>
+            <div class="sk-story-meta-row">
+              <div class="sk-story-meta-label">Matchup</div>
+              <div class="sk-story-meta-value" id="sk-story-matchup">Away at Home</div>
+            </div>
+            <div class="sk-story-meta-row">
+              <div class="sk-story-meta-label">Mode</div>
+              <div class="sk-story-meta-value">Starts as a cover. Clears once you log the game.</div>
+            </div>
           </div>
-          <p id="importSummary">No tracker import is active yet. Open a park in Ballparks Quest and use the scorekeeper handoff link.</p>
-          <div class="import-meta" id="importMeta"></div>
-          <div class="hero-actions">
-            <button class="btn btn-primary" type="button" id="useImportBtn">Use imported venue</button>
-            <button class="btn btn-secondary" type="button" id="refreshImportBtn">Pull latest import</button>
-            <button class="btn btn-secondary" type="button" id="clearImportBtn">Clear import</button>
+          <div class="sk-story-fallback" id="sk-story-fallback">
+            <div class="sk-story-fallback-title">Video slot</div>
+            <div class="sk-story-fallback-text">The scorekeeper cover falls back to the poster if `VIDEO-scoring-video-MLB-QUEST-v2.mp4` cannot load.</div>
           </div>
-        </aside>
-      </div>
-    </section>
-
-    <section id="games">
-      <div class="shell layout">
-        <div class="stack">
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Games</div>
-                <h2>Track each game in one local library</h2>
-              </div>
-              <p>Create a game, switch context fast, and keep the active score live.</p>
-            </div>
-            <div class="setup-actions">
-              <button class="btn btn-primary" type="button" id="addGameBtn">Create tracked game</button>
-            </div>
-            <div class="library-controls">
-              <label>
-                Search games
-                <input id="gameSearch" type="search" placeholder="Search games">
-              </label>
-              <label>
-                Sort
-                <select id="gameSort">
-                  <option value="recent">Recent first</option>
-                  <option value="oldest">Oldest first</option>
-                  <option value="alphabetical">A to Z</option>
-                  <option value="status">In progress first</option>
-                </select>
-              </label>
-            </div>
-            <div class="library-results" id="gameResultsCount">1 game</div>
-            <div class="games-list" id="gamesList"></div>
-          </section>
-
-          <section class="panel" id="setup">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Game setup</div>
-                <h2>Names, venue, and inning length</h2>
-              </div>
-              <p>All values save locally as you edit.</p>
-            </div>
-            <div class="setup-grid">
-              <label>
-                Away team
-                <input id="awayInput" type="text" value="Away">
-              </label>
-              <label>
-                Home team
-                <input id="homeInput" type="text" value="Home">
-              </label>
-              <label>
-                Venue
-                <input id="venueInput" type="text" value="">
-              </label>
-              <label>
-                Game title
-                <input id="gameTitleInput" type="text" value="" placeholder="Opening Day 2026">
-              </label>
-              <label>
-                Scheduled innings
-                <select id="inningsSelect">
-                  <option value="7">7</option>
-                  <option value="9" selected>9</option>
-                  <option value="12">12</option>
-                </select>
-              </label>
-            </div>
-            <label class="notes-field">
-              Game notes
-              <textarea id="notesInput" placeholder="Weather, lineup notes, pitching plan, or late game context"></textarea>
-            </label>
-            <div class="setup-actions">
-              <button class="btn btn-secondary" type="button" id="newGameBtn">New game</button>
-              <button class="btn btn-secondary" type="button" id="undoBtn">Undo last play <kbd>⌘Z</kbd></button>
-              <button class="btn btn-secondary" type="button" id="finalizeBtn">Toggle final</button>
-              <button class="btn btn-secondary" type="button" id="exportBtn">Export game JSON</button>
-              <button class="btn btn-secondary" type="button" id="exportNotesBtn">Export game notes</button>
-              <button class="btn btn-secondary" type="button" id="importBtn">Import game JSON</button>
-              <button class="btn btn-danger" type="button" id="resetBtn">Reset everything</button>
-              <span class="status-chip" id="saveStatusChip" aria-live="polite">Ready</span>
-              <input id="importFile" type="file" accept="application/json" hidden>
-            </div>
-          </section>
-
-          <section class="panel scorebook-panel" id="lineup">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Scorebook view</div>
-                <h2>A paper style scoring surface with your current game state underneath it.</h2>
-              </div>
-              <p>The line score, active batter card, runner state, and inning flow stay live as you log plays.</p>
-            </div>
-            <div class="scorebook-shell">
-              <div class="scorebook-header">
-                <div>
-                  <div class="section-kicker">Official score sheet</div>
-                  <h3 id="scoreboardTitle">Away at Home</h3>
-                </div>
-                <div class="scorebook-meta">
-                  <span id="scorebookDateMeta">Date pending</span>
-                  <span id="scorebookVenueMeta">Venue pending</span>
-                  <span id="scorebookStatusMeta">In progress</span>
-                </div>
-              </div>
-              <div class="score-table-scroll">
-                <table class="score-table" aria-label="Scoreboard" id="scoreTable"></table>
-              </div>
-              <div class="scorebook-outs-row">
-                <span class="scorebook-outs-label">Outs</span>
-                <span class="scorebook-out-pip" id="scoreOut1" aria-hidden="true"></span>
-                <span class="scorebook-out-pip" id="scoreOut2" aria-hidden="true"></span>
-                <span class="scorebook-out-pip" id="scoreOut3" aria-hidden="true"></span>
-                <span class="scorebook-run-state" id="scorebookBatterDisplay">Away batter 1</span>
-                <span class="scorebook-run-state" id="scorebookInningDisplay">Top 1</span>
-                <span class="scorebook-run-state" id="scorebookSideChip">Away card</span>
-                <span class="mini-chip" id="phaseChip">Top 1</span>
-              </div>
-              <div class="scorebook-grid-area">
-                <div class="scorebook-lineup-col">
-                  <div class="scorebook-grid-head"># Batter</div>
-                  <div id="scorebookLineup"></div>
-                </div>
-                <div class="scorebook-innings-area" id="scorebookInnings"></div>
-                <div class="scorebook-totals-col">
-                  <div class="scorebook-grid-head">AB · H</div>
-                  <div id="scorebookTotals"></div>
-                </div>
-              </div>
-              <div class="scorebook-footer">
-                <div class="scorebook-diamond-wrap">
-                  <div class="scorebook-diamond" aria-hidden="true">
-                    <div class="base first" id="baseFirst">1B</div>
-                    <div class="base second" id="baseSecond">2B</div>
-                    <div class="base third" id="baseThird">3B</div>
-                    <div class="base home">HP</div>
-                  </div>
-                  <div class="diamond-label" id="diamondSummary">Bases empty</div>
-                </div>
-                <div class="status-row">
-                  <div class="status-box">
-                    <div class="meta-label">Outs</div>
-                    <strong id="outsValue">0</strong>
-                  </div>
-                  <div class="status-box">
-                    <div class="meta-label">Current batter side</div>
-                    <strong id="battingSideValue">Away</strong>
-                  </div>
-                  <div class="status-box">
-                    <div class="meta-label">Plays logged</div>
-                    <strong id="playsValue">0</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="panel-head" style="margin-top:18px">
-              <div>
-                <div class="section-kicker">Lineup editor</div>
-                <h2>Lineups are optional. Empty slots appear as numbered placeholders.</h2>
-              </div>
-              <p>Each plate appearance advances the current side automatically.</p>
-            </div>
-            <div class="lineup-grid">
-              <section class="lineup-card" aria-labelledby="awayLineupTitle">
-                <div class="section-kicker">Away lineup</div>
-                <h3 id="awayLineupTitle">Away</h3>
-                <div class="lineup-list" id="awayLineupList"></div>
-              </section>
-              <section class="lineup-card" aria-labelledby="homeLineupTitle">
-                <div class="section-kicker">Home lineup</div>
-                <h3 id="homeLineupTitle">Home</h3>
-                <div class="lineup-list" id="homeLineupList"></div>
-              </section>
-            </div>
-          </section>
-        </div>
-
-        <div class="stack">
-          <section class="controls-card" id="controls">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Play input</div>
-                <h2>Log the next event</h2>
-              </div>
-              <p>One row per plate appearance. Quick mode works best for strikeouts and outs in play.</p>
-            </div>
-            <div class="event-grid" id="eventGrid"></div>
-            <div class="toolbar event-toolbar">
-              <div class="mini-chip" id="editModeChip">Append mode</div>
-              <button class="btn btn-secondary" type="button" id="cancelEditBtn" hidden>Cancel edit</button>
-            </div>
-            <div class="toolbar">
-              <div class="mini-chip" id="gameStatusChip">in progress</div>
-              <div class="mini-chip" id="venueChip">No venue assigned</div>
-              <div class="mini-chip" id="activeBatterChip">Up next · Away 1</div>
-              <div class="mini-chip" id="onDeckChip">On deck · Away 2</div>
-            </div>
-          </section>
-
-          <section class="panel" aria-labelledby="referenceTitle">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Quick reference</div>
-                <h2 id="referenceTitle">Event codes and fast scoring notes</h2>
-              </div>
-            </div>
-            <div class="quick-grid">
-              <div class="quick-note">Quick mode tip: for K and OUT outcomes, log directly without runner setup. Outs advance automatically.</div>
-              <table class="reference-table" aria-label="Event code reference">
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Meaning</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td>1B</td><td>Single</td></tr>
-                  <tr><td>2B</td><td>Double</td></tr>
-                  <tr><td>3B</td><td>Triple</td></tr>
-                  <tr><td>HR</td><td>Home run</td></tr>
-                  <tr><td>BB</td><td>Walk</td></tr>
-                  <tr><td>HBP</td><td>Hit by pitch</td></tr>
-                  <tr><td>K</td><td>Strikeout</td></tr>
-                  <tr><td>OUT</td><td>Out in play</td></tr>
-                  <tr><td>FC</td><td>Fielder's choice</td></tr>
-                  <tr><td>E</td><td>Reached on error</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
         </div>
       </div>
     </section>
 
-    <section id="log">
-      <div class="shell">
-        <section class="log-card">
-          <div class="panel-head">
-            <div>
-              <div class="section-kicker">Play log</div>
-              <h2>Every scoring event in order</h2>
-            </div>
-            <p>The log doubles as the audit trail for undo and JSON export.</p>
-          </div>
-          <div class="log-list" id="playLog"></div>
-        </section>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="shell footer-bar">
-      <div>Standalone scorekeeper. Works by opening the file directly or serving it from static hosting.</div>
-      <div><a href="#top">Back to top</a></div>
-    </div>
-  </footer>
-  <script src="theme-switcher.js" defer></script>
-  <script src="theme-switcher-ui.js" defer></script>
-
-  <script>
-    const IMPORT_KEY = "mlb_ballparks_scorekeeper_import_v1";
-    const SAVE_KEY = "mlb_ballparks_scorekeeper_state_v1";
-    const LINEUP_TIP_KEY = "mlb_scorekeeper_lineup_tip_v1";
-
-    const EVENTS = {
-      "1B": { label: "Single", outs: 0, style: "" },
-      "2B": { label: "Double", outs: 0, style: "" },
-      "3B": { label: "Triple", outs: 0, style: "" },
-      "HR": { label: "Home run", outs: 0, style: "is-special" },
-      "BB": { label: "Walk", outs: 0, style: "" },
-      "HBP": { label: "Hit by pitch", outs: 0, style: "" },
-      "K": { label: "Strikeout", outs: 1, style: "is-out" },
-      "OUT": { label: "Out", outs: 1, style: "is-out" },
-      "FO": { label: "Fly out", outs: 1, style: "is-out" },
-      "FC": { label: "Fielder's choice", outs: 1, style: "is-out" },
-      "DP": { label: "Double play", outs: 2, style: "is-out" },
-      "E": { label: "Error", outs: 0, style: "" },
-      "SAC": { label: "Sacrifice", outs: 1, style: "is-out" }
-    };
-
-    const EMPTY_BASES = { first: false, second: false, third: false };
-
-    const state = {
-      importPayload: null,
-      library: null,
-      game: null,
-      editingPlayIndex: null
-    };
-
-    const libraryState = {
-      search: "",
-      sort: "recent"
-    };
-
-    const els = {
-      addGameBtn: document.getElementById("addGameBtn"),
-      gamesList: document.getElementById("gamesList"),
-      awayInput: document.getElementById("awayInput"),
-      homeInput: document.getElementById("homeInput"),
-      venueInput: document.getElementById("venueInput"),
-      gameTitleInput: document.getElementById("gameTitleInput"),
-      inningsSelect: document.getElementById("inningsSelect"),
-      notesInput: document.getElementById("notesInput"),
-      newGameBtn: document.getElementById("newGameBtn"),
-      undoBtn: document.getElementById("undoBtn"),
-      finalizeBtn: document.getElementById("finalizeBtn"),
-      exportBtn: document.getElementById("exportBtn"),
-      exportNotesBtn: document.getElementById("exportNotesBtn"),
-      importBtn: document.getElementById("importBtn"),
-      resetBtn: document.getElementById("resetBtn"),
-      importFile: document.getElementById("importFile"),
-      awayLineupTitle: document.getElementById("awayLineupTitle"),
-      homeLineupTitle: document.getElementById("homeLineupTitle"),
-      awayLineupList: document.getElementById("awayLineupList"),
-      homeLineupList: document.getElementById("homeLineupList"),
-      useImportBtn: document.getElementById("useImportBtn"),
-      refreshImportBtn: document.getElementById("refreshImportBtn"),
-      clearImportBtn: document.getElementById("clearImportBtn"),
-      importSummary: document.getElementById("importSummary"),
-      importMeta: document.getElementById("importMeta"),
-      heroGameStatus: document.getElementById("heroGameStatus"),
-      heroVenueName: document.getElementById("heroVenueName"),
-      heroPlayCount: document.getElementById("heroPlayCount"),
-      scoreboardTitle: document.getElementById("scoreboardTitle"),
-      scorebookDateMeta: document.getElementById("scorebookDateMeta"),
-      scorebookVenueMeta: document.getElementById("scorebookVenueMeta"),
-      scorebookStatusMeta: document.getElementById("scorebookStatusMeta"),
-      scoreOut1: document.getElementById("scoreOut1"),
-      scoreOut2: document.getElementById("scoreOut2"),
-      scoreOut3: document.getElementById("scoreOut3"),
-      scorebookBatterDisplay: document.getElementById("scorebookBatterDisplay"),
-      scorebookInningDisplay: document.getElementById("scorebookInningDisplay"),
-      scorebookSideChip: document.getElementById("scorebookSideChip"),
-      scorebookLineup: document.getElementById("scorebookLineup"),
-      scorebookInnings: document.getElementById("scorebookInnings"),
-      scorebookTotals: document.getElementById("scorebookTotals"),
-      phaseChip: document.getElementById("phaseChip"),
-      scoreTable: document.getElementById("scoreTable"),
-      outsValue: document.getElementById("outsValue"),
-      battingSideValue: document.getElementById("battingSideValue"),
-      playsValue: document.getElementById("playsValue"),
-      baseFirst: document.getElementById("baseFirst"),
-      baseSecond: document.getElementById("baseSecond"),
-      baseThird: document.getElementById("baseThird"),
-      diamondSummary: document.getElementById("diamondSummary"),
-      eventGrid: document.getElementById("eventGrid"),
-      playLog: document.getElementById("playLog"),
-      gameStatusChip: document.getElementById("gameStatusChip"),
-      venueChip: document.getElementById("venueChip"),
-      activeBatterChip: document.getElementById("activeBatterChip"),
-      onDeckChip: document.getElementById("onDeckChip"),
-      editModeChip: document.getElementById("editModeChip"),
-      cancelEditBtn: document.getElementById("cancelEditBtn")
-      ,
-      gameSearch: document.getElementById("gameSearch"),
-      gameSort: document.getElementById("gameSort"),
-      gameResultsCount: document.getElementById("gameResultsCount"),
-      saveStatusChip: document.getElementById("saveStatusChip")
-    };
-
-    let activeToast = null;
-    let activeToastTimer = null;
-    let activeToastAction = null;
-    let saveStatus = "idle";
-    let saveStatusTimer = null;
-    let lastRenderedPlayCount = 0;
-
-    function makeId(prefix) {
-      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    }
-
-    function fillLineup(lineup) {
-      const next = Array.from({ length: 9 }, (_, index) => Array.isArray(lineup) ? String(lineup[index] || "") : "");
-      return next.slice(0, 9);
-    }
-
-    function createNewGame(seed = {}) {
-      const createdAt = seed.createdAt || new Date().toISOString();
-      return {
-        id: seed.id || makeId("game"),
-        createdAt,
-        updatedAt: seed.updatedAt || createdAt,
-        title: seed.title || "",
-        awayName: "Away",
-        homeName: "Home",
-        venueName: "",
-        innings: 9,
-        status: "in progress",
-        importedVenue: null,
-        notes: "",
-        lineups: {
-          away: fillLineup(seed.lineups && seed.lineups.away),
-          home: fillLineup(seed.lineups && seed.lineups.home)
-        },
-        plays: [],
-        state: {
-          inning: 1,
-          half: "top",
-          outs: 0,
-          bases: { ...EMPTY_BASES },
-          batterIndex: { away: 0, home: 0 }
-        }
-      };
-    }
-
-    function clone(value) {
-      return JSON.parse(JSON.stringify(value));
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
-
-    function getGameLabel(game) {
-      const title = game && typeof game.title === "string" ? game.title.trim() : "";
-      return title || `${game.awayName || "Away"} at ${game.homeName || "Home"}`;
-    }
-
-    function clearToast() {
-      activeToastAction = null;
-      if (activeToastTimer) {
-        clearTimeout(activeToastTimer);
-        activeToastTimer = null;
-      }
-      if (!activeToast) return;
-      activeToast.remove();
-      activeToast = null;
-    }
-
-    function showToast(message, tone = "info", duration = 3200, actionLabel = "", onAction = null) {
-      clearToast();
-      const toast = document.createElement("section");
-      toast.className = `toast is-${tone}`;
-      toast.setAttribute("role", tone === "error" ? "alert" : "status");
-      toast.setAttribute("aria-live", "polite");
-      toast.innerHTML = `
-        <div class="toast-copy">${escapeHtml(message)}</div>
-        <div class="toast-actions">
-          ${actionLabel ? `<button class="toast-action" type="button">${escapeHtml(actionLabel)}</button>` : ""}
-          <button class="toast-close" type="button" aria-label="Dismiss notification">Dismiss</button>
-        </div>
-      `;
-      document.body.appendChild(toast);
-      activeToast = toast;
-      activeToastAction = typeof onAction === "function" ? onAction : null;
-      const actionButton = toast.querySelector(".toast-action");
-      if (actionButton && activeToastAction) {
-        actionButton.addEventListener("click", () => {
-          const action = activeToastAction;
-          clearToast();
-          action();
-        });
-      }
-      toast.querySelector(".toast-close").addEventListener("click", clearToast);
-      if (duration > 0) {
-        activeToastTimer = setTimeout(clearToast, duration);
-      }
-    }
-
-    function setSaveStatus(nextStatus) {
-      saveStatus = nextStatus;
-      if (saveStatusTimer) {
-        clearTimeout(saveStatusTimer);
-        saveStatusTimer = null;
-      }
-      renderSaveStatus();
-      if (nextStatus === "saved") {
-        saveStatusTimer = setTimeout(() => {
-          saveStatus = "idle";
-          renderSaveStatus();
-        }, 2000);
-      }
-    }
-
-    function renderSaveStatus() {
-      if (!els.saveStatusChip) return;
-      if (saveStatus === "saved") {
-        els.saveStatusChip.textContent = "Saved";
-        els.saveStatusChip.className = "status-chip is-success";
-        return;
-      }
-      if (saveStatus === "failed") {
-        els.saveStatusChip.textContent = "Save failed";
-        els.saveStatusChip.className = "status-chip is-error";
-        return;
-      }
-      els.saveStatusChip.textContent = saveStatus === "saving" ? "Saving" : "Ready";
-      els.saveStatusChip.className = "status-chip";
-    }
-
-    function validateGameImport(obj) {
-      if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
-        return { ok: false, reason: "File is not a valid game object" };
-      }
-      if (typeof obj.awayName !== "string" || !obj.awayName.trim()) {
-        return { ok: false, reason: "Missing away team name" };
-      }
-      if (typeof obj.homeName !== "string" || !obj.homeName.trim()) {
-        return { ok: false, reason: "Missing home team name" };
-      }
-      if (!Array.isArray(obj.plays)) {
-        return { ok: false, reason: "Missing plays array" };
-      }
-      if (!obj.state || typeof obj.state !== "object") {
-        return { ok: false, reason: "Missing game state" };
-      }
-      if (!["top", "bottom"].includes(obj.state.half)) {
-        return { ok: false, reason: "Invalid half inning value" };
-      }
-      if (typeof obj.state.inning !== "number") {
-        return { ok: false, reason: "Missing inning number" };
-      }
-      if (obj.lineups) {
-        if (!Array.isArray(obj.lineups.away) || !Array.isArray(obj.lineups.home)) {
-          return { ok: false, reason: "Lineups are not valid arrays" };
-        }
-      }
-      for (const play of obj.plays) {
-        if (!play || typeof play !== "object" || !EVENTS[play.event]) {
-          return { ok: false, reason: `Unknown event in play log: ${play && play.event ? play.event : "missing"}` };
-        }
-      }
-      return { ok: true };
-    }
-
-    function areLineupsEmpty(game) {
-      return ["away", "home"].every((side) => (game.lineups[side] || []).every((name) => !String(name || "").trim()));
-    }
-
-    function maybeShowLineupTip() {
-      if (!areLineupsEmpty(state.game)) return;
-      if (localStorage.getItem(LINEUP_TIP_KEY) === "shown") return;
-      try {
-        localStorage.setItem(LINEUP_TIP_KEY, "shown");
-      } catch (error) {
-        console.error("Failed to persist lineup tip flag", error);
-      }
-      showToast("Tip: Fill in lineups for better play by play detail", "info", 4200);
-    }
-
-    function getLineupName(game, side, slot) {
-      const teamName = side === "away" ? game.awayName : game.homeName;
-      const fallback = `${teamName || (side === "away" ? "Away" : "Home")} ${slot + 1}`;
-      const value = game.lineups && game.lineups[side] ? String(game.lineups[side][slot] || "").trim() : "";
-      return value || fallback;
-    }
-
-    function advanceRunners(bases, eventKey) {
-      let nextBases = { ...bases };
-      let runsScored = 0;
-
-      const scoreRunner = () => { runsScored += 1; };
-
-      switch (eventKey) {
-        case "HR":
-          if (nextBases.third) scoreRunner();
-          if (nextBases.second) scoreRunner();
-          if (nextBases.first) scoreRunner();
-          scoreRunner();
-          nextBases = { ...EMPTY_BASES };
-          break;
-        case "3B":
-          if (nextBases.third) scoreRunner();
-          if (nextBases.second) scoreRunner();
-          if (nextBases.first) scoreRunner();
-          nextBases = { first: false, second: false, third: true };
-          break;
-        case "2B":
-          if (nextBases.third) scoreRunner();
-          if (nextBases.second) scoreRunner();
-          nextBases = { first: false, second: true, third: !!nextBases.first };
-          break;
-        case "1B":
-        case "E":
-          if (nextBases.third) scoreRunner();
-          nextBases = { first: true, second: !!nextBases.first, third: !!nextBases.second };
-          break;
-        case "BB":
-        case "HBP":
-          if (nextBases.first && nextBases.second && nextBases.third) scoreRunner();
-          nextBases = {
-            first: true,
-            second: nextBases.first || nextBases.second,
-            third: nextBases.third || (nextBases.first && nextBases.second)
-          };
-          break;
-        case "FC":
-          if (nextBases.third) nextBases.third = false;
-          else if (nextBases.second) nextBases.second = false;
-          else if (nextBases.first) nextBases.first = false;
-          nextBases.first = true;
-          break;
-        case "DP":
-          if (nextBases.first) nextBases.first = false;
-          else if (nextBases.second) nextBases.second = false;
-          break;
-        case "SAC":
-          if (nextBases.third) scoreRunner();
-          nextBases = {
-            first: false,
-            second: !!nextBases.first,
-            third: !!nextBases.second
-          };
-          break;
-        default:
-          break;
-      }
-
-      return { nextBases, runsScored };
-    }
-
-    function applyEvent(game, eventKey) {
-      const evt = EVENTS[eventKey];
-      if (!evt || game.status === "final") return game;
-
-      const next = clone(game);
-      const before = clone(next.state);
-      const battingSide = before.half === "top" ? "away" : "home";
-      const batterSlot = Number(before.batterIndex && before.batterIndex[battingSide]) || 0;
-      const batterName = getLineupName(next, battingSide, batterSlot);
-      const advance = advanceRunners(before.bases, eventKey);
-      let nextOuts = before.outs + evt.outs;
-      let nextInning = before.inning;
-      let nextHalf = before.half;
-      let basesAfter = advance.nextBases;
-      const batterIndex = {
-        away: Number(before.batterIndex && before.batterIndex.away) || 0,
-        home: Number(before.batterIndex && before.batterIndex.home) || 0
-      };
-      batterIndex[battingSide] = (batterSlot + 1) % 9;
-
-      if (nextOuts >= 3) {
-        nextOuts = 0;
-        basesAfter = { ...EMPTY_BASES };
-        if (before.half === "top") {
-          nextHalf = "bottom";
-        } else {
-          nextHalf = "top";
-          nextInning += 1;
-        }
-      }
-
-      next.plays.push({
-        index: next.plays.length + 1,
-        inning: before.inning,
-        half: before.half,
-        event: eventKey,
-        battingSide,
-        batterSlot,
-        batterName,
-        runsScored: advance.runsScored,
-        outsAdded: evt.outs,
-        beforeBases: before.bases,
-        afterBases: basesAfter
-      });
-
-      next.state = {
-        inning: nextInning,
-        half: nextHalf,
-        outs: nextOuts,
-        bases: basesAfter,
-        batterIndex
-      };
-      next.updatedAt = new Date().toISOString();
-
-      return next;
-    }
-
-    function replayGame(game) {
-      const fresh = createNewGame({
-        id: game && game.id,
-        createdAt: game && game.createdAt,
-        updatedAt: game && game.updatedAt,
-        title: game && game.title,
-        lineups: game && game.lineups
-      });
-      fresh.awayName = game && game.awayName ? game.awayName : "Away";
-      fresh.homeName = game && game.homeName ? game.homeName : "Home";
-      fresh.venueName = game && game.venueName ? game.venueName : "";
-      fresh.innings = Math.max(1, Number(game && game.innings) || 9);
-      fresh.status = game && game.status ? game.status : "in progress";
-      fresh.importedVenue = game && game.importedVenue ? game.importedVenue : null;
-      fresh.notes = game && game.notes ? String(game.notes) : "";
-      fresh.title = game && game.title ? String(game.title) : "";
-      for (const play of game.plays || []) {
-        const updated = applyEvent(fresh, play.event);
-        fresh.plays = updated.plays;
-        fresh.state = updated.state;
-      }
-      fresh.updatedAt = game && game.updatedAt ? game.updatedAt : fresh.updatedAt;
-      return fresh;
-    }
-
-    function createLibrary(seedGame) {
-      const game = replayGame(seedGame || createNewGame());
-      return {
-        version: 2,
-        activeGameId: game.id,
-        games: [game]
-      };
-    }
-
-    function getLineScore(game) {
-      const innings = Math.max(Number(game.innings) || 9, game.state.inning);
-      const line = {
-        away: Array.from({ length: innings }, () => 0),
-        home: Array.from({ length: innings }, () => 0),
-        totals: { away: { R: 0 }, home: { R: 0 } }
-      };
-
-      for (const play of game.plays) {
-        const side = play.half === "top" ? "away" : "home";
-        const inningIndex = Math.max(0, play.inning - 1);
-        if (!line[side][inningIndex]) line[side][inningIndex] = 0;
-        line[side][inningIndex] += play.runsScored || 0;
-        line.totals[side].R += play.runsScored || 0;
-      }
-
-      return line;
-    }
-
-    function readImportPayload() {
-      try {
-        const raw = localStorage.getItem(IMPORT_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.venue || !parsed.exportedAt) {
-          localStorage.removeItem(IMPORT_KEY);
-          return null;
-        }
-        if (Date.now() - new Date(parsed.exportedAt).getTime() > 3600000) {
-          localStorage.removeItem(IMPORT_KEY);
-          return null;
-        }
-        return parsed;
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function clearImportPayload() {
-      localStorage.removeItem(IMPORT_KEY);
-      state.importPayload = null;
-    }
-
-    function isFreshGame(game) {
-      return Boolean(
-        game &&
-        game.plays.length === 0 &&
-        game.awayName === "Away" &&
-        game.homeName === "Home" &&
-        !game.venueName &&
-        !(game.notes || "").trim()
-      );
-    }
-
-    function syncLibrary() {
-      if (!state.library) {
-        state.library = createLibrary(state.game);
-      }
-      state.game.updatedAt = new Date().toISOString();
-      state.library.activeGameId = state.game.id;
-      const index = state.library.games.findIndex((game) => game.id === state.game.id);
-      if (index >= 0) {
-        state.library.games[index] = clone(state.game);
-      } else {
-        state.library.games.unshift(clone(state.game));
-      }
-    }
-
-    function saveGame() {
-      try {
-        setSaveStatus("saving");
-        syncLibrary();
-        localStorage.setItem(SAVE_KEY, JSON.stringify(state.library));
-        setSaveStatus("saved");
-      } catch (error) {
-        console.error("Failed to save scorekeeper state", error);
-        setSaveStatus("failed");
-        showToast("Save failed and storage may be full", "error", 8000);
-      }
-    }
-
-    function loadLibrary() {
-      try {
-        const raw = localStorage.getItem(SAVE_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object") return null;
-        if (Array.isArray(parsed.games)) {
-          const games = parsed.games.map((game) => replayGame(game));
-          if (!games.length) return createLibrary();
-          const activeGameId = games.some((game) => game.id === parsed.activeGameId)
-            ? parsed.activeGameId
-            : games[0].id;
-          return { version: 2, activeGameId, games };
-        }
-        if (parsed.awayName || parsed.homeName || parsed.plays) {
-          return createLibrary(parsed);
-        }
-        return null;
-      } catch (error) {
-        return null;
-      }
-    }
-
-    function getActiveGame() {
-      if (!state.library || !state.library.games.length) {
-        state.library = createLibrary();
-      }
-      const found = state.library.games.find((game) => game.id === state.library.activeGameId);
-      if (found) return replayGame(found);
-      state.library.activeGameId = state.library.games[0].id;
-      return replayGame(state.library.games[0]);
-    }
-
-    function applyImportedVenue(payload, options = {}) {
-      if (!payload || !payload.venue) return;
-      state.game.venueName = `${payload.venue.stadium} · ${payload.venue.city}`;
-      state.game.importedVenue = payload.venue;
-      if (options.appendNote) {
-        const importNote = `Imported venue: ${payload.venue.stadium} · ${payload.venue.city}`;
-        if (!state.game.notes.includes(importNote)) {
-          state.game.notes = state.game.notes ? `${state.game.notes}\n${importNote}` : importNote;
-        }
-      }
-      syncInputs();
-      saveGame();
-      if (options.clearPending) {
-        clearImportPayload();
-      }
-      render();
-    }
-
-    function syncInputs() {
-      els.awayInput.value = state.game.awayName;
-      els.homeInput.value = state.game.homeName;
-      els.venueInput.value = state.game.venueName;
-      els.gameTitleInput.value = state.game.title || "";
-      els.inningsSelect.value = String(state.game.innings);
-      els.notesInput.value = state.game.notes || "";
-    }
-
-    function renderImportCard() {
-      const payload = state.importPayload;
-      if (!payload || !payload.venue) {
-        els.importSummary.textContent = "No tracker import is active yet. Open a park in Ballparks Quest and use the scorekeeper handoff link.";
-        els.importMeta.innerHTML = "";
-        els.useImportBtn.disabled = true;
-        return;
-      }
-
-      els.importSummary.textContent = `${payload.venue.stadium} from ${payload.venue.team} is ready to use as the current venue.`;
-      els.importMeta.innerHTML = `
-        <span class="mini-chip">${escapeHtml(payload.venue.city)}</span>
-        <span class="mini-chip">${escapeHtml(payload.venue.roof)}</span>
-        <span class="mini-chip">${escapeHtml(payload.venue.surface)}</span>
-        ${payload.venue.tier ? `<span class="mini-chip">Tier ${escapeHtml(payload.venue.tier)}</span>` : ""}
-      `;
-      els.useImportBtn.disabled = false;
-    }
-
-    function renderEditState() {
-      const index = state.editingPlayIndex;
-      if (index === null || !state.game.plays[index]) {
-        state.editingPlayIndex = null;
-        els.editModeChip.textContent = "Append mode";
-        els.editModeChip.classList.remove("is-live");
-        els.cancelEditBtn.hidden = true;
-        return;
-      }
-
-      const play = state.game.plays[index];
-      els.editModeChip.textContent = `Editing ${play.half === "top" ? "Top" : "Bottom"} ${play.inning} · ${play.event}`;
-      els.editModeChip.classList.add("is-live");
-      els.cancelEditBtn.hidden = false;
-    }
-
-    function renderScoreboard() {
-      const game = state.game;
-      const line = getLineScore(game);
-      const inningCount = line.away.length;
-      const header = Array.from({ length: inningCount }, (_, index) => `<th>${index + 1}</th>`).join("");
-
-      els.scoreboardTitle.textContent = `${game.awayName} at ${game.homeName}`;
-      els.phaseChip.textContent = `${game.state.half === "top" ? "Top" : "Bottom"} ${game.state.inning}`;
-      els.scoreTable.innerHTML = `
+    <!-- Linescore -->
+    <div class="sk-linescore-wrap">
+      <table class="sk-linescore" id="linescore">
         <thead>
           <tr>
-            <th>Club</th>
-            ${header}
-            <th>R</th>
+            <th class="ls-team"></th>
+            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+            <th>6</th><th>7</th><th>8</th><th>9</th>
+            <th class="ls-rhe">R</th><th>H</th><th>E</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>${escapeHtml(game.awayName)}</td>
-            ${line.away.map((runs) => `<td>${runs}</td>`).join("")}
-            <td><strong>${line.totals.away.R}</strong></td>
+          <tr class="ls-away-row">
+            <td class="ls-team" id="ls-away-name">Away</td>
+            <td id="ls-a1">·</td><td id="ls-a2">·</td><td id="ls-a3">·</td>
+            <td id="ls-a4">·</td><td id="ls-a5">·</td><td id="ls-a6">·</td>
+            <td id="ls-a7">·</td><td id="ls-a8">·</td><td id="ls-a9">·</td>
+            <td class="ls-rhe" id="ls-aR">0</td>
+            <td id="ls-aH">0</td><td id="ls-aE">0</td>
           </tr>
-          <tr>
-            <td>${escapeHtml(game.homeName)}</td>
-            ${line.home.map((runs) => `<td>${runs}</td>`).join("")}
-            <td><strong>${line.totals.home.R}</strong></td>
+          <tr class="ls-home-row">
+            <td class="ls-team" id="ls-home-name">Home</td>
+            <td id="ls-h1">·</td><td id="ls-h2">·</td><td id="ls-h3">·</td>
+            <td id="ls-h4">·</td><td id="ls-h5">·</td><td id="ls-h6">·</td>
+            <td id="ls-h7">·</td><td id="ls-h8">·</td><td id="ls-h9">·</td>
+            <td class="ls-rhe" id="ls-hR">0</td>
+            <td id="ls-hH">0</td><td id="ls-hE">0</td>
           </tr>
         </tbody>
-      `;
-    }
+      </table>
+    </div>
 
-    function getScorebookSides() {
-      const game = state.game;
-      const activeSide = game.state.half === "top" ? "away" : "home";
-      const inactiveSide = activeSide === "away" ? "home" : "away";
-      return { activeSide, inactiveSide };
-    }
+    <!-- Status bar -->
+    <div class="sk-status-bar">
+      <span class="sk-outs-label">Outs</span>
+      <div class="sk-out-pip" id="op1"></div>
+      <div class="sk-out-pip" id="op2"></div>
+      <div class="sk-out-pip" id="op3"></div>
+      <span class="sk-batter-info" id="batter-info">↑ Away · Batter 1</span>
+      <div class="sk-side-tabs" aria-label="Visible scorebook">
+        <button class="sk-side-tab is-viewing is-batting" id="view-away-btn" type="button">Away</button>
+        <button class="sk-side-tab" id="view-home-btn" type="button">Home</button>
+      </div>
+      <span class="sk-view-info" id="view-info">Viewing away book</span>
+      <span class="sk-inning-info" id="inning-info">Top 1st</span>
+    </div>
 
-    function getScorebookInningCount(game) {
-      return Math.max(Number(game.innings) || 9, game.state.inning, 9);
-    }
+    <!-- Diamond grid -->
+    <div class="sk-grid-scroll">
+      <div class="sk-grid-wrap">
 
-    function classifyScorebookEvent(eventKey) {
-      if (["1B", "2B", "3B", "HR", "BB", "HBP"].includes(eventKey)) return "is-hit";
-      if (eventKey === "E") return "is-error";
-      if (["K", "OUT", "FO", "FC", "DP", "SAC"].includes(eventKey)) return "is-out";
-      return "";
-    }
-
-    function getScorebookCellMap(game, side, inningCount) {
-      const map = new Map();
-      for (const play of game.plays) {
-        if (play.battingSide !== side) continue;
-        const inning = Math.min(Math.max(1, Number(play.inning) || 1), inningCount);
-        const slot = Math.min(8, Math.max(0, Number(play.batterSlot) || 0));
-        const key = `${slot}:${inning}`;
-        if (!map.has(key)) {
-          map.set(key, []);
-        }
-        map.get(key).push(play);
-      }
-      return map;
-    }
-
-    function getScorebookTotals(game, side) {
-      const rows = Array.from({ length: 9 }, () => ({ ab: 0, h: 0 }));
-      for (const play of game.plays) {
-        if (play.battingSide !== side) continue;
-        const slot = Math.min(8, Math.max(0, Number(play.batterSlot) || 0));
-        if (["1B", "2B", "3B", "HR", "K", "OUT", "FO", "FC", "DP", "E"].includes(play.event)) {
-          rows[slot].ab += 1;
-        }
-        if (["1B", "2B", "3B", "HR"].includes(play.event)) {
-          rows[slot].h += 1;
-        }
-      }
-      return rows;
-    }
-
-    function renderScorebook() {
-      const game = state.game;
-      const { activeSide } = getScorebookSides();
-      const inningCount = getScorebookInningCount(game);
-      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[activeSide]) || 0;
-      const cellMap = getScorebookCellMap(game, activeSide, inningCount);
-      const totals = getScorebookTotals(game, activeSide);
-      const sideLabel = activeSide === "away" ? (game.awayName || "Away") : (game.homeName || "Home");
-
-      els.scorebookLineup.innerHTML = Array.from({ length: 9 }, (_, slot) => `
-        <div class="scorebook-lineup-row ${slot === currentSlot ? "is-active" : ""}">
-          <div class="scorebook-slot">${slot + 1}</div>
-          <div class="scorebook-batter-name">
-            <strong>${escapeHtml(getLineupName(game, activeSide, slot))}</strong>
-            <span>${escapeHtml(sideLabel)} card</span>
+        <!-- Lineup spine -->
+        <div class="sk-lineup-col">
+          <div class="sk-lineup-head">
+            <span>#</span><span>Pos</span><span>Batter</span>
           </div>
+          <div id="lineup-cells"></div>
         </div>
-      `).join("");
 
-      els.scorebookInnings.innerHTML = Array.from({ length: inningCount }, (_, index) => {
-        const inning = index + 1;
-        const isLiveInning = inning === game.state.inning;
-        const cells = Array.from({ length: 9 }, (_, slot) => {
-          const plays = cellMap.get(`${slot}:${inning}`) || [];
-          const latest = plays[plays.length - 1];
-          const isActive = isLiveInning && slot === currentSlot;
-          if (!latest) {
-            return `
-              <div class="scorebook-cell ${isActive ? "is-active" : ""}">
-                <div class="scorebook-empty" aria-hidden="true"></div>
-              </div>
-            `;
-          }
-          const badge = plays.length > 1 ? `${plays.length}x` : (latest.runsScored ? `${latest.runsScored}R` : "");
-          return `
-            <div class="scorebook-cell ${isActive ? "is-active" : ""}">
-              <div class="scorebook-mark ${classifyScorebookEvent(latest.event)}" aria-label="${escapeHtml(EVENTS[latest.event].label)}">
-                <div class="scorebook-cell-stack">
-                  <span class="scorebook-cell-code">${escapeHtml(latest.event)}</span>
-                  <span class="scorebook-cell-note">${escapeHtml(badge)}</span>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("");
-        return `
-          <div class="scorebook-inning-col ${isLiveInning ? "is-live" : ""}">
-            <div class="scorebook-inning-head">${inning}</div>
-            ${cells}
-          </div>
-        `;
-      }).join("");
+        <!-- Innings -->
+        <div class="sk-innings-area" id="innings-area"></div>
 
-      els.scorebookTotals.innerHTML = totals.map((row, slot) => `
-        <div class="scorebook-totals-row ${slot === currentSlot ? "is-active" : ""}">
-          <strong>${row.ab} · ${row.h}</strong>
-          <span>AB · H</span>
+        <!-- Totals -->
+        <div class="sk-totals-col">
+          <div class="sk-totals-head">AB·H</div>
+          <div id="totals-cells"></div>
         </div>
-      `).join("");
+
+      </div>
+    </div>
+
+    <!-- Input bar -->
+    <div class="sk-input-bar">
+
+      <div class="sk-input-section">
+        <span class="sk-input-label">Quick outs</span>
+        <div class="sk-chip-row">
+          <div class="sk-chip" data-code="K">K</div>
+          <div class="sk-chip" data-code="Ʞ">Ʞ</div>
+          <div class="sk-chip" data-code="6-3">6-3</div>
+          <div class="sk-chip" data-code="5-3">5-3</div>
+          <div class="sk-chip" data-code="4-3">4-3</div>
+          <div class="sk-chip" data-code="F7">F7</div>
+          <div class="sk-chip" data-code="F8">F8</div>
+          <div class="sk-chip" data-code="F9">F9</div>
+          <div class="sk-chip" data-code="DP4-6-3">4-6-3</div>
+        </div>
+      </div>
+
+      <div class="sk-input-section">
+        <span class="sk-input-label">Reaches</span>
+        <div class="sk-chip-row">
+          <div class="sk-chip hit-chip" data-code="1B">1B</div>
+          <div class="sk-chip hit-chip" data-code="2B">2B</div>
+          <div class="sk-chip hit-chip" data-code="3B">3B</div>
+          <div class="sk-chip hit-chip" data-code="HR">HR</div>
+          <div class="sk-chip hit-chip" data-code="BB">BB</div>
+          <div class="sk-chip hit-chip" data-code="HBP">HBP</div>
+          <div class="sk-chip err-chip" data-code="E6">E6</div>
+          <div class="sk-chip err-chip" data-code="E5">E5</div>
+          <div class="sk-chip err-chip" data-code="E4">E4</div>
+        </div>
+      </div>
+
+      <div class="sk-input-section">
+        <span class="sk-input-label">Code</span>
+        <input class="sk-code-input" id="play-code" placeholder="6-3, HR…">
+      </div>
+
+      <div class="sk-input-section">
+        <span class="sk-input-label">Count</span>
+        <input class="sk-count-input" id="play-count" placeholder="3-2" maxlength="3">
+      </div>
+
+      <button class="sk-log-btn" id="log-btn">Log Play ↵</button>
+
+    </div>
+  </div>
+
+  <!-- Notes panel -->
+  <div class="sk-notes-panel" id="notes-panel">
+    <div class="sk-notes-header">Game notes</div>
+    <div class="sk-notes-feed" id="notes-feed">
+      <!-- Sample entries -->
+      <div class="sk-note-entry">
+        <span class="sk-note-inning">INN 1</span>
+        <span class="sk-note-text">Top of the first. Big crowd.</span>
+      </div>
+    </div>
+    <div class="sk-notes-input-area">
+      <input class="sk-notes-input" id="note-input" placeholder="Add note…">
+      <button class="sk-btn" id="note-add-btn" type="button">+</button>
+    </div>
+  </div>
+
+</div><!-- /sk-main -->
+
+<script src="theme-switcher.js"></script>
+<script src="storage.js"></script>
+<script src="utils.js"></script>
+<script src="data.js"></script>
+<script src="logos.js"></script>
+<script src="device.js"></script>
+<script src="schedule.js"></script>
+<script src="app.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   SCOREKEEPER ENGINE
+═══════════════════════════════════════════ */
+'use strict';
+
+const app = window.BPQ && window.BPQ.app;
+const utils = window.BPQ && window.BPQ.utils;
+const logos = window.BPQ && window.BPQ.logos;
+const SESSION_KEY = 'bpq_scorekeeper_session_v1';
+const INNINGS = 9;
+const BATTERS = 9;
+function teamLogoUrl(name) {
+  return logos && logos.getTeamLogo ? logos.getTeamLogo(name) : '';
+}
+const DEFAULT_POSITIONS = ['CF','SS','1B','LF','DH','3B','RF','C','2B'];
+const DEFAULT_NAMES = ['Stott','Schwarber','Harper','Castellanos','Realmuto','Bohm','Sosa','Marsh','Turner'];
+
+const HIT_CODES   = new Set(['1B','2B','3B','HR']);
+const REACH_CODES = new Set(['BB','HBP','FC']);
+const OUT_RE      = /^(K|Ʞ|[FLUNG]\d|[1-9]-[1-9](-[1-9])*|DP.*)$/;
+const ERR_RE      = /^E\d/;
+
+function isOut(c)  { return OUT_RE.test(c) || /^\d+-\d+/.test(c) || /^F\d/.test(c); }
+function isHit(c)  { return HIT_CODES.has(c); }
+function isErr(c)  { return ERR_RE.test(c); }
+function clone(value) { return JSON.parse(JSON.stringify(value)); }
+function escapeHtml(value) {
+  return utils && utils.escapeHtml ? utils.escapeHtml(value) : String(value == null ? '' : value);
+}
+
+function emptyPlays() {
+  return {
+    away: Array.from({ length: BATTERS }, () => Array(INNINGS).fill(null)),
+    home: Array.from({ length: BATTERS }, () => Array(INNINGS).fill(null))
+  };
+}
+
+function emptyTotals() {
+  return {
+    away: Array.from({ length: BATTERS }, () => ({ ab: 0, h: 0 })),
+    home: Array.from({ length: BATTERS }, () => ({ ab: 0, h: 0 }))
+  };
+}
+
+function emptyLinescore() {
+  return {
+    away: { r: 0, h: 0, e: 0, inn: Array(INNINGS).fill(null) },
+    home: { r: 0, h: 0, e: 0, inn: Array(INNINGS).fill(null) }
+  };
+}
+
+function getInitialMeta() {
+  const context = app && app.getScorekeeperContext ? app.getScorekeeperContext() : null;
+  return {
+    title: context ? `${context.awayTeam ? context.awayTeam + ' at ' : ''}${context.homeTeam} scorebook` : 'New Game',
+    venue: context ? context.venue : '',
+    parkId: context ? context.parkId : '',
+    gameId: context ? context.gameId : '',
+    startDateTimeLocal: context ? context.startDateTimeLocal : '',
+    awayName: context && context.awayTeam ? context.awayTeam : 'Away',
+    homeName: context ? context.homeTeam : 'Home'
+  };
+}
+
+let meta = getInitialMeta();
+let plays = emptyPlays();
+let totals = emptyTotals();
+let ls = emptyLinescore();
+let notes = [];
+let currentSide = 'away';
+let viewSide = 'away';
+let curInning = 0;
+let outsThisHalf = 0;
+let batterIndex = { away: 0, home: 0 };
+let undoStack = [];
+let lineupNames = DEFAULT_NAMES.slice();
+let lineupPositions = DEFAULT_POSITIONS.slice();
+
+const ordinals = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
+
+function totalLoggedPlays() {
+  return ['away', 'home'].reduce((sum, side) => sum + plays[side].flat().filter(Boolean).length, 0);
+}
+
+function getCurrentBatter() {
+  return batterIndex[currentSide];
+}
+
+function captureSession() {
+  return {
+    version: 1,
+    meta: clone(meta),
+    plays: clone(plays),
+    totals: clone(totals),
+    ls: clone(ls),
+    notes: clone(notes),
+    lineupNames: clone(lineupNames),
+    lineupPositions: clone(lineupPositions),
+    currentSide,
+    viewSide,
+    curInning,
+    outsThisHalf,
+    batterIndex: clone(batterIndex)
+  };
+}
+
+function teamLogoImg(name) {
+  const url = teamLogoUrl(name);
+  return url ? `<img class="ls-team-logo" src="${url}" alt="" loading="lazy">` : '';
+}
+
+function updateMetaLabels() {
+  document.getElementById('sk-game-title').textContent = meta.title || 'New Game';
+  const venueBits = [meta.venue || ''];
+  if (meta.startDateTimeLocal) {
+    const start = new Date(meta.startDateTimeLocal);
+    if (Number.isFinite(start.getTime())) {
+      venueBits.push(start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+      venueBits.push(start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
     }
+  }
+  document.getElementById('sk-venue-label').textContent = venueBits.filter(Boolean).join(' · ');
+  const awayEl = document.getElementById('ls-away-name');
+  const homeEl = document.getElementById('ls-home-name');
+  const awayName = meta.awayName || 'Away';
+  const homeName = meta.homeName || 'Home';
+  awayEl.innerHTML = teamLogoImg(awayName) + awayName;
+  homeEl.innerHTML = teamLogoImg(homeName) + homeName;
+  const storyPark = document.getElementById('sk-story-park');
+  const storyMatchup = document.getElementById('sk-story-matchup');
+  if (storyPark) storyPark.textContent = meta.venue || 'Waiting on the park';
+  if (storyMatchup) storyMatchup.innerHTML = `${teamLogoImg(awayName)}${awayName} at ${teamLogoImg(homeName)}${homeName}`;
+}
 
-    function renderStatus() {
-      const game = state.game;
-      const halfLabel = game.state.half === "top" ? "Away" : "Home";
-      const battingSide = game.state.half === "top" ? "away" : "home";
-      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[battingSide]) || 0;
-      const onDeckSlot = (currentSlot + 1) % 9;
-      const bases = [];
-      if (game.state.bases.first) bases.push("first");
-      if (game.state.bases.second) bases.push("second");
-      if (game.state.bases.third) bases.push("third");
+function saveSession() {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(captureSession()));
+}
 
-      els.outsValue.textContent = String(game.state.outs);
-      els.battingSideValue.textContent = halfLabel;
-      els.playsValue.textContent = String(game.plays.length);
-      els.heroPlayCount.textContent = String(game.plays.length);
-      els.heroGameStatus.textContent = game.status === "final" ? "Final" : "Live";
-      els.heroVenueName.textContent = game.venueName || "No venue yet";
-      els.gameStatusChip.textContent = game.status;
-      els.venueChip.textContent = game.venueName || "No venue assigned";
-      els.activeBatterChip.textContent = `Up next · ${getLineupName(game, battingSide, currentSlot)}`;
-      els.onDeckChip.textContent = `On deck · ${getLineupName(game, battingSide, onDeckSlot)}`;
-      els.scorebookDateMeta.textContent = new Date(game.createdAt || Date.now()).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-      els.scorebookVenueMeta.textContent = game.venueName || "Venue pending";
-      els.scorebookStatusMeta.textContent = game.status === "final" ? "Final score filed" : `${game.plays.length} plays logged`;
-      els.scorebookBatterDisplay.textContent = getLineupName(game, battingSide, currentSlot);
-      els.scorebookInningDisplay.textContent = `${game.state.half === "top" ? "Top" : "Bottom"} ${game.state.inning}`;
-      els.scorebookSideChip.textContent = `${halfLabel} card`;
-      [els.scoreOut1, els.scoreOut2, els.scoreOut3].forEach((el, index) => {
-        el.classList.toggle("is-on", index < game.state.outs);
+function pushUndo() {
+  undoStack.push(captureSession());
+  if (undoStack.length > 30) undoStack.shift();
+}
+
+function restoreSession(snapshot) {
+  if (!snapshot) return;
+  meta = snapshot.meta || getInitialMeta();
+  plays = snapshot.plays || emptyPlays();
+  totals = snapshot.totals || emptyTotals();
+  ls = snapshot.ls || emptyLinescore();
+  notes = Array.isArray(snapshot.notes) ? snapshot.notes : [];
+  lineupNames = Array.isArray(snapshot.lineupNames) && snapshot.lineupNames.length === BATTERS
+    ? snapshot.lineupNames.slice()
+    : DEFAULT_NAMES.slice();
+  lineupPositions = Array.isArray(snapshot.lineupPositions) && snapshot.lineupPositions.length === BATTERS
+    ? snapshot.lineupPositions.slice()
+    : DEFAULT_POSITIONS.slice();
+  currentSide = snapshot.currentSide || 'away';
+  viewSide = snapshot.viewSide || snapshot.currentSide || 'away';
+  curInning = Number.isFinite(snapshot.curInning) ? snapshot.curInning : 0;
+  outsThisHalf = Number.isFinite(snapshot.outsThisHalf) ? snapshot.outsThisHalf : 0;
+  batterIndex = snapshot.batterIndex || { away: 0, home: 0 };
+  renderAll();
+}
+
+function applyContextToSession(force) {
+  const context = app && app.getScorekeeperContext ? app.getScorekeeperContext() : null;
+  if (!context) return;
+  const sessionIsEmpty = totalLoggedPlays() === 0 && notes.length === 0;
+  if (force || sessionIsEmpty) {
+    meta.venue = context.venue || meta.venue;
+    meta.parkId = context.parkId || meta.parkId;
+    meta.gameId = context.gameId || meta.gameId;
+    meta.startDateTimeLocal = context.startDateTimeLocal || meta.startDateTimeLocal;
+    meta.awayName = context.awayTeam || meta.awayName;
+    meta.homeName = context.homeTeam || meta.homeName;
+    if (!meta.title || meta.title === 'New Game') meta.title = `${meta.awayName} at ${meta.homeName} scorebook`;
+    updateMetaLabels();
+    saveSession();
+  }
+  if (!viewSide) viewSide = currentSide;
+  if (app && app.clearScorekeeperContext) app.clearScorekeeperContext();
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (raw) restoreSession(JSON.parse(raw));
+    applyContextToSession(!raw);
+  } catch (error) {
+    applyContextToSession(true);
+  }
+}
+
+function buildGrid() {
+  const lineupEl = document.getElementById('lineup-cells');
+  lineupEl.innerHTML = '';
+  for (let b = 0; b < BATTERS; b++) {
+    const c = document.createElement('div');
+    c.className = 'sk-lineup-cell';
+    c.id = `lc-${b}`;
+    c.innerHTML = `
+      <span class="sk-bat-num">${b + 1}</span>
+      <span class="sk-bat-pos">${lineupPositions[b]}</span>
+      <span class="sk-bat-name"></span>`;
+    lineupEl.appendChild(c);
+  }
+
+  const innEl = document.getElementById('innings-area');
+  innEl.innerHTML = '';
+  for (let i = 0; i < INNINGS; i++) {
+    const col = document.createElement('div');
+    col.className = 'sk-inning-col' + ([2, 5].includes(i) ? ' break-' + ([2, 5].indexOf(i) === 0 ? 3 : 6) : '');
+    col.innerHTML = `<div class="sk-inning-head">${i + 1}</div>`;
+    for (let b = 0; b < BATTERS; b++) {
+      const cell = document.createElement('div');
+      cell.className = 'sk-diamond-cell';
+      cell.id = `cell-${b}-${i}`;
+      cell.innerHTML = renderDiamond(null);
+      cell.addEventListener('click', () => {
+        if (viewSide !== currentSide) return;
+        batterIndex[currentSide] = b;
+        curInning = i;
+        refreshActive();
       });
-
-      els.baseFirst.classList.toggle("is-hot", !!game.state.bases.first);
-      els.baseSecond.classList.toggle("is-hot", !!game.state.bases.second);
-      els.baseThird.classList.toggle("is-hot", !!game.state.bases.third);
-      els.diamondSummary.textContent = bases.length ? `Runners on ${bases.join(", ")}` : "Bases empty";
+      col.appendChild(cell);
     }
+    innEl.appendChild(col);
+  }
 
-    function renderPlayLog() {
-      const plays = state.game.plays.map((play, originalIndex) => ({ ...play, originalIndex })).reverse();
-      els.playLog.innerHTML = plays.length
-        ? plays.map((play) => `
-            <article class="play-row">
-              <div class="play-top">
-                <strong>${play.half === "top" ? "Top" : "Bottom"} ${play.inning} · ${escapeHtml(play.batterName || "Batter")} · ${escapeHtml(play.event)}</strong>
-                <div class="play-actions">
-                  <span class="mini-chip">${escapeHtml(play.battingSide)}</span>
-                  <button class="play-edit-btn ${play.originalIndex === state.editingPlayIndex ? "is-active" : ""}" type="button" data-play-edit="${play.originalIndex}">Edit</button>
-                </div>
-              </div>
-              <p>${escapeHtml(EVENTS[play.event].label)}. ${play.runsScored ? `${play.runsScored} run${play.runsScored === 1 ? "" : "s"} scored.` : "No runs scored."} ${play.outsAdded ? `${play.outsAdded} out${play.outsAdded === 1 ? "" : "s"} added.` : ""}</p>
-            </article>
-          `).join("")
-        : `<div class="empty">No plays logged yet. Start with the next event in the play input panel.</div>`;
+  const totEl = document.getElementById('totals-cells');
+  totEl.innerHTML = '';
+  for (let b = 0; b < BATTERS; b++) {
+    const c = document.createElement('div');
+    c.className = 'sk-totals-cell';
+    c.id = `tot-${b}`;
+    c.innerHTML = `<span class="totals-ab">0</span><span class="totals-h">0</span>`;
+    totEl.appendChild(c);
+  }
+}
+
+const DP = { t:[44,12], r:[76,44], b:[44,76], l:[12,44] };
+const pt = (p) => `${p[0]},${p[1]}`;
+
+const BASE_PATHS = {
+  '1B' : `M${pt(DP.b)} L${pt(DP.r)}`,
+  '2B' : `M${pt(DP.b)} L${pt(DP.r)} L${pt(DP.t)}`,
+  '3B' : `M${pt(DP.b)} L${pt(DP.r)} L${pt(DP.t)} L${pt(DP.l)}`,
+  'HR' : `M${pt(DP.b)} L${pt(DP.r)} L${pt(DP.t)} L${pt(DP.l)} Z`,
+  'BB' : `M${pt(DP.b)} L${pt(DP.r)}`,
+  'HBP': `M${pt(DP.b)} L${pt(DP.r)}`,
+  'FC' : `M${pt(DP.b)} L${pt(DP.r)}`
+};
+
+function renderDiamond(play, isActive) {
+  const outline = `<path d="M${pt(DP.t)} L${pt(DP.r)} L${pt(DP.b)} L${pt(DP.l)} Z" fill="none" stroke="#C9BA9B" stroke-width="0.8" stroke-dasharray="2,2" opacity="0.35"/>`;
+  const activeRing = isActive && !play
+    ? `<path d="M${pt(DP.t)} L${pt(DP.r)} L${pt(DP.b)} L${pt(DP.l)} Z" fill="none" stroke="#7EB4E0" stroke-width="1.5" opacity="0.4"/>`
+    : '';
+  if (!play) return `<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">${outline}${activeRing}</svg>`;
+
+  const { code, count, outNum, isLastOut } = play;
+  const err = isErr(code);
+  const hit = isHit(code);
+  const hr = code === 'HR';
+  const out = isOut(code);
+  const color = err ? '#C85050' : hit ? '#7EB4E0' : out ? '#A89878' : '#7EB4E0';
+
+  let pathEl = '';
+  if (BASE_PATHS[code]) {
+    const filled = hr ? `fill="${color}" fill-opacity="0.18"` : 'fill="none"';
+    pathEl = `<path d="${BASE_PATHS[code]}" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" ${filled}/>`;
+  }
+
+  const codeColor = err ? '#C85050' : hit ? '#8AC4E8' : '#A89878';
+  const codeEl = `<text x="5" y="12" font-family="'DM Mono',monospace" font-size="9" fill="${codeColor}" font-weight="500">${escapeHtml(code)}</text>`;
+
+  let outEl = '';
+  if (outNum) {
+    outEl = `<circle cx="75" cy="11" r="7" fill="#A89878" opacity="0.65"/><text x="75" y="15" text-anchor="middle" font-family="'DM Mono',monospace" font-size="9" fill="#1C1A14">${outNum}</text>`;
+  }
+
+  let countEl = '';
+  if (count && count.includes('-')) {
+    const [balls, strikes] = count.split('-').map(Number);
+    const bd = Array.from({ length: Math.min(balls, 4) }, (_, i) => `<circle cx="${4 + i * 5}" cy="79" r="1.8" fill="#7EB4E0" opacity="0.6"/>`).join('');
+    const sd = Array.from({ length: Math.min(strikes, 3) }, (_, i) => `<circle cx="${4 + i * 5}" cy="84" r="1.8" fill="#C85050" opacity="0.6"/>`).join('');
+    countEl = bd + sd;
+  }
+
+  const slash = isLastOut ? `<line x1="60" y1="62" x2="88" y2="88" stroke="#A89878" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/>` : '';
+
+  return `<svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">${outline}${pathEl}${codeEl}${outEl}${countEl}${slash}</svg>`;
+}
+
+function updateTotalsCell(batter) {
+  const el = document.getElementById(`tot-${batter}`);
+  if (el) el.innerHTML = `<span class="totals-ab">${totals[viewSide][batter].ab}</span><span class="totals-h">${totals[viewSide][batter].h}</span>`;
+}
+
+function renderVisibleScorecard() {
+  for (let batter = 0; batter < BATTERS; batter++) {
+    const row = document.getElementById(`lc-${batter}`);
+    if (row) {
+      const name = row.querySelector('.sk-bat-name');
+      if (name) name.textContent = lineupNames[batter];
+      const pos = row.querySelector('.sk-bat-pos');
+      if (pos) pos.textContent = lineupPositions[batter];
     }
-
-    function filterGames(games) {
-      const query = libraryState.search.trim().toLowerCase();
-      if (!query) return games.slice();
-      return games.filter((game) => {
-        const label = getGameLabel(game).toLowerCase();
-        return [
-          label,
-          String(game.awayName || "").toLowerCase(),
-          String(game.homeName || "").toLowerCase(),
-          String(game.venueName || "").toLowerCase()
-        ].some((value) => value.includes(query));
-      });
+    for (let inning = 0; inning < INNINGS; inning++) {
+      const cell = document.getElementById(`cell-${batter}-${inning}`);
+      if (cell) cell.innerHTML = renderDiamond(plays[viewSide][batter][inning], false);
     }
+    updateTotalsCell(batter);
+  }
+}
 
-    function sortGames(games) {
-      const next = games.slice();
-      if (libraryState.sort === "oldest") {
-        return next.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-      }
-      if (libraryState.sort === "alphabetical") {
-        return next.sort((a, b) => getGameLabel(a).localeCompare(getGameLabel(b)));
-      }
-      if (libraryState.sort === "status") {
-        return next.sort((a, b) => {
-          if (a.status === "in progress" && b.status !== "in progress") return -1;
-          if (b.status === "in progress" && a.status !== "in progress") return 1;
-          return new Date(b.updatedAt) - new Date(a.updatedAt);
-        });
-      }
-      return next.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+function updateViewSideUI() {
+  const awayBtn = document.getElementById('view-away-btn');
+  const homeBtn = document.getElementById('view-home-btn');
+  const viewInfo = document.getElementById('view-info');
+  if (awayBtn) {
+    awayBtn.textContent = meta.awayName || 'Away';
+    awayBtn.classList.toggle('is-viewing', viewSide === 'away');
+    awayBtn.classList.toggle('is-batting', currentSide === 'away');
+    awayBtn.setAttribute('aria-pressed', viewSide === 'away' ? 'true' : 'false');
+  }
+  if (homeBtn) {
+    homeBtn.textContent = meta.homeName || 'Home';
+    homeBtn.classList.toggle('is-viewing', viewSide === 'home');
+    homeBtn.classList.toggle('is-batting', currentSide === 'home');
+    homeBtn.setAttribute('aria-pressed', viewSide === 'home' ? 'true' : 'false');
+  }
+  if (viewInfo) {
+    const viewedName = viewSide === 'away' ? (meta.awayName || 'Away') : (meta.homeName || 'Home');
+    const activeName = currentSide === 'away' ? (meta.awayName || 'Away') : (meta.homeName || 'Home');
+    viewInfo.textContent = viewSide === currentSide
+      ? `Viewing live ${viewedName} book`
+      : `Viewing ${viewedName} book · ${activeName} batting`;
+  }
+}
+
+function setViewSide(side) {
+  if (side !== 'away' && side !== 'home') return;
+  viewSide = side;
+  saveSession();
+  renderAll();
+}
+
+function updateLinescore() {
+  updateMetaLabels();
+  for (let inning = 0; inning < INNINGS; inning++) {
+    const awayVal = ls.away.inn[inning];
+    const homeVal = ls.home.inn[inning];
+    document.getElementById(`ls-a${inning + 1}`).textContent = awayVal === null ? '·' : awayVal;
+    document.getElementById(`ls-h${inning + 1}`).textContent = homeVal === null ? '·' : homeVal;
+  }
+  document.getElementById('ls-aR').textContent = ls.away.r;
+  document.getElementById('ls-aH').textContent = ls.away.h;
+  document.getElementById('ls-aE').textContent = ls.away.e;
+  document.getElementById('ls-hR').textContent = ls.home.r;
+  document.getElementById('ls-hH').textContent = ls.home.h;
+  document.getElementById('ls-hE').textContent = ls.home.e;
+}
+
+function refreshActive() {
+  renderVisibleScorecard();
+  updateViewSideUI();
+  document.querySelectorAll('.sk-diamond-cell').forEach((cell) => cell.classList.remove('active-cell'));
+  document.querySelectorAll('.sk-lineup-cell').forEach((cell) => cell.classList.remove('active-batter'));
+  const activeBatter = getCurrentBatter();
+  if (viewSide === currentSide) {
+    const activeCell = document.getElementById(`cell-${activeBatter}-${curInning}`);
+    if (activeCell) {
+      activeCell.classList.add('active-cell');
+      if (!plays[currentSide][activeBatter][curInning]) activeCell.innerHTML = renderDiamond(null, true);
+      activeCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
+    const lineupCell = document.getElementById(`lc-${activeBatter}`);
+    if (lineupCell) lineupCell.classList.add('active-batter');
+  }
+  [1,2,3].forEach((index) => {
+    document.getElementById(`op${index}`).classList.toggle('filled', index <= outsThisHalf);
+  });
+  document.getElementById('batter-info').textContent = `${currentSide === 'away' ? '↑' : '↓'} ${currentSide === 'away' ? meta.awayName : meta.homeName} · ${lineupNames[activeBatter]}`;
+  document.getElementById('inning-info').textContent = `${currentSide === 'away' ? 'Top' : 'Bottom'} ${ordinals[curInning]}`;
+}
 
-    function renderGamesList() {
-      const allGames = state.library && Array.isArray(state.library.games) ? state.library.games : [];
-      const games = sortGames(filterGames(allGames));
-      els.gameResultsCount.textContent = `${games.length} game${games.length === 1 ? "" : "s"}`;
-      if (!games.length) {
-        els.gamesList.innerHTML = `
-          <div class="empty">
-            No games match "${escapeHtml(libraryState.search)}"
-            <div class="setup-actions" style="margin-top:10px">
-              <button class="btn btn-secondary" type="button" data-clear-game-search>Clear search</button>
-            </div>
-          </div>
-        `;
-        return;
-      }
-      els.gamesList.innerHTML = games.map((game) => {
-        const side = game.state && game.state.half === "bottom" ? "Bottom" : "Top";
-        const venue = game.venueName || "No venue";
-        const status = game.status === "final" ? "Final" : `${side} ${game.state ? game.state.inning : 1}`;
-        const playCount = Array.isArray(game.plays) ? game.plays.length : 0;
-        return `
-          <article class="game-item ${game.id === state.game.id ? "is-active" : ""}">
-            <button class="game-main" type="button" data-game-select="${escapeHtml(game.id)}">
-              <strong>${escapeHtml(getGameLabel(game))}</strong>
-              <span>${escapeHtml(status)} · ${playCount} plays · ${escapeHtml(venue)}</span>
-            </button>
-            <button class="btn btn-secondary" type="button" data-game-delete="${escapeHtml(game.id)}" ${games.length === 1 ? "disabled" : ""}>Remove</button>
-          </article>
-        `;
-      }).join("");
-    }
+function renderNotes() {
+  const feed = document.getElementById('notes-feed');
+  feed.innerHTML = notes.length
+    ? notes.map((entry) => `
+      <div class="sk-note-entry">
+        <span class="sk-note-inning">${escapeHtml(entry.label)}</span>
+        <span class="sk-note-text ${entry.tone || ''}">${escapeHtml(entry.text)}</span>
+      </div>
+    `).join('')
+    : `
+      <div class="sk-note-entry">
+        <span class="sk-note-inning">NOTES</span>
+        <span class="sk-note-text">No notes yet. Log the feel of the game as it happens.</span>
+      </div>
+    `;
+  feed.scrollTop = feed.scrollHeight;
+}
 
-    function renderLineups() {
-      const game = state.game;
-      const battingSide = game.state.half === "top" ? "away" : "home";
-      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[battingSide]) || 0;
-      els.awayLineupTitle.textContent = game.awayName || "Away";
-      els.homeLineupTitle.textContent = game.homeName || "Home";
+function renderAll() {
+  updateLinescore();
+  renderNotes();
+  updateStoryState();
+  refreshActive();
+}
 
-      const build = (side) => game.lineups[side].map((name, index) => `
-        <label class="lineup-row">
-          <span>${index + 1}</span>
-          <input
-            type="text"
-            value="${escapeHtml(name || "")}"
-            placeholder="${escapeHtml(getLineupName(game, side, index))}"
-            data-lineup-side="${escapeHtml(side)}"
-            data-lineup-slot="${index}"
-            aria-label="${escapeHtml(side === "away" ? game.awayName : game.homeName)} batter ${index + 1}${side === battingSide && index === currentSlot ? ", up next" : ""}"
-          >
-        </label>
-      `).join("");
+function updateStoryState() {
+  const storyCard = document.getElementById('sk-story-card');
+  if (!storyCard) return;
+  storyCard.hidden = totalLoggedPlays() > 0;
+}
 
-      els.awayLineupList.innerHTML = build("away");
-      els.homeLineupList.innerHTML = build("home");
-    }
+function setupStoryMedia() {
+  const media = document.getElementById('sk-story-media');
+  const video = document.getElementById('sk-story-video');
+  const fallback = document.getElementById('sk-story-fallback');
+  if (!media || !video || !fallback) return;
 
-    function renderEventButtons() {
-      els.eventGrid.innerHTML = Object.entries(EVENTS).map(([key, event]) => `
-        <button class="event-btn ${escapeHtml(event.style)}" type="button" data-event="${escapeHtml(key)}">
-          <div>${escapeHtml(key)}</div>
-          <div class="meta-label">${escapeHtml(event.label)}</div>
-        </button>
-      `).join("");
-    }
+  function showFallback() {
+    media.classList.remove('has-video');
+    fallback.hidden = false;
+  }
 
-    function render() {
-      renderImportCard();
-      syncInputs();
-      renderGamesList();
-      renderLineups();
-      renderScoreboard();
-      renderScorebook();
-      renderStatus();
-      renderSaveStatus();
-      renderEditState();
-      renderPlayLog();
-      if (state.game.plays.length > lastRenderedPlayCount) {
-        if (typeof els.playLog.scrollTo === "function") {
-          els.playLog.scrollTo({ top: 0, behavior: "smooth" });
-        } else {
-          els.playLog.scrollTop = 0;
-        }
-      }
-      lastRenderedPlayCount = state.game.plays.length;
-    }
+  function showVideo() {
+    media.classList.add('has-video');
+    fallback.hidden = true;
+  }
 
-    function updatePlayEvent(game, playIndex, eventKey) {
-      if (!EVENTS[eventKey] || playIndex === null || !game.plays[playIndex]) return game;
-      const next = clone(game);
-      next.plays[playIndex].event = eventKey;
-      return replayGame(next);
-    }
+  video.addEventListener('loadeddata', showVideo, { once: true });
+  video.addEventListener('error', showFallback, { once: true });
 
-    function processPendingImport() {
-      state.importPayload = readImportPayload();
-      if (!state.importPayload || !state.importPayload.venue) return;
-      if (isFreshGame(state.game)) {
-        applyImportedVenue(state.importPayload, { appendNote: true, clearPending: true });
-      }
-    }
+  const playAttempt = video.play();
+  if (playAttempt && typeof playAttempt.catch === 'function') {
+    playAttempt.then(showVideo).catch(showFallback);
+  }
+}
 
-    function exportGame() {
-      const blob = new Blob([JSON.stringify(state.game, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${getGameLabel(state.game).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "mlb-scorekeeper-game"}.json`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      showToast("Game JSON exported", "success", 2600);
-    }
+function logPlay(code, count) {
+  if (!code.trim()) return;
+  pushUndo();
+  const side = currentSide;
+  const batter = getCurrentBatter();
+  const out = isOut(code);
+  const hit = isHit(code);
+  const err = isErr(code);
+  const reach = REACH_CODES.has(code);
+  if (out) outsThisHalf++;
+  const isLastOut = outsThisHalf >= 3;
 
-    function exportNotes() {
-      const line = getLineScore(state.game);
-      const lines = [
-        `Game: ${getGameLabel(state.game)}`,
-        `Venue: ${state.game.venueName || "No venue assigned"}`,
-        `Status: ${state.game.status}`,
-        `Scheduled innings: ${state.game.innings}`,
-        "",
-        "Line score:",
-        `Away runs: ${line.totals.away.R}`,
-        `Home runs: ${line.totals.home.R}`,
-        "",
-        `${state.game.awayName} lineup:`,
-        ...state.game.lineups.away.map((name, index) => `${index + 1}. ${getLineupName(state.game, "away", index)}`),
-        "",
-        `${state.game.homeName} lineup:`,
-        ...state.game.lineups.home.map((name, index) => `${index + 1}. ${getLineupName(state.game, "home", index)}`),
-        "",
-        "Notes:",
-        state.game.notes || "No notes recorded",
-        "",
-        "Play log:",
-        ...(state.game.plays.length
-          ? state.game.plays.map((play) => `${play.half === "top" ? "Top" : "Bottom"} ${play.inning} | ${play.batterName || "Batter"} | ${play.event} | ${EVENTS[play.event].label} | Runs ${play.runsScored || 0} | Outs ${play.outsAdded || 0}`)
-          : ["No plays logged"])
-      ];
-      const blob = new Blob([lines.join("\n")], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${getGameLabel(state.game).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "mlb-scorekeeper-game"}.txt`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      showToast("Game notes exported", "success", 2600);
-    }
+  plays[side][batter][curInning] = { code, count, outNum: out ? outsThisHalf : null, isLastOut };
 
-    function bindEvents() {
-      renderEventButtons();
+  if (!(code === 'BB' || code === 'HBP')) totals[side][batter].ab++;
+  if (hit) {
+    totals[side][batter].h++;
+    ls[side].h++;
+  }
+  if (err) ls[side].e++;
+  if (code === 'HR') {
+    ls[side].r++;
+    ls[side].inn[curInning] = (ls[side].inn[curInning] || 0) + 1;
+  } else if (reach && ls[side].inn[curInning] === null) {
+    ls[side].inn[curInning] = 0;
+  }
 
-      els.eventGrid.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-event]");
-        if (!button) return;
-        const nextEvent = button.getAttribute("data-event");
-        maybeShowLineupTip();
-        if (state.editingPlayIndex !== null) {
-          state.game = updatePlayEvent(state.game, state.editingPlayIndex, nextEvent);
-          state.editingPlayIndex = null;
-        } else {
-          state.game = applyEvent(state.game, nextEvent);
-        }
-        saveGame();
-        render();
-      });
+  batterIndex[side] = (batter + 1) % BATTERS;
+  if (isLastOut) {
+    outsThisHalf = 0;
+    currentSide = side === 'away' ? 'home' : 'away';
+    if (currentSide === 'away') curInning = Math.min(curInning + 1, INNINGS - 1);
+  }
 
-      els.playLog.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-play-edit]");
-        if (!button) return;
-        state.editingPlayIndex = Number(button.getAttribute("data-play-edit"));
-        render();
-      });
+  renderAll();
+  saveSession();
+  document.getElementById('play-code').value = '';
+  document.getElementById('play-count').value = '';
+  document.querySelectorAll('.sk-chip').forEach((chip) => chip.classList.remove('selected'));
+}
 
-      els.addGameBtn.addEventListener("click", () => {
-        const fresh = createNewGame();
-        fresh.awayName = state.game.awayName;
-        fresh.homeName = state.game.homeName;
-        fresh.innings = state.game.innings;
-        state.game = fresh;
-        state.importPayload = readImportPayload();
-        state.editingPlayIndex = null;
-        saveGame();
-        render();
-        showToast("Tracked game created", "success", 2600);
-      });
+function addNote(text) {
+  const cleanText = text.trim();
+  if (!cleanText) return;
+  pushUndo();
+  const isKey = cleanText.toUpperCase() === cleanText && cleanText.length < 40;
+  notes.push({
+    label: `${currentSide === 'away' ? 'TOP' : 'BOT'} ${curInning + 1}`,
+    text: cleanText,
+    tone: isKey ? 'gold' : ''
+  });
+  renderAll();
+  saveSession();
+}
 
-      els.gamesList.addEventListener("click", (event) => {
-        const selectButton = event.target.closest("[data-game-select]");
-        const deleteButton = event.target.closest("[data-game-delete]");
-        const clearSearchButton = event.target.closest("[data-clear-game-search]");
-        if (clearSearchButton) {
-          libraryState.search = "";
-          els.gameSearch.value = "";
-          renderGamesList();
-          return;
-        }
-        if (selectButton) {
-          const id = selectButton.getAttribute("data-game-select");
-          const found = state.library.games.find((game) => game.id === id);
-          if (!found) return;
-          state.library.activeGameId = id;
-          state.game = replayGame(found);
-          state.editingPlayIndex = null;
-          saveGame();
-          render();
-          return;
-        }
-        if (deleteButton) {
-          const id = deleteButton.getAttribute("data-game-delete");
-          if (state.library.games.length === 1) return;
-          const removedIndex = state.library.games.findIndex((game) => game.id === id);
-          const removedGame = removedIndex >= 0 ? clone(state.library.games[removedIndex]) : null;
-          state.library.games = state.library.games.filter((game) => game.id !== id);
-          if (state.game.id === id) {
-            state.library.activeGameId = state.library.games[0].id;
-            state.game = replayGame(state.library.games[0]);
-          }
-          state.editingPlayIndex = null;
-          saveGame();
-          render();
-          if (removedGame) {
-            showToast("Game removed", "undo", 5000, "Undo", () => {
-              state.library.games.splice(Math.max(0, removedIndex), 0, removedGame);
-              state.game = replayGame(removedGame);
-              state.library.activeGameId = removedGame.id;
-              saveGame();
-              render();
-            });
-          }
-        }
-      });
+function normalizeLineupInput(value, fallback) {
+  const parsed = String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, BATTERS);
+  if (parsed.length !== BATTERS) return fallback.slice();
+  return parsed;
+}
 
-      els.awayInput.addEventListener("input", (event) => {
-        state.game.awayName = event.target.value || "Away";
-        saveGame();
-        render();
-      });
+function runSetup() {
+  const nextTitle = window.prompt('Game title', meta.title || 'New Game');
+  if (nextTitle === null) return;
+  const nextAway = window.prompt('Away team name', meta.awayName || 'Away');
+  if (nextAway === null) return;
+  const nextHome = window.prompt('Home team name', meta.homeName || 'Home');
+  if (nextHome === null) return;
+  const nextVenue = window.prompt('Venue', meta.venue || '');
+  if (nextVenue === null) return;
+  const nextLineupNames = window.prompt('Lineup names, comma separated', lineupNames.join(', '));
+  if (nextLineupNames === null) return;
+  const nextLineupPositions = window.prompt('Lineup positions, comma separated', lineupPositions.join(', '));
+  if (nextLineupPositions === null) return;
+  meta.title = nextTitle.trim() || 'New Game';
+  meta.awayName = nextAway.trim() || 'Away';
+  meta.homeName = nextHome.trim() || 'Home';
+  meta.venue = nextVenue.trim();
+  lineupNames = normalizeLineupInput(nextLineupNames, lineupNames);
+  lineupPositions = normalizeLineupInput(nextLineupPositions, lineupPositions);
+  renderAll();
+  saveSession();
+}
 
-      els.homeInput.addEventListener("input", (event) => {
-        state.game.homeName = event.target.value || "Home";
-        saveGame();
-        render();
-      });
+function exportSession() {
+  const payload = captureSession();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${(meta.title || 'ballparks-quest-scorebook').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
-      els.venueInput.addEventListener("input", (event) => {
-        state.game.venueName = event.target.value;
-        saveGame();
-        render();
-      });
+function buildFinalScoreLine() {
+  return `Final: ${meta.awayName || 'Away'} ${ls.away.r}, ${meta.homeName || 'Home'} ${ls.home.r}`;
+}
 
-      els.gameTitleInput.addEventListener("input", (event) => {
-        state.game.title = event.target.value;
-        saveGame();
-        renderGamesList();
-      });
+function buildVisitNotes() {
+  const lines = [buildFinalScoreLine()];
+  if (meta.venue) lines.push(`Venue: ${meta.venue}`);
+  notes.forEach((entry) => {
+    const label = entry && entry.label ? `[${entry.label}] ` : '';
+    const text = entry && entry.text ? entry.text.trim() : '';
+    if (text) lines.push(`${label}${text}`);
+  });
+  return lines.join('\n');
+}
 
-      els.inningsSelect.addEventListener("change", (event) => {
-        state.game.innings = Number(event.target.value) || 9;
-        saveGame();
-        render();
-      });
+function deriveBestFeature() {
+  const standout = notes.find((entry) => entry && entry.tone === 'gold' && entry.text && entry.text.trim());
+  if (standout) return standout.text.trim();
+  const firstNote = notes.find((entry) => entry && entry.text && entry.text.trim());
+  if (firstNote) return firstNote.text.trim();
+  return buildFinalScoreLine();
+}
 
-      els.notesInput.addEventListener("input", (event) => {
-        state.game.notes = event.target.value;
-        saveGame();
-      });
+function finalizeGame() {
+  if (!app || !app.markVisited || !app.updateActiveTrip) return;
+  if (!meta.parkId) {
+    window.alert('Pick a park before you finish this game.');
+    return;
+  }
 
-      const handleLineupInput = (event) => {
-        const input = event.target.closest("[data-lineup-side]");
-        if (!input) return;
-        const side = input.getAttribute("data-lineup-side");
-        const slot = Number(input.getAttribute("data-lineup-slot"));
-        if (!state.game.lineups[side] || Number.isNaN(slot)) return;
-        state.game.lineups[side][slot] = input.value;
-        saveGame();
-        renderStatus();
-        renderScorebook();
-        renderPlayLog();
+  const confirmation = window.confirm(
+    `Finish this game?\n\n${buildFinalScoreLine()}\n${meta.venue ? `${meta.venue}\n` : ''}This saves it to your visited history.`
+  );
+  if (!confirmation) return;
+
+  pushUndo();
+
+  app.markVisited(meta.parkId, {
+    visitDate: new Date().toISOString().slice(0, 10),
+    bestFeature: deriveBestFeature(),
+    notes: buildVisitNotes()
+  });
+
+  app.updateActiveTrip((currentTrip) => {
+    currentTrip.legs = (currentTrip.legs || []).map((leg) => {
+      if (leg.toParkId !== meta.parkId) return leg;
+      return {
+        ...leg,
+        status: 'completed',
+        updatedAt: new Date().toISOString()
       };
+    });
+    return currentTrip;
+  });
 
-      els.awayLineupList.addEventListener("input", handleLineupInput);
-      els.homeLineupList.addEventListener("input", handleLineupInput);
+  if (window.BPQ && window.BPQ.storage && window.BPQ.storage.flush) {
+    window.BPQ.storage.flush();
+  }
 
-      els.newGameBtn.addEventListener("click", () => {
-        const fresh = createNewGame();
-        fresh.awayName = state.game.awayName;
-        fresh.homeName = state.game.homeName;
-        fresh.innings = state.game.innings;
-        fresh.lineups = clone(state.game.lineups);
-        state.game = fresh;
-        state.importPayload = readImportPayload();
-        state.editingPlayIndex = null;
-        saveGame();
-        render();
-        showToast("New game ready", "success", 2600);
-      });
+  localStorage.removeItem(SESSION_KEY);
+  if (app.clearScorekeeperContext) app.clearScorekeeperContext();
+  window.location.href = 'index.html';
+}
 
-      els.undoBtn.addEventListener("click", () => {
-        if (!state.game.plays.length) return;
-        state.game.plays.pop();
-        state.game = replayGame(state.game);
-        state.editingPlayIndex = null;
-        saveGame();
-        render();
-      });
+function undoLastAction() {
+  const snapshot = undoStack.pop();
+  if (!snapshot) return;
+  restoreSession(snapshot);
+  saveSession();
+}
 
-      els.finalizeBtn.addEventListener("click", () => {
-        state.game.status = state.game.status === "final" ? "in progress" : "final";
-        saveGame();
-        render();
-      });
+function submitNoteInput() {
+  const input = document.getElementById('note-input');
+  const value = input.value.trim();
+  if (!value) return;
+  document.getElementById('notes-panel').classList.add('open');
+  addNote(value);
+  input.value = '';
+  input.focus();
+}
 
-      els.exportBtn.addEventListener("click", exportGame);
-      els.exportNotesBtn.addEventListener("click", exportNotes);
+document.querySelectorAll('.sk-chip').forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const code = chip.dataset.code;
+    document.getElementById('play-code').value = code;
+    document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('selected'));
+    chip.classList.add('selected');
+  });
+});
 
-      els.importBtn.addEventListener("click", () => {
-        els.importFile.value = "";
-        els.importFile.click();
-      });
+document.getElementById('log-btn').addEventListener('click', () => {
+  logPlay(
+    document.getElementById('play-code').value.trim(),
+    document.getElementById('play-count').value.trim()
+  );
+});
 
-      els.importFile.addEventListener("change", async (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        try {
-          const text = await file.text();
-          const parsed = JSON.parse(text);
-          const validation = validateGameImport(parsed);
-          if (!validation.ok) {
-            showToast(`Import failed: ${validation.reason}`, "error", 6000);
-            return;
-          }
-          state.game = replayGame(parsed);
-          state.editingPlayIndex = null;
-          saveGame();
-          render();
-          showToast("Game imported", "success", 3200);
-        } catch (error) {
-          console.error("Import failed", error);
-          showToast("Import failed: file is not valid JSON", "error", 6000);
-        }
-      });
+document.getElementById('play-code').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') document.getElementById('log-btn').click();
+});
 
-      els.resetBtn.addEventListener("click", () => {
-        const snapshot = clone(state.game);
-        state.game = createNewGame();
-        state.importPayload = readImportPayload();
-        state.editingPlayIndex = null;
-        saveGame();
-        render();
-        showToast("Game reset", "undo", 5000, "Undo", () => {
-          state.game = replayGame(snapshot);
-          state.editingPlayIndex = null;
-          saveGame();
-          render();
-        });
-      });
+document.addEventListener('keydown', (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'z') {
+    event.preventDefault();
+    undoLastAction();
+  }
+});
 
-      els.useImportBtn.addEventListener("click", () => {
-        if (!state.importPayload) return;
-        applyImportedVenue(state.importPayload, { appendNote: true, clearPending: true });
-        showToast("Venue imported", "success", 2600);
-      });
+document.getElementById('btn-notes-toggle').addEventListener('click', () => {
+  document.getElementById('notes-panel').classList.toggle('open');
+});
 
-      els.refreshImportBtn.addEventListener("click", () => {
-        state.importPayload = readImportPayload();
-        render();
-      });
+document.getElementById('note-add-btn').addEventListener('click', submitNoteInput);
 
-      els.clearImportBtn.addEventListener("click", () => {
-        clearImportPayload();
-        render();
-      });
+document.getElementById('note-input').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    submitNoteInput();
+  }
+});
 
-      els.cancelEditBtn.addEventListener("click", () => {
-        state.editingPlayIndex = null;
-        render();
-      });
+document.getElementById('btn-undo').addEventListener('click', undoLastAction);
+document.getElementById('btn-export').addEventListener('click', exportSession);
+document.getElementById('btn-finish').addEventListener('click', finalizeGame);
+document.getElementById('btn-setup').addEventListener('click', runSetup);
+document.getElementById('view-away-btn').addEventListener('click', () => setViewSide('away'));
+document.getElementById('view-home-btn').addEventListener('click', () => setViewSide('home'));
 
-      els.gameSearch.addEventListener("input", (event) => {
-        libraryState.search = event.target.value;
-        renderGamesList();
-      });
+document.addEventListener('penDetected', () => {
+  console.log('[BPQ] Pen detected — ink overlay ready for Phase 2');
+});
 
-      els.gameSort.addEventListener("change", (event) => {
-        libraryState.sort = event.target.value;
-        renderGamesList();
-      });
+window.render_game_to_text = function renderGameToText() {
+  return JSON.stringify({
+    title: meta.title,
+    venue: meta.venue,
+    gameId: meta.gameId,
+    startDateTimeLocal: meta.startDateTimeLocal,
+    currentSide,
+    viewSide,
+    inning: curInning + 1,
+    outs: outsThisHalf,
+    batter: getCurrentBatter() + 1,
+    away: { name: meta.awayName, r: ls.away.r, h: ls.away.h, e: ls.away.e },
+    home: { name: meta.homeName, r: ls.home.r, h: ls.home.h, e: ls.home.e },
+    notes: notes.length
+  });
+};
 
-      document.addEventListener("keydown", (event) => {
-        const tag = event.target && event.target.tagName ? event.target.tagName : "";
-        const inField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
-        const mod = event.metaKey || event.ctrlKey;
-        if (mod && event.key.toLowerCase() === "z") {
-          event.preventDefault();
-          if (state.game.plays.length) {
-            els.undoBtn.click();
-          }
-          return;
-        }
-        if (inField) return;
-        if (event.key === "Escape") {
-          if (activeToast) {
-            clearToast();
-            return;
-          }
-          if (state.editingPlayIndex !== null) {
-            state.editingPlayIndex = null;
-            render();
-          }
-        }
-      });
-    }
+window.advanceTime = function advanceTime() {
+  return null;
+};
 
-    function init() {
-      state.library = loadLibrary() || createLibrary();
-      state.game = getActiveGame();
-      bindEvents();
-      processPendingImport();
-      render();
-    }
-
-    init();
-  </script>
+buildGrid();
+setupStoryMedia();
+loadSession();
+updateViewSideUI();
+renderAll();
+</script>
+<script src="theme-switcher-ui.js"></script>
 </body>
 </html>

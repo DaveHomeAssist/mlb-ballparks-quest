@@ -5,6 +5,8 @@
 
   global.BPQ = global.BPQ || {};
 
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
   /* ── team-name → park-id mapping (mirrors data.js SEEDED_PARKS) ── */
   var TEAM_TO_PARK = {
     "New York Yankees":        "yankee-stadium",
@@ -2129,6 +2131,21 @@
     return SCHEDULE_2026[parkId] || [];
   }
 
+  function getGameId(parkId, game) {
+    if (!parkId || !game) return "";
+    return [parkId, game.d, (game.o || "").toLowerCase().replace(/[^a-z0-9]+/g, "-")].join("::");
+  }
+
+  function decorateGame(parkId, homeTeam, game) {
+    if (!game) return null;
+    return Object.assign({
+      parkId: parkId,
+      homeTeam: homeTeam,
+      awayTeam: game.o,
+      gameId: getGameId(parkId, game)
+    }, game);
+  }
+
   function getUpcomingGames(parkId, count) {
     count = count || 3;
     var today = todayISO();
@@ -2141,6 +2158,26 @@
       }
     }
     return upcoming;
+  }
+
+  function getGameById(gameId) {
+    for (var parkId in SCHEDULE_2026) {
+      if (!SCHEDULE_2026.hasOwnProperty(parkId)) continue;
+      var homeTeam = null;
+      for (var teamName in TEAM_TO_PARK) {
+        if (TEAM_TO_PARK[teamName] === parkId) {
+          homeTeam = teamName;
+          break;
+        }
+      }
+      var games = SCHEDULE_2026[parkId];
+      for (var index = 0; index < games.length; index += 1) {
+        if (getGameId(parkId, games[index]) === gameId) {
+          return decorateGame(parkId, homeTeam, games[index]);
+        }
+      }
+    }
+    return null;
   }
 
   function getNextGame(parkId) {
@@ -2179,6 +2216,9 @@
   /* ── attach to namespace ── */
   global.BPQ.schedule = {
     TEAM_TO_PARK:     TEAM_TO_PARK,
+    getGameId:        getGameId,
+    getGameById:      getGameById,
+    decorateGame:     decorateGame,
     getGamesForPark:  getGamesForPark,
     getUpcomingGames: getUpcomingGames,
     getNextGame:      getNextGame,

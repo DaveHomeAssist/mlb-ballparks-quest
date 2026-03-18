@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MLB Ballparks Quest | Scorekeeper</title>
+  <meta name="description" content="A local first scorekeeper for MLB Ballparks Quest with tracker handoff, inning state, play log, and JSON export.">
+  <meta name="theme-color" content="#111111">
+  <link rel="stylesheet" href="theme-tokens.css">
+  <style>
+    :root{
+      --radius:18px;
+      --maxw:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:var(--theme-stripes), var(--theme-wash);
+      line-height:1.5;
+    }
+
+    h1,h2,h3,p{margin:0}
+    a{color:inherit}
+    button,input,select,textarea{font:inherit}
+
+    .shell{width:min(100% - 28px,var(--maxw));margin:0 auto}
+    .skip-link{
+      position:absolute;left:16px;top:-48px;padding:10px 14px;border-radius:999px;
+      background:var(--ink);color:#fff;text-decoration:none;z-index:20;
+    }
+    .skip-link:focus{top:16px}
+
+    .site-header{
+      position:sticky;top:0;z-index:10;
+      background:color-mix(in srgb, var(--bg) 92%, transparent);
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      backdrop-filter:blur(8px);
+    }
+
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:18px;
+      padding:14px 0;
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:12px;text-decoration:none;
+    }
+
+    .brand-mark{
+      width:42px;height:42px;border-radius:14px;border:1px solid rgba(20,36,51,.12);
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), rgba(255,255,255,.65) 45%, rgba(255,255,255,.2) 46%),
+        linear-gradient(140deg, var(--field), var(--accent));
+      position:relative;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
+    }
+
+    .brand-mark::before,
+    .brand-mark::after{
+      content:"";
+      position:absolute;inset:10px;border-radius:50%;
+      border:2px solid color-mix(in srgb, var(--accent) 88%, transparent);
+      clip-path:inset(0 42% 0 42%);
+    }
+    .brand-mark::after{transform:rotate(90deg)}
+
+    .brand-copy strong{
+      display:block;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;
+    }
+    .brand-copy span{display:block;color:var(--muted);font-size:.78rem}
+
+    .nav{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    }
+    .nav a{
+      text-decoration:none;padding:10px 14px;border-radius:999px;color:var(--muted);
+      transition:background-color .14s ease,color .14s ease,transform .14s ease;
+    }
+    .nav a:hover,
+    .nav a:focus-visible{background:#fff;color:var(--ink);transform:translateY(-1px)}
+
+    .hero{padding:42px 0 24px}
+    .hero-grid{
+      display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:22px;
+      align-items:start;
+    }
+
+    .panel,
+    .hero-card,
+    .score-panel,
+    .diamond-card,
+    .controls-card,
+    .log-card,
+    .import-card{
+      background:linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.94));
+      border:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .panel,
+    .hero-card,
+    .score-panel,
+    .diamond-card,
+    .controls-card,
+    .log-card,
+    .import-card{
+      background:var(--theme-panel-overlay);
+    }
+
+    .hero-card,
+    .panel,
+    .score-panel,
+    .diamond-card,
+    .controls-card,
+    .log-card,
+    .import-card{padding:22px}
+
+    .eyebrow,
+    .section-kicker,
+    .meta-label,
+    .status-chip,
+    .mini-chip{
+      font-size:.72rem;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    h1{
+      margin-top:12px;
+      font-size:clamp(2.2rem,4vw,4rem);
+      line-height:.96;
+      letter-spacing:-.04em;
+      max-width:11ch;
+    }
+
+    .hero-card p{
+      margin-top:16px;
+      color:var(--muted);
+      max-width:56ch;
+    }
+
+    .hero-actions{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;
+    }
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      min-height:44px;padding:0 16px;border-radius:999px;border:1px solid transparent;
+      text-decoration:none;cursor:pointer;font-weight:700;
+      transition:transform .14s ease,background-color .14s ease,border-color .14s ease,color .14s ease;
+    }
+    .btn:hover,
+    .btn:focus-visible{transform:translateY(-1px)}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover,
+    .btn-primary:focus-visible{background:var(--accent-strong)}
+    .btn-secondary{background:#fff;border-color:rgba(19,38,58,.12);color:var(--ink)}
+    .btn-secondary:hover,
+    .btn-secondary:focus-visible{border-color:rgba(19,38,58,.22)}
+    .btn-danger{background:#fff3f1;border-color:rgba(183,64,50,.2);color:var(--danger)}
+
+    .hero-metrics{
+      margin-top:24px;
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+    }
+    .metric{
+      padding:14px 16px;border-radius:16px;background:#fff;border:1px solid rgba(19,38,58,.08);
+    }
+    .metric strong{display:block;font-size:1.35rem}
+    .metric span{display:block;color:var(--muted);font-size:.88rem}
+
+    .import-card{display:grid;gap:14px}
+    .import-card p{color:var(--muted)}
+    .import-meta{display:flex;flex-wrap:wrap;gap:8px}
+    .mini-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(19,38,58,.05);
+      border:1px solid rgba(19,38,58,.08);
+      letter-spacing:.08em;
+    }
+    .status-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      min-height:34px;padding:0 12px;border-radius:999px;
+      background:#fff;border:1px solid rgba(19,38,58,.08);
+      color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.04em;
+    }
+    .status-chip.is-success{
+      border-color:color-mix(in srgb, var(--field) 24%, transparent);
+      color:var(--field);
+    }
+    .status-chip.is-error{
+      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
+      color:var(--danger);
+    }
+
+    .layout{
+      display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.9fr);gap:18px;
+      padding:6px 0 28px;
+      align-items:start;
+    }
+
+    .stack{display:grid;gap:18px}
+
+    .panel-head{
+      display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px;
+    }
+    .panel-head p{color:var(--muted)}
+
+    .setup-grid{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+    }
+
+    label{
+      display:grid;gap:6px;
+      font-size:.9rem;
+      color:var(--ink);
+    }
+
+    input,select,textarea{
+      width:100%;
+      min-height:44px;
+      padding:10px 14px;
+      border-radius:12px;
+      border:1px solid rgba(19,38,58,.14);
+      background:#fff;
+      color:var(--ink);
+    }
+
+    .setup-actions,
+    .toolbar,
+    .event-grid{
+      display:flex;flex-wrap:wrap;gap:10px;
+    }
+
+    .setup-actions{margin-top:14px}
+    .toolbar{margin-top:14px}
+
+    .games-list,
+    .lineup-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .library-controls{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 220px;
+      gap:12px;
+      margin:14px 0 10px;
+    }
+
+    .library-results{
+      margin-bottom:10px;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    .game-item{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      align-items:stretch;
+    }
+
+    .game-main{
+      width:100%;
+      text-align:left;
+      padding:14px 16px;
+      border-radius:16px;
+      border:1px solid rgba(19,38,58,.1);
+      background:#fff;
+      color:var(--ink);
+      cursor:pointer;
+      transition:transform .14s ease,border-color .14s ease,background-color .14s ease;
+    }
+
+    .game-main:hover,
+    .game-main:focus-visible{
+      transform:translateY(-1px);
+      border-color:color-mix(in srgb, var(--ink) 22%, transparent);
+      background:#fffdfa;
+    }
+
+    .game-item.is-active .game-main{
+      border-color:color-mix(in srgb, var(--accent) 32%, transparent);
+      box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    .game-main strong{
+      display:block;
+      font-size:1rem;
+    }
+
+    .game-main span{
+      display:block;
+      color:var(--muted);
+      font-size:.88rem;
+      margin-top:6px;
+    }
+
+    .lineup-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .lineup-card{
+      padding:16px;
+      border-radius:16px;
+      border:1px solid rgba(19,38,58,.08);
+      background:#fff;
+    }
+
+    .lineup-card h3{
+      margin-top:6px;
+      font-size:1.1rem;
+    }
+
+    .lineup-row{
+      display:grid;
+      grid-template-columns:38px minmax(0,1fr);
+      gap:10px;
+      align-items:center;
+    }
+
+    .lineup-row span{
+      min-height:44px;
+      display:grid;
+      place-items:center;
+      border-radius:12px;
+      border:1px solid rgba(19,38,58,.1);
+      background:#f7f0e6;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .notes-field{
+      margin-top:14px;
+    }
+
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    .quick-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .quick-note{
+      padding:14px 16px;
+      border-radius:16px;
+      background:#f7f0e6;
+      border:1px solid rgba(19,38,58,.08);
+      color:var(--muted);
+    }
+
+    .reference-table{
+      width:100%;
+      border-collapse:collapse;
+      border:1px solid rgba(19,38,58,.08);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .reference-table th,
+    .reference-table td{
+      text-align:left;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(19,38,58,.08);
+      font-size:.92rem;
+    }
+
+    .reference-table tr:last-child td{
+      border-bottom:none;
+    }
+
+    .score-table-scroll{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      border-radius:16px;
+      margin-bottom:14px;
+      background:var(--panel-strong);
+    }
+
+    .score-table{
+      width:100%;
+      min-width:650px;
+      border-collapse:collapse;
+      font-variant-numeric:tabular-nums;
+      background:#fff;
+    }
+
+    .score-table th,
+    .score-table td{
+      padding:10px 8px;
+      border-bottom:1px solid rgba(19,38,58,.08);
+      text-align:center;
+      font-size:.92rem;
+    }
+    .score-table th:first-child,
+    .score-table td:first-child{
+      text-align:left;padding-left:14px;font-weight:700;
+    }
+    .score-table tr:last-child td{border-bottom:none}
+
+    .scorebook-shell{
+      display:grid;
+      gap:18px;
+      padding:20px;
+      border-radius:20px;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--panel) 78%, white 22%), color-mix(in srgb, var(--panel-strong) 86%, white 14%));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+    }
+
+    .scorebook-header{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+    }
+
+    .scorebook-header h3{
+      margin-top:4px;
+      font-size:1.4rem;
+      line-height:1.05;
+    }
+
+    .scorebook-meta{
+      display:grid;
+      gap:6px;
+      justify-items:end;
+      color:var(--muted);
+      font-size:.84rem;
+      text-align:right;
+    }
+
+    .scorebook-outs-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:16px;
+      background:color-mix(in srgb, var(--panel) 72%, white 28%);
+      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+    }
+
+    .scorebook-outs-label{
+      font-size:.72rem;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .scorebook-out-pip{
+      width:14px;
+      height:14px;
+      border-radius:999px;
+      border:1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+      background:color-mix(in srgb, var(--panel) 70%, white 30%);
+      box-shadow:inset 0 1px 1px rgba(255,255,255,.5);
+    }
+
+    .scorebook-out-pip.is-on{
+      background:var(--accent);
+      border-color:color-mix(in srgb, var(--accent) 60%, black 10%);
+      box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+
+    .scorebook-run-state{
+      display:inline-flex;
+      align-items:center;
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      color:var(--ink);
+      font-size:.86rem;
+      font-weight:700;
+    }
+
+    .scorebook-grid-area{
+      display:grid;
+      grid-template-columns:220px minmax(0,1fr) 110px;
+      gap:0;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      border-radius:18px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .scorebook-lineup-col,
+    .scorebook-totals-col{
+      background:color-mix(in srgb, var(--panel) 82%, white 18%);
+    }
+
+    .scorebook-grid-head,
+    .scorebook-inning-head{
+      min-height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      font-size:.72rem;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+      background:color-mix(in srgb, var(--panel) 76%, white 24%);
+    }
+
+    .scorebook-lineup-row,
+    .scorebook-totals-row{
+      min-height:56px;
+      display:grid;
+      align-items:center;
+      padding:10px 12px;
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+    }
+
+    .scorebook-lineup-row:last-child,
+    .scorebook-totals-row:last-child{
+      border-bottom:none;
+    }
+
+    .scorebook-lineup-row{
+      grid-template-columns:32px minmax(0,1fr);
+      gap:12px;
+    }
+
+    .scorebook-lineup-row.is-active,
+    .scorebook-totals-row.is-active{
+      background:color-mix(in srgb, var(--accent) 8%, white 92%);
+    }
+
+    .scorebook-slot{
+      width:32px;
+      height:32px;
+      display:grid;
+      place-items:center;
+      border-radius:10px;
+      background:#fff;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      color:var(--muted);
+      font-size:.8rem;
+      font-weight:800;
+    }
+
+    .scorebook-batter-name{
+      display:grid;
+      gap:3px;
+    }
+
+    .scorebook-batter-name strong{
+      font-size:.92rem;
+      line-height:1.15;
+    }
+
+    .scorebook-batter-name span{
+      font-size:.74rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .scorebook-innings-area{
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:minmax(64px,1fr);
+      overflow-x:auto;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.96)),
+        linear-gradient(180deg, color-mix(in srgb, var(--field) 8%, transparent), transparent 35%);
+    }
+
+    .scorebook-inning-col{
+      display:grid;
+      grid-template-rows:44px repeat(9, 56px);
+      min-width:64px;
+      border-right:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+    }
+
+    .scorebook-inning-col.is-live .scorebook-inning-head{
+      background:color-mix(in srgb, var(--accent) 10%, white 90%);
+      color:var(--accent-strong);
+    }
+
+    .scorebook-inning-col:last-child{
+      border-right:none;
+    }
+
+    .scorebook-cell{
+      position:relative;
+      display:grid;
+      place-items:center;
+      min-height:56px;
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,247,241,.92));
+    }
+
+    .scorebook-cell.is-active{
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, white 92%), color-mix(in srgb, var(--accent) 4%, white 96%));
+    }
+
+    .scorebook-cell:last-child{
+      border-bottom:none;
+    }
+
+    .scorebook-mark{
+      position:relative;
+      width:34px;
+      height:34px;
+      display:grid;
+      place-items:center;
+    }
+
+    .scorebook-mark::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      transform:rotate(45deg);
+      border-radius:8px;
+      border:1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+      background:color-mix(in srgb, var(--panel) 64%, white 36%);
+    }
+
+    .scorebook-mark.is-hit::before{
+      background:color-mix(in srgb, var(--field) 18%, white 82%);
+      border-color:color-mix(in srgb, var(--field) 34%, transparent);
+    }
+
+    .scorebook-mark.is-out::before{
+      background:color-mix(in srgb, var(--danger) 12%, white 88%);
+      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
+    }
+
+    .scorebook-mark.is-error::before{
+      background:color-mix(in srgb, var(--sun) 24%, white 76%);
+      border-color:color-mix(in srgb, var(--sun) 34%, transparent);
+    }
+
+    .scorebook-cell-stack{
+      position:relative;
+      z-index:1;
+      display:grid;
+      justify-items:center;
+      gap:2px;
+    }
+
+    .scorebook-cell-code{
+      font-size:.7rem;
+      font-weight:800;
+      letter-spacing:.03em;
+      color:var(--ink);
+    }
+
+    .scorebook-cell-note{
+      font-size:.62rem;
+      color:var(--muted);
+      font-weight:700;
+      min-height:1em;
+    }
+
+    .scorebook-empty{
+      width:22px;
+      height:22px;
+      border-radius:6px;
+      border:1px dashed color-mix(in srgb, var(--ink) 12%, transparent);
+      background:color-mix(in srgb, var(--panel) 70%, white 30%);
+    }
+
+    .scorebook-totals-row{
+      gap:2px;
+      justify-items:center;
+      text-align:center;
+    }
+
+    .scorebook-totals-row strong{
+      font-size:.92rem;
+    }
+
+    .scorebook-totals-row span{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .scorebook-footer{
+      display:grid;
+      grid-template-columns:220px minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+
+    .scorebook-diamond-wrap{
+      padding:16px;
+      border-radius:18px;
+      background:color-mix(in srgb, var(--panel) 74%, white 26%);
+      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      display:grid;
+      justify-items:center;
+      gap:14px;
+    }
+
+    .scorebook-diamond{
+      width:190px;
+      height:190px;
+      position:relative;
+      transform:rotate(45deg);
+      background:linear-gradient(135deg, color-mix(in srgb, var(--field) 18%, white 82%), color-mix(in srgb, var(--field) 6%, white 94%));
+      border:1px solid color-mix(in srgb, var(--field) 28%, transparent);
+      border-radius:24px;
+    }
+
+    .status-row{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px;
+    }
+    .status-box{
+      padding:14px;border-radius:14px;background:#fff;border:1px solid rgba(19,38,58,.08);
+    }
+    .status-box strong{display:block;font-size:1.3rem}
+
+    .diamond-wrap{
+      display:grid;justify-items:center;gap:18px;
+    }
+
+    .diamond{
+      width:160px;height:160px;position:relative;
+      transform:rotate(45deg);
+      background:linear-gradient(135deg, rgba(39,84,63,.12), rgba(39,84,63,.04));
+      border:1px solid rgba(39,84,63,.2);
+      border-radius:18px;
+    }
+
+    .base{
+      position:absolute;width:32px;height:32px;border-radius:8px;
+      background:#fff;border:1px solid rgba(19,38,58,.18);
+      transform:translate(-50%,-50%);
+      display:grid;place-items:center;
+      font-size:.8rem;font-weight:800;color:var(--muted);
+    }
+
+    .base.is-hot{
+      background:var(--warn);
+      border-color:var(--warn);
+      color:#fff;
+    }
+
+    .base.first{left:100%;top:50%}
+    .base.second{left:50%;top:0}
+    .base.third{left:0;top:50%}
+    .base.home{left:50%;top:100%}
+    .diamond-label{
+      transform:none;
+      color:var(--muted);
+      text-align:center;
+      font-size:.95rem;
+    }
+
+    .event-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .event-btn{
+      min-height:54px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(19,38,58,.12);
+      background:#fff;
+      color:var(--ink);
+      cursor:pointer;
+      font-weight:700;
+      transition:transform .14s ease,border-color .14s ease,background-color .14s ease;
+    }
+    .event-btn:hover,
+    .event-btn:focus-visible{
+      transform:translateY(-1px);
+      border-color:rgba(19,38,58,.24);
+      background:#fffdfa;
+    }
+
+    .event-btn.is-out{background:#f4ebe7}
+    .event-btn.is-special{background:#eef6f1}
+
+    .event-toolbar{
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .mini-chip.is-live{
+      border-color:color-mix(in srgb, var(--accent) 24%, transparent);
+      box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+      color:var(--accent-strong);
+    }
+
+    .log-list{
+      display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px;
+    }
+    .play-row{
+      padding:14px;border-radius:14px;background:#fff;border:1px solid rgba(19,38,58,.08);
+      display:grid;gap:8px;
+    }
+    .play-top{
+      display:flex;justify-content:space-between;gap:12px;align-items:start;
+    }
+    .play-actions{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    }
+    .play-edit-btn{
+      min-height:34px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+      background:#fff;
+      color:var(--ink);
+      cursor:pointer;
+      font:inherit;
+      font-size:.82rem;
+      font-weight:700;
+    }
+    .play-edit-btn.is-active{
+      border-color:color-mix(in srgb, var(--accent) 28%, transparent);
+      color:var(--accent-strong);
+    }
+    .play-top strong{font-size:1rem}
+    .play-row p{color:var(--muted);font-size:.92rem}
+
+    .empty{
+      padding:18px;border-radius:14px;background:#fff;border:1px dashed rgba(19,38,58,.16);
+      color:var(--muted);
+    }
+
+    .footer{
+      padding:14px 0 40px;color:var(--muted);font-size:.92rem;
+    }
+    .footer-bar{
+      border-top:1px solid rgba(19,38,58,.08);
+      padding-top:16px;
+      display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    }
+
+    .toast{
+      position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+      width:min(calc(100% - 28px), 560px);
+      display:flex;justify-content:space-between;align-items:center;gap:14px;
+      padding:14px 16px;border-radius:16px;background:var(--panel-strong);
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      box-shadow:var(--shadow);z-index:300;
+    }
+    .toast.is-success{border-color:color-mix(in srgb, var(--field) 24%, transparent)}
+    .toast.is-error{border-color:color-mix(in srgb, var(--danger) 28%, transparent)}
+    .toast.is-undo{border-color:color-mix(in srgb, var(--accent) 24%, transparent)}
+    .toast-copy{color:var(--ink);font-size:.94rem}
+    .toast-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .toast-action,
+    .toast-close{
+      min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(19,38,58,.08);
+      background:#fff;color:var(--ink);cursor:pointer;font:inherit;font-weight:700;
+    }
+
+    kbd{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:1.45em;height:1.45em;padding:0 .34em;
+      border-radius:8px;border:1px solid rgba(19,38,58,.12);
+      background:#fff;font-size:.74em;font-weight:700;
+    }
+
+    :focus-visible{
+      outline:3px solid color-mix(in srgb, var(--accent) 72%, white 8%);
+      outline-offset:3px;
+    }
+
+    @media (max-width: 980px){
+      .hero-grid,
+      .layout{grid-template-columns:1fr}
+      .hero-metrics,
+      .status-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .event-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .scorebook-grid-area,
+      .scorebook-footer{grid-template-columns:1fr}
+      .scorebook-lineup-col,
+      .scorebook-totals-col{
+        display:none;
+      }
+    }
+
+    @media (max-width: 720px){
+      .topbar{flex-direction:column;align-items:flex-start}
+      .nav{width:100%}
+      .hero{padding-top:34px}
+      .hero-metrics,
+      .status-row,
+      .setup-grid,
+      .lineup-grid,
+      .event-grid,
+      .library-controls{grid-template-columns:1fr}
+      .panel,
+      .hero-card,
+      .score-panel,
+      .diamond-card,
+      .controls-card,
+      .log-card,
+      .import-card{padding:18px}
+      h1{max-width:12ch}
+      .scorebook-shell{padding:16px}
+      .scorebook-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .scorebook-meta{
+        justify-items:start;
+        text-align:left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      *,
+      *::before,
+      *::after{transition:none !important}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="shell topbar">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>MLB Ballparks Quest</strong>
+          <span>Scorekeeper · standalone local first game log</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="index.html">Ballparks Quest</a>
+        <a href="#games">Games</a>
+        <a href="#lineup">Lineup</a>
+        <a href="#setup">Game setup</a>
+        <a href="#controls">Play input</a>
+        <a href="#log">Play log</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="shell hero-grid">
+        <div class="hero-card">
+          <div class="eyebrow">Land • understand • log • review • export</div>
+          <h1>Score the game without breaking the Ballparks Quest workflow.</h1>
+          <p>This page stays lightweight, runs on its own, and pulls venue context from Ballparks Quest when you want it. Set lineups, log each plate appearance with one hand, let the score grid derive innings, and export a clean game record when the night is done.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#controls">Start scoring</a>
+            <a class="btn btn-secondary" href="index.html">Back to tracker</a>
+          </div>
+          <div class="hero-metrics">
+            <div class="metric">
+              <strong id="heroGameStatus">Live</strong>
+              <span>current game state</span>
+            </div>
+            <div class="metric">
+              <strong id="heroVenueName">No import yet</strong>
+              <span>venue context</span>
+            </div>
+            <div class="metric">
+              <strong id="heroPlayCount">0</strong>
+              <span>logged plays</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="import-card" aria-labelledby="importTitle">
+          <div>
+            <div class="section-kicker">Tracker handoff</div>
+            <h2 id="importTitle">Selected park context from Ballparks Quest</h2>
+          </div>
+          <p id="importSummary">No tracker import is active yet. Open a park in Ballparks Quest and use the scorekeeper handoff link.</p>
+          <div class="import-meta" id="importMeta"></div>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" id="useImportBtn">Use imported venue</button>
+            <button class="btn btn-secondary" type="button" id="refreshImportBtn">Pull latest import</button>
+            <button class="btn btn-secondary" type="button" id="clearImportBtn">Clear import</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="games">
+      <div class="shell layout">
+        <div class="stack">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="section-kicker">Games</div>
+                <h2>Track each game in one local library</h2>
+              </div>
+              <p>Create a game, switch context fast, and keep the active score live.</p>
+            </div>
+            <div class="setup-actions">
+              <button class="btn btn-primary" type="button" id="addGameBtn">Create tracked game</button>
+            </div>
+            <div class="library-controls">
+              <label>
+                Search games
+                <input id="gameSearch" type="search" placeholder="Search games">
+              </label>
+              <label>
+                Sort
+                <select id="gameSort">
+                  <option value="recent">Recent first</option>
+                  <option value="oldest">Oldest first</option>
+                  <option value="alphabetical">A to Z</option>
+                  <option value="status">In progress first</option>
+                </select>
+              </label>
+            </div>
+            <div class="library-results" id="gameResultsCount">1 game</div>
+            <div class="games-list" id="gamesList"></div>
+          </section>
+
+          <section class="panel" id="setup">
+            <div class="panel-head">
+              <div>
+                <div class="section-kicker">Game setup</div>
+                <h2>Names, venue, and inning length</h2>
+              </div>
+              <p>All values save locally as you edit.</p>
+            </div>
+            <div class="setup-grid">
+              <label>
+                Away team
+                <input id="awayInput" type="text" value="Away">
+              </label>
+              <label>
+                Home team
+                <input id="homeInput" type="text" value="Home">
+              </label>
+              <label>
+                Venue
+                <input id="venueInput" type="text" value="">
+              </label>
+              <label>
+                Game title
+                <input id="gameTitleInput" type="text" value="" placeholder="Opening Day 2026">
+              </label>
+              <label>
+                Scheduled innings
+                <select id="inningsSelect">
+                  <option value="7">7</option>
+                  <option value="9" selected>9</option>
+                  <option value="12">12</option>
+                </select>
+              </label>
+            </div>
+            <label class="notes-field">
+              Game notes
+              <textarea id="notesInput" placeholder="Weather, lineup notes, pitching plan, or late game context"></textarea>
+            </label>
+            <div class="setup-actions">
+              <button class="btn btn-secondary" type="button" id="newGameBtn">New game</button>
+              <button class="btn btn-secondary" type="button" id="undoBtn">Undo last play <kbd>⌘Z</kbd></button>
+              <button class="btn btn-secondary" type="button" id="finalizeBtn">Toggle final</button>
+              <button class="btn btn-secondary" type="button" id="exportBtn">Export game JSON</button>
+              <button class="btn btn-secondary" type="button" id="exportNotesBtn">Export game notes</button>
+              <button class="btn btn-secondary" type="button" id="importBtn">Import game JSON</button>
+              <button class="btn btn-danger" type="button" id="resetBtn">Reset everything</button>
+              <span class="status-chip" id="saveStatusChip" aria-live="polite">Ready</span>
+              <input id="importFile" type="file" accept="application/json" hidden>
+            </div>
+          </section>
+
+          <section class="panel scorebook-panel" id="lineup">
+            <div class="panel-head">
+              <div>
+                <div class="section-kicker">Scorebook view</div>
+                <h2>A paper style scoring surface with your current game state underneath it.</h2>
+              </div>
+              <p>The line score, active batter card, runner state, and inning flow stay live as you log plays.</p>
+            </div>
+            <div class="scorebook-shell">
+              <div class="scorebook-header">
+                <div>
+                  <div class="section-kicker">Official score sheet</div>
+                  <h3 id="scoreboardTitle">Away at Home</h3>
+                </div>
+                <div class="scorebook-meta">
+                  <span id="scorebookDateMeta">Date pending</span>
+                  <span id="scorebookVenueMeta">Venue pending</span>
+                  <span id="scorebookStatusMeta">In progress</span>
+                </div>
+              </div>
+              <div class="score-table-scroll">
+                <table class="score-table" aria-label="Scoreboard" id="scoreTable"></table>
+              </div>
+              <div class="scorebook-outs-row">
+                <span class="scorebook-outs-label">Outs</span>
+                <span class="scorebook-out-pip" id="scoreOut1" aria-hidden="true"></span>
+                <span class="scorebook-out-pip" id="scoreOut2" aria-hidden="true"></span>
+                <span class="scorebook-out-pip" id="scoreOut3" aria-hidden="true"></span>
+                <span class="scorebook-run-state" id="scorebookBatterDisplay">Away batter 1</span>
+                <span class="scorebook-run-state" id="scorebookInningDisplay">Top 1</span>
+                <span class="scorebook-run-state" id="scorebookSideChip">Away card</span>
+                <span class="mini-chip" id="phaseChip">Top 1</span>
+              </div>
+              <div class="scorebook-grid-area">
+                <div class="scorebook-lineup-col">
+                  <div class="scorebook-grid-head"># Batter</div>
+                  <div id="scorebookLineup"></div>
+                </div>
+                <div class="scorebook-innings-area" id="scorebookInnings"></div>
+                <div class="scorebook-totals-col">
+                  <div class="scorebook-grid-head">AB · H</div>
+                  <div id="scorebookTotals"></div>
+                </div>
+              </div>
+              <div class="scorebook-footer">
+                <div class="scorebook-diamond-wrap">
+                  <div class="scorebook-diamond" aria-hidden="true">
+                    <div class="base first" id="baseFirst">1B</div>
+                    <div class="base second" id="baseSecond">2B</div>
+                    <div class="base third" id="baseThird">3B</div>
+                    <div class="base home">HP</div>
+                  </div>
+                  <div class="diamond-label" id="diamondSummary">Bases empty</div>
+                </div>
+                <div class="status-row">
+                  <div class="status-box">
+                    <div class="meta-label">Outs</div>
+                    <strong id="outsValue">0</strong>
+                  </div>
+                  <div class="status-box">
+                    <div class="meta-label">Current batter side</div>
+                    <strong id="battingSideValue">Away</strong>
+                  </div>
+                  <div class="status-box">
+                    <div class="meta-label">Plays logged</div>
+                    <strong id="playsValue">0</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-head" style="margin-top:18px">
+              <div>
+                <div class="section-kicker">Lineup editor</div>
+                <h2>Lineups are optional. Empty slots appear as numbered placeholders.</h2>
+              </div>
+              <p>Each plate appearance advances the current side automatically.</p>
+            </div>
+            <div class="lineup-grid">
+              <section class="lineup-card" aria-labelledby="awayLineupTitle">
+                <div class="section-kicker">Away lineup</div>
+                <h3 id="awayLineupTitle">Away</h3>
+                <div class="lineup-list" id="awayLineupList"></div>
+              </section>
+              <section class="lineup-card" aria-labelledby="homeLineupTitle">
+                <div class="section-kicker">Home lineup</div>
+                <h3 id="homeLineupTitle">Home</h3>
+                <div class="lineup-list" id="homeLineupList"></div>
+              </section>
+            </div>
+          </section>
+        </div>
+
+        <div class="stack">
+          <section class="controls-card" id="controls">
+            <div class="panel-head">
+              <div>
+                <div class="section-kicker">Play input</div>
+                <h2>Log the next event</h2>
+              </div>
+              <p>One row per plate appearance. Quick mode works best for strikeouts and outs in play.</p>
+            </div>
+            <div class="event-grid" id="eventGrid"></div>
+            <div class="toolbar event-toolbar">
+              <div class="mini-chip" id="editModeChip">Append mode</div>
+              <button class="btn btn-secondary" type="button" id="cancelEditBtn" hidden>Cancel edit</button>
+            </div>
+            <div class="toolbar">
+              <div class="mini-chip" id="gameStatusChip">in progress</div>
+              <div class="mini-chip" id="venueChip">No venue assigned</div>
+              <div class="mini-chip" id="activeBatterChip">Up next · Away 1</div>
+              <div class="mini-chip" id="onDeckChip">On deck · Away 2</div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="referenceTitle">
+            <div class="panel-head">
+              <div>
+                <div class="section-kicker">Quick reference</div>
+                <h2 id="referenceTitle">Event codes and fast scoring notes</h2>
+              </div>
+            </div>
+            <div class="quick-grid">
+              <div class="quick-note">Quick mode tip: for K and OUT outcomes, log directly without runner setup. Outs advance automatically.</div>
+              <table class="reference-table" aria-label="Event code reference">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Meaning</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>1B</td><td>Single</td></tr>
+                  <tr><td>2B</td><td>Double</td></tr>
+                  <tr><td>3B</td><td>Triple</td></tr>
+                  <tr><td>HR</td><td>Home run</td></tr>
+                  <tr><td>BB</td><td>Walk</td></tr>
+                  <tr><td>HBP</td><td>Hit by pitch</td></tr>
+                  <tr><td>K</td><td>Strikeout</td></tr>
+                  <tr><td>OUT</td><td>Out in play</td></tr>
+                  <tr><td>FC</td><td>Fielder's choice</td></tr>
+                  <tr><td>E</td><td>Reached on error</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="log">
+      <div class="shell">
+        <section class="log-card">
+          <div class="panel-head">
+            <div>
+              <div class="section-kicker">Play log</div>
+              <h2>Every scoring event in order</h2>
+            </div>
+            <p>The log doubles as the audit trail for undo and JSON export.</p>
+          </div>
+          <div class="log-list" id="playLog"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-bar">
+      <div>Standalone scorekeeper. Works by opening the file directly or serving it from static hosting.</div>
+      <div><a href="#top">Back to top</a></div>
+    </div>
+  </footer>
+  <script src="theme-switcher.js" defer></script>
+  <script src="theme-switcher-ui.js" defer></script>
+
+  <script>
+    const IMPORT_KEY = "mlb_ballparks_scorekeeper_import_v1";
+    const SAVE_KEY = "mlb_ballparks_scorekeeper_state_v1";
+    const LINEUP_TIP_KEY = "mlb_scorekeeper_lineup_tip_v1";
+
+    const EVENTS = {
+      "1B": { label: "Single", outs: 0, style: "" },
+      "2B": { label: "Double", outs: 0, style: "" },
+      "3B": { label: "Triple", outs: 0, style: "" },
+      "HR": { label: "Home run", outs: 0, style: "is-special" },
+      "BB": { label: "Walk", outs: 0, style: "" },
+      "HBP": { label: "Hit by pitch", outs: 0, style: "" },
+      "K": { label: "Strikeout", outs: 1, style: "is-out" },
+      "OUT": { label: "Out", outs: 1, style: "is-out" },
+      "FO": { label: "Fly out", outs: 1, style: "is-out" },
+      "FC": { label: "Fielder's choice", outs: 1, style: "is-out" },
+      "DP": { label: "Double play", outs: 2, style: "is-out" },
+      "E": { label: "Error", outs: 0, style: "" },
+      "SAC": { label: "Sacrifice", outs: 1, style: "is-out" }
+    };
+
+    const EMPTY_BASES = { first: false, second: false, third: false };
+
+    const state = {
+      importPayload: null,
+      library: null,
+      game: null,
+      editingPlayIndex: null
+    };
+
+    const libraryState = {
+      search: "",
+      sort: "recent"
+    };
+
+    const els = {
+      addGameBtn: document.getElementById("addGameBtn"),
+      gamesList: document.getElementById("gamesList"),
+      awayInput: document.getElementById("awayInput"),
+      homeInput: document.getElementById("homeInput"),
+      venueInput: document.getElementById("venueInput"),
+      gameTitleInput: document.getElementById("gameTitleInput"),
+      inningsSelect: document.getElementById("inningsSelect"),
+      notesInput: document.getElementById("notesInput"),
+      newGameBtn: document.getElementById("newGameBtn"),
+      undoBtn: document.getElementById("undoBtn"),
+      finalizeBtn: document.getElementById("finalizeBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      exportNotesBtn: document.getElementById("exportNotesBtn"),
+      importBtn: document.getElementById("importBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      importFile: document.getElementById("importFile"),
+      awayLineupTitle: document.getElementById("awayLineupTitle"),
+      homeLineupTitle: document.getElementById("homeLineupTitle"),
+      awayLineupList: document.getElementById("awayLineupList"),
+      homeLineupList: document.getElementById("homeLineupList"),
+      useImportBtn: document.getElementById("useImportBtn"),
+      refreshImportBtn: document.getElementById("refreshImportBtn"),
+      clearImportBtn: document.getElementById("clearImportBtn"),
+      importSummary: document.getElementById("importSummary"),
+      importMeta: document.getElementById("importMeta"),
+      heroGameStatus: document.getElementById("heroGameStatus"),
+      heroVenueName: document.getElementById("heroVenueName"),
+      heroPlayCount: document.getElementById("heroPlayCount"),
+      scoreboardTitle: document.getElementById("scoreboardTitle"),
+      scorebookDateMeta: document.getElementById("scorebookDateMeta"),
+      scorebookVenueMeta: document.getElementById("scorebookVenueMeta"),
+      scorebookStatusMeta: document.getElementById("scorebookStatusMeta"),
+      scoreOut1: document.getElementById("scoreOut1"),
+      scoreOut2: document.getElementById("scoreOut2"),
+      scoreOut3: document.getElementById("scoreOut3"),
+      scorebookBatterDisplay: document.getElementById("scorebookBatterDisplay"),
+      scorebookInningDisplay: document.getElementById("scorebookInningDisplay"),
+      scorebookSideChip: document.getElementById("scorebookSideChip"),
+      scorebookLineup: document.getElementById("scorebookLineup"),
+      scorebookInnings: document.getElementById("scorebookInnings"),
+      scorebookTotals: document.getElementById("scorebookTotals"),
+      phaseChip: document.getElementById("phaseChip"),
+      scoreTable: document.getElementById("scoreTable"),
+      outsValue: document.getElementById("outsValue"),
+      battingSideValue: document.getElementById("battingSideValue"),
+      playsValue: document.getElementById("playsValue"),
+      baseFirst: document.getElementById("baseFirst"),
+      baseSecond: document.getElementById("baseSecond"),
+      baseThird: document.getElementById("baseThird"),
+      diamondSummary: document.getElementById("diamondSummary"),
+      eventGrid: document.getElementById("eventGrid"),
+      playLog: document.getElementById("playLog"),
+      gameStatusChip: document.getElementById("gameStatusChip"),
+      venueChip: document.getElementById("venueChip"),
+      activeBatterChip: document.getElementById("activeBatterChip"),
+      onDeckChip: document.getElementById("onDeckChip"),
+      editModeChip: document.getElementById("editModeChip"),
+      cancelEditBtn: document.getElementById("cancelEditBtn")
+      ,
+      gameSearch: document.getElementById("gameSearch"),
+      gameSort: document.getElementById("gameSort"),
+      gameResultsCount: document.getElementById("gameResultsCount"),
+      saveStatusChip: document.getElementById("saveStatusChip")
+    };
+
+    let activeToast = null;
+    let activeToastTimer = null;
+    let activeToastAction = null;
+    let saveStatus = "idle";
+    let saveStatusTimer = null;
+    let lastRenderedPlayCount = 0;
+
+    function makeId(prefix) {
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function fillLineup(lineup) {
+      const next = Array.from({ length: 9 }, (_, index) => Array.isArray(lineup) ? String(lineup[index] || "") : "");
+      return next.slice(0, 9);
+    }
+
+    function createNewGame(seed = {}) {
+      const createdAt = seed.createdAt || new Date().toISOString();
+      return {
+        id: seed.id || makeId("game"),
+        createdAt,
+        updatedAt: seed.updatedAt || createdAt,
+        title: seed.title || "",
+        awayName: "Away",
+        homeName: "Home",
+        venueName: "",
+        innings: 9,
+        status: "in progress",
+        importedVenue: null,
+        notes: "",
+        lineups: {
+          away: fillLineup(seed.lineups && seed.lineups.away),
+          home: fillLineup(seed.lineups && seed.lineups.home)
+        },
+        plays: [],
+        state: {
+          inning: 1,
+          half: "top",
+          outs: 0,
+          bases: { ...EMPTY_BASES },
+          batterIndex: { away: 0, home: 0 }
+        }
+      };
+    }
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function getGameLabel(game) {
+      const title = game && typeof game.title === "string" ? game.title.trim() : "";
+      return title || `${game.awayName || "Away"} at ${game.homeName || "Home"}`;
+    }
+
+    function clearToast() {
+      activeToastAction = null;
+      if (activeToastTimer) {
+        clearTimeout(activeToastTimer);
+        activeToastTimer = null;
+      }
+      if (!activeToast) return;
+      activeToast.remove();
+      activeToast = null;
+    }
+
+    function showToast(message, tone = "info", duration = 3200, actionLabel = "", onAction = null) {
+      clearToast();
+      const toast = document.createElement("section");
+      toast.className = `toast is-${tone}`;
+      toast.setAttribute("role", tone === "error" ? "alert" : "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.innerHTML = `
+        <div class="toast-copy">${escapeHtml(message)}</div>
+        <div class="toast-actions">
+          ${actionLabel ? `<button class="toast-action" type="button">${escapeHtml(actionLabel)}</button>` : ""}
+          <button class="toast-close" type="button" aria-label="Dismiss notification">Dismiss</button>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      activeToast = toast;
+      activeToastAction = typeof onAction === "function" ? onAction : null;
+      const actionButton = toast.querySelector(".toast-action");
+      if (actionButton && activeToastAction) {
+        actionButton.addEventListener("click", () => {
+          const action = activeToastAction;
+          clearToast();
+          action();
+        });
+      }
+      toast.querySelector(".toast-close").addEventListener("click", clearToast);
+      if (duration > 0) {
+        activeToastTimer = setTimeout(clearToast, duration);
+      }
+    }
+
+    function setSaveStatus(nextStatus) {
+      saveStatus = nextStatus;
+      if (saveStatusTimer) {
+        clearTimeout(saveStatusTimer);
+        saveStatusTimer = null;
+      }
+      renderSaveStatus();
+      if (nextStatus === "saved") {
+        saveStatusTimer = setTimeout(() => {
+          saveStatus = "idle";
+          renderSaveStatus();
+        }, 2000);
+      }
+    }
+
+    function renderSaveStatus() {
+      if (!els.saveStatusChip) return;
+      if (saveStatus === "saved") {
+        els.saveStatusChip.textContent = "Saved";
+        els.saveStatusChip.className = "status-chip is-success";
+        return;
+      }
+      if (saveStatus === "failed") {
+        els.saveStatusChip.textContent = "Save failed";
+        els.saveStatusChip.className = "status-chip is-error";
+        return;
+      }
+      els.saveStatusChip.textContent = saveStatus === "saving" ? "Saving" : "Ready";
+      els.saveStatusChip.className = "status-chip";
+    }
+
+    function validateGameImport(obj) {
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
+        return { ok: false, reason: "File is not a valid game object" };
+      }
+      if (typeof obj.awayName !== "string" || !obj.awayName.trim()) {
+        return { ok: false, reason: "Missing away team name" };
+      }
+      if (typeof obj.homeName !== "string" || !obj.homeName.trim()) {
+        return { ok: false, reason: "Missing home team name" };
+      }
+      if (!Array.isArray(obj.plays)) {
+        return { ok: false, reason: "Missing plays array" };
+      }
+      if (!obj.state || typeof obj.state !== "object") {
+        return { ok: false, reason: "Missing game state" };
+      }
+      if (!["top", "bottom"].includes(obj.state.half)) {
+        return { ok: false, reason: "Invalid half inning value" };
+      }
+      if (typeof obj.state.inning !== "number") {
+        return { ok: false, reason: "Missing inning number" };
+      }
+      if (obj.lineups) {
+        if (!Array.isArray(obj.lineups.away) || !Array.isArray(obj.lineups.home)) {
+          return { ok: false, reason: "Lineups are not valid arrays" };
+        }
+      }
+      for (const play of obj.plays) {
+        if (!play || typeof play !== "object" || !EVENTS[play.event]) {
+          return { ok: false, reason: `Unknown event in play log: ${play && play.event ? play.event : "missing"}` };
+        }
+      }
+      return { ok: true };
+    }
+
+    function areLineupsEmpty(game) {
+      return ["away", "home"].every((side) => (game.lineups[side] || []).every((name) => !String(name || "").trim()));
+    }
+
+    function maybeShowLineupTip() {
+      if (!areLineupsEmpty(state.game)) return;
+      if (localStorage.getItem(LINEUP_TIP_KEY) === "shown") return;
+      try {
+        localStorage.setItem(LINEUP_TIP_KEY, "shown");
+      } catch (error) {
+        console.error("Failed to persist lineup tip flag", error);
+      }
+      showToast("Tip: Fill in lineups for better play by play detail", "info", 4200);
+    }
+
+    function getLineupName(game, side, slot) {
+      const teamName = side === "away" ? game.awayName : game.homeName;
+      const fallback = `${teamName || (side === "away" ? "Away" : "Home")} ${slot + 1}`;
+      const value = game.lineups && game.lineups[side] ? String(game.lineups[side][slot] || "").trim() : "";
+      return value || fallback;
+    }
+
+    function advanceRunners(bases, eventKey) {
+      let nextBases = { ...bases };
+      let runsScored = 0;
+
+      const scoreRunner = () => { runsScored += 1; };
+
+      switch (eventKey) {
+        case "HR":
+          if (nextBases.third) scoreRunner();
+          if (nextBases.second) scoreRunner();
+          if (nextBases.first) scoreRunner();
+          scoreRunner();
+          nextBases = { ...EMPTY_BASES };
+          break;
+        case "3B":
+          if (nextBases.third) scoreRunner();
+          if (nextBases.second) scoreRunner();
+          if (nextBases.first) scoreRunner();
+          nextBases = { first: false, second: false, third: true };
+          break;
+        case "2B":
+          if (nextBases.third) scoreRunner();
+          if (nextBases.second) scoreRunner();
+          nextBases = { first: false, second: true, third: !!nextBases.first };
+          break;
+        case "1B":
+        case "E":
+          if (nextBases.third) scoreRunner();
+          nextBases = { first: true, second: !!nextBases.first, third: !!nextBases.second };
+          break;
+        case "BB":
+        case "HBP":
+          if (nextBases.first && nextBases.second && nextBases.third) scoreRunner();
+          nextBases = {
+            first: true,
+            second: nextBases.first || nextBases.second,
+            third: nextBases.third || (nextBases.first && nextBases.second)
+          };
+          break;
+        case "FC":
+          if (nextBases.third) nextBases.third = false;
+          else if (nextBases.second) nextBases.second = false;
+          else if (nextBases.first) nextBases.first = false;
+          nextBases.first = true;
+          break;
+        case "DP":
+          if (nextBases.first) nextBases.first = false;
+          else if (nextBases.second) nextBases.second = false;
+          break;
+        case "SAC":
+          if (nextBases.third) scoreRunner();
+          nextBases = {
+            first: false,
+            second: !!nextBases.first,
+            third: !!nextBases.second
+          };
+          break;
+        default:
+          break;
+      }
+
+      return { nextBases, runsScored };
+    }
+
+    function applyEvent(game, eventKey) {
+      const evt = EVENTS[eventKey];
+      if (!evt || game.status === "final") return game;
+
+      const next = clone(game);
+      const before = clone(next.state);
+      const battingSide = before.half === "top" ? "away" : "home";
+      const batterSlot = Number(before.batterIndex && before.batterIndex[battingSide]) || 0;
+      const batterName = getLineupName(next, battingSide, batterSlot);
+      const advance = advanceRunners(before.bases, eventKey);
+      let nextOuts = before.outs + evt.outs;
+      let nextInning = before.inning;
+      let nextHalf = before.half;
+      let basesAfter = advance.nextBases;
+      const batterIndex = {
+        away: Number(before.batterIndex && before.batterIndex.away) || 0,
+        home: Number(before.batterIndex && before.batterIndex.home) || 0
+      };
+      batterIndex[battingSide] = (batterSlot + 1) % 9;
+
+      if (nextOuts >= 3) {
+        nextOuts = 0;
+        basesAfter = { ...EMPTY_BASES };
+        if (before.half === "top") {
+          nextHalf = "bottom";
+        } else {
+          nextHalf = "top";
+          nextInning += 1;
+        }
+      }
+
+      next.plays.push({
+        index: next.plays.length + 1,
+        inning: before.inning,
+        half: before.half,
+        event: eventKey,
+        battingSide,
+        batterSlot,
+        batterName,
+        runsScored: advance.runsScored,
+        outsAdded: evt.outs,
+        beforeBases: before.bases,
+        afterBases: basesAfter
+      });
+
+      next.state = {
+        inning: nextInning,
+        half: nextHalf,
+        outs: nextOuts,
+        bases: basesAfter,
+        batterIndex
+      };
+      next.updatedAt = new Date().toISOString();
+
+      return next;
+    }
+
+    function replayGame(game) {
+      const fresh = createNewGame({
+        id: game && game.id,
+        createdAt: game && game.createdAt,
+        updatedAt: game && game.updatedAt,
+        title: game && game.title,
+        lineups: game && game.lineups
+      });
+      fresh.awayName = game && game.awayName ? game.awayName : "Away";
+      fresh.homeName = game && game.homeName ? game.homeName : "Home";
+      fresh.venueName = game && game.venueName ? game.venueName : "";
+      fresh.innings = Math.max(1, Number(game && game.innings) || 9);
+      fresh.status = game && game.status ? game.status : "in progress";
+      fresh.importedVenue = game && game.importedVenue ? game.importedVenue : null;
+      fresh.notes = game && game.notes ? String(game.notes) : "";
+      fresh.title = game && game.title ? String(game.title) : "";
+      for (const play of game.plays || []) {
+        const updated = applyEvent(fresh, play.event);
+        fresh.plays = updated.plays;
+        fresh.state = updated.state;
+      }
+      fresh.updatedAt = game && game.updatedAt ? game.updatedAt : fresh.updatedAt;
+      return fresh;
+    }
+
+    function createLibrary(seedGame) {
+      const game = replayGame(seedGame || createNewGame());
+      return {
+        version: 2,
+        activeGameId: game.id,
+        games: [game]
+      };
+    }
+
+    function getLineScore(game) {
+      const innings = Math.max(Number(game.innings) || 9, game.state.inning);
+      const line = {
+        away: Array.from({ length: innings }, () => 0),
+        home: Array.from({ length: innings }, () => 0),
+        totals: { away: { R: 0 }, home: { R: 0 } }
+      };
+
+      for (const play of game.plays) {
+        const side = play.half === "top" ? "away" : "home";
+        const inningIndex = Math.max(0, play.inning - 1);
+        if (!line[side][inningIndex]) line[side][inningIndex] = 0;
+        line[side][inningIndex] += play.runsScored || 0;
+        line.totals[side].R += play.runsScored || 0;
+      }
+
+      return line;
+    }
+
+    function readImportPayload() {
+      try {
+        const raw = localStorage.getItem(IMPORT_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.venue || !parsed.exportedAt) {
+          localStorage.removeItem(IMPORT_KEY);
+          return null;
+        }
+        if (Date.now() - new Date(parsed.exportedAt).getTime() > 3600000) {
+          localStorage.removeItem(IMPORT_KEY);
+          return null;
+        }
+        return parsed;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function clearImportPayload() {
+      localStorage.removeItem(IMPORT_KEY);
+      state.importPayload = null;
+    }
+
+    function isFreshGame(game) {
+      return Boolean(
+        game &&
+        game.plays.length === 0 &&
+        game.awayName === "Away" &&
+        game.homeName === "Home" &&
+        !game.venueName &&
+        !(game.notes || "").trim()
+      );
+    }
+
+    function syncLibrary() {
+      if (!state.library) {
+        state.library = createLibrary(state.game);
+      }
+      state.game.updatedAt = new Date().toISOString();
+      state.library.activeGameId = state.game.id;
+      const index = state.library.games.findIndex((game) => game.id === state.game.id);
+      if (index >= 0) {
+        state.library.games[index] = clone(state.game);
+      } else {
+        state.library.games.unshift(clone(state.game));
+      }
+    }
+
+    function saveGame() {
+      try {
+        setSaveStatus("saving");
+        syncLibrary();
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state.library));
+        setSaveStatus("saved");
+      } catch (error) {
+        console.error("Failed to save scorekeeper state", error);
+        setSaveStatus("failed");
+        showToast("Save failed and storage may be full", "error", 8000);
+      }
+    }
+
+    function loadLibrary() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return null;
+        if (Array.isArray(parsed.games)) {
+          const games = parsed.games.map((game) => replayGame(game));
+          if (!games.length) return createLibrary();
+          const activeGameId = games.some((game) => game.id === parsed.activeGameId)
+            ? parsed.activeGameId
+            : games[0].id;
+          return { version: 2, activeGameId, games };
+        }
+        if (parsed.awayName || parsed.homeName || parsed.plays) {
+          return createLibrary(parsed);
+        }
+        return null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function getActiveGame() {
+      if (!state.library || !state.library.games.length) {
+        state.library = createLibrary();
+      }
+      const found = state.library.games.find((game) => game.id === state.library.activeGameId);
+      if (found) return replayGame(found);
+      state.library.activeGameId = state.library.games[0].id;
+      return replayGame(state.library.games[0]);
+    }
+
+    function applyImportedVenue(payload, options = {}) {
+      if (!payload || !payload.venue) return;
+      state.game.venueName = `${payload.venue.stadium} · ${payload.venue.city}`;
+      state.game.importedVenue = payload.venue;
+      if (options.appendNote) {
+        const importNote = `Imported venue: ${payload.venue.stadium} · ${payload.venue.city}`;
+        if (!state.game.notes.includes(importNote)) {
+          state.game.notes = state.game.notes ? `${state.game.notes}\n${importNote}` : importNote;
+        }
+      }
+      syncInputs();
+      saveGame();
+      if (options.clearPending) {
+        clearImportPayload();
+      }
+      render();
+    }
+
+    function syncInputs() {
+      els.awayInput.value = state.game.awayName;
+      els.homeInput.value = state.game.homeName;
+      els.venueInput.value = state.game.venueName;
+      els.gameTitleInput.value = state.game.title || "";
+      els.inningsSelect.value = String(state.game.innings);
+      els.notesInput.value = state.game.notes || "";
+    }
+
+    function renderImportCard() {
+      const payload = state.importPayload;
+      if (!payload || !payload.venue) {
+        els.importSummary.textContent = "No tracker import is active yet. Open a park in Ballparks Quest and use the scorekeeper handoff link.";
+        els.importMeta.innerHTML = "";
+        els.useImportBtn.disabled = true;
+        return;
+      }
+
+      els.importSummary.textContent = `${payload.venue.stadium} from ${payload.venue.team} is ready to use as the current venue.`;
+      els.importMeta.innerHTML = `
+        <span class="mini-chip">${escapeHtml(payload.venue.city)}</span>
+        <span class="mini-chip">${escapeHtml(payload.venue.roof)}</span>
+        <span class="mini-chip">${escapeHtml(payload.venue.surface)}</span>
+        ${payload.venue.tier ? `<span class="mini-chip">Tier ${escapeHtml(payload.venue.tier)}</span>` : ""}
+      `;
+      els.useImportBtn.disabled = false;
+    }
+
+    function renderEditState() {
+      const index = state.editingPlayIndex;
+      if (index === null || !state.game.plays[index]) {
+        state.editingPlayIndex = null;
+        els.editModeChip.textContent = "Append mode";
+        els.editModeChip.classList.remove("is-live");
+        els.cancelEditBtn.hidden = true;
+        return;
+      }
+
+      const play = state.game.plays[index];
+      els.editModeChip.textContent = `Editing ${play.half === "top" ? "Top" : "Bottom"} ${play.inning} · ${play.event}`;
+      els.editModeChip.classList.add("is-live");
+      els.cancelEditBtn.hidden = false;
+    }
+
+    function renderScoreboard() {
+      const game = state.game;
+      const line = getLineScore(game);
+      const inningCount = line.away.length;
+      const header = Array.from({ length: inningCount }, (_, index) => `<th>${index + 1}</th>`).join("");
+
+      els.scoreboardTitle.textContent = `${game.awayName} at ${game.homeName}`;
+      els.phaseChip.textContent = `${game.state.half === "top" ? "Top" : "Bottom"} ${game.state.inning}`;
+      els.scoreTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Club</th>
+            ${header}
+            <th>R</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${escapeHtml(game.awayName)}</td>
+            ${line.away.map((runs) => `<td>${runs}</td>`).join("")}
+            <td><strong>${line.totals.away.R}</strong></td>
+          </tr>
+          <tr>
+            <td>${escapeHtml(game.homeName)}</td>
+            ${line.home.map((runs) => `<td>${runs}</td>`).join("")}
+            <td><strong>${line.totals.home.R}</strong></td>
+          </tr>
+        </tbody>
+      `;
+    }
+
+    function getScorebookSides() {
+      const game = state.game;
+      const activeSide = game.state.half === "top" ? "away" : "home";
+      const inactiveSide = activeSide === "away" ? "home" : "away";
+      return { activeSide, inactiveSide };
+    }
+
+    function getScorebookInningCount(game) {
+      return Math.max(Number(game.innings) || 9, game.state.inning, 9);
+    }
+
+    function classifyScorebookEvent(eventKey) {
+      if (["1B", "2B", "3B", "HR", "BB", "HBP"].includes(eventKey)) return "is-hit";
+      if (eventKey === "E") return "is-error";
+      if (["K", "OUT", "FO", "FC", "DP", "SAC"].includes(eventKey)) return "is-out";
+      return "";
+    }
+
+    function getScorebookCellMap(game, side, inningCount) {
+      const map = new Map();
+      for (const play of game.plays) {
+        if (play.battingSide !== side) continue;
+        const inning = Math.min(Math.max(1, Number(play.inning) || 1), inningCount);
+        const slot = Math.min(8, Math.max(0, Number(play.batterSlot) || 0));
+        const key = `${slot}:${inning}`;
+        if (!map.has(key)) {
+          map.set(key, []);
+        }
+        map.get(key).push(play);
+      }
+      return map;
+    }
+
+    function getScorebookTotals(game, side) {
+      const rows = Array.from({ length: 9 }, () => ({ ab: 0, h: 0 }));
+      for (const play of game.plays) {
+        if (play.battingSide !== side) continue;
+        const slot = Math.min(8, Math.max(0, Number(play.batterSlot) || 0));
+        if (["1B", "2B", "3B", "HR", "K", "OUT", "FO", "FC", "DP", "E"].includes(play.event)) {
+          rows[slot].ab += 1;
+        }
+        if (["1B", "2B", "3B", "HR"].includes(play.event)) {
+          rows[slot].h += 1;
+        }
+      }
+      return rows;
+    }
+
+    function renderScorebook() {
+      const game = state.game;
+      const { activeSide } = getScorebookSides();
+      const inningCount = getScorebookInningCount(game);
+      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[activeSide]) || 0;
+      const cellMap = getScorebookCellMap(game, activeSide, inningCount);
+      const totals = getScorebookTotals(game, activeSide);
+      const sideLabel = activeSide === "away" ? (game.awayName || "Away") : (game.homeName || "Home");
+
+      els.scorebookLineup.innerHTML = Array.from({ length: 9 }, (_, slot) => `
+        <div class="scorebook-lineup-row ${slot === currentSlot ? "is-active" : ""}">
+          <div class="scorebook-slot">${slot + 1}</div>
+          <div class="scorebook-batter-name">
+            <strong>${escapeHtml(getLineupName(game, activeSide, slot))}</strong>
+            <span>${escapeHtml(sideLabel)} card</span>
+          </div>
+        </div>
+      `).join("");
+
+      els.scorebookInnings.innerHTML = Array.from({ length: inningCount }, (_, index) => {
+        const inning = index + 1;
+        const isLiveInning = inning === game.state.inning;
+        const cells = Array.from({ length: 9 }, (_, slot) => {
+          const plays = cellMap.get(`${slot}:${inning}`) || [];
+          const latest = plays[plays.length - 1];
+          const isActive = isLiveInning && slot === currentSlot;
+          if (!latest) {
+            return `
+              <div class="scorebook-cell ${isActive ? "is-active" : ""}">
+                <div class="scorebook-empty" aria-hidden="true"></div>
+              </div>
+            `;
+          }
+          const badge = plays.length > 1 ? `${plays.length}x` : (latest.runsScored ? `${latest.runsScored}R` : "");
+          return `
+            <div class="scorebook-cell ${isActive ? "is-active" : ""}">
+              <div class="scorebook-mark ${classifyScorebookEvent(latest.event)}" aria-label="${escapeHtml(EVENTS[latest.event].label)}">
+                <div class="scorebook-cell-stack">
+                  <span class="scorebook-cell-code">${escapeHtml(latest.event)}</span>
+                  <span class="scorebook-cell-note">${escapeHtml(badge)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+        return `
+          <div class="scorebook-inning-col ${isLiveInning ? "is-live" : ""}">
+            <div class="scorebook-inning-head">${inning}</div>
+            ${cells}
+          </div>
+        `;
+      }).join("");
+
+      els.scorebookTotals.innerHTML = totals.map((row, slot) => `
+        <div class="scorebook-totals-row ${slot === currentSlot ? "is-active" : ""}">
+          <strong>${row.ab} · ${row.h}</strong>
+          <span>AB · H</span>
+        </div>
+      `).join("");
+    }
+
+    function renderStatus() {
+      const game = state.game;
+      const halfLabel = game.state.half === "top" ? "Away" : "Home";
+      const battingSide = game.state.half === "top" ? "away" : "home";
+      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[battingSide]) || 0;
+      const onDeckSlot = (currentSlot + 1) % 9;
+      const bases = [];
+      if (game.state.bases.first) bases.push("first");
+      if (game.state.bases.second) bases.push("second");
+      if (game.state.bases.third) bases.push("third");
+
+      els.outsValue.textContent = String(game.state.outs);
+      els.battingSideValue.textContent = halfLabel;
+      els.playsValue.textContent = String(game.plays.length);
+      els.heroPlayCount.textContent = String(game.plays.length);
+      els.heroGameStatus.textContent = game.status === "final" ? "Final" : "Live";
+      els.heroVenueName.textContent = game.venueName || "No venue yet";
+      els.gameStatusChip.textContent = game.status;
+      els.venueChip.textContent = game.venueName || "No venue assigned";
+      els.activeBatterChip.textContent = `Up next · ${getLineupName(game, battingSide, currentSlot)}`;
+      els.onDeckChip.textContent = `On deck · ${getLineupName(game, battingSide, onDeckSlot)}`;
+      els.scorebookDateMeta.textContent = new Date(game.createdAt || Date.now()).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      els.scorebookVenueMeta.textContent = game.venueName || "Venue pending";
+      els.scorebookStatusMeta.textContent = game.status === "final" ? "Final score filed" : `${game.plays.length} plays logged`;
+      els.scorebookBatterDisplay.textContent = getLineupName(game, battingSide, currentSlot);
+      els.scorebookInningDisplay.textContent = `${game.state.half === "top" ? "Top" : "Bottom"} ${game.state.inning}`;
+      els.scorebookSideChip.textContent = `${halfLabel} card`;
+      [els.scoreOut1, els.scoreOut2, els.scoreOut3].forEach((el, index) => {
+        el.classList.toggle("is-on", index < game.state.outs);
+      });
+
+      els.baseFirst.classList.toggle("is-hot", !!game.state.bases.first);
+      els.baseSecond.classList.toggle("is-hot", !!game.state.bases.second);
+      els.baseThird.classList.toggle("is-hot", !!game.state.bases.third);
+      els.diamondSummary.textContent = bases.length ? `Runners on ${bases.join(", ")}` : "Bases empty";
+    }
+
+    function renderPlayLog() {
+      const plays = state.game.plays.map((play, originalIndex) => ({ ...play, originalIndex })).reverse();
+      els.playLog.innerHTML = plays.length
+        ? plays.map((play) => `
+            <article class="play-row">
+              <div class="play-top">
+                <strong>${play.half === "top" ? "Top" : "Bottom"} ${play.inning} · ${escapeHtml(play.batterName || "Batter")} · ${escapeHtml(play.event)}</strong>
+                <div class="play-actions">
+                  <span class="mini-chip">${escapeHtml(play.battingSide)}</span>
+                  <button class="play-edit-btn ${play.originalIndex === state.editingPlayIndex ? "is-active" : ""}" type="button" data-play-edit="${play.originalIndex}">Edit</button>
+                </div>
+              </div>
+              <p>${escapeHtml(EVENTS[play.event].label)}. ${play.runsScored ? `${play.runsScored} run${play.runsScored === 1 ? "" : "s"} scored.` : "No runs scored."} ${play.outsAdded ? `${play.outsAdded} out${play.outsAdded === 1 ? "" : "s"} added.` : ""}</p>
+            </article>
+          `).join("")
+        : `<div class="empty">No plays logged yet. Start with the next event in the play input panel.</div>`;
+    }
+
+    function filterGames(games) {
+      const query = libraryState.search.trim().toLowerCase();
+      if (!query) return games.slice();
+      return games.filter((game) => {
+        const label = getGameLabel(game).toLowerCase();
+        return [
+          label,
+          String(game.awayName || "").toLowerCase(),
+          String(game.homeName || "").toLowerCase(),
+          String(game.venueName || "").toLowerCase()
+        ].some((value) => value.includes(query));
+      });
+    }
+
+    function sortGames(games) {
+      const next = games.slice();
+      if (libraryState.sort === "oldest") {
+        return next.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      }
+      if (libraryState.sort === "alphabetical") {
+        return next.sort((a, b) => getGameLabel(a).localeCompare(getGameLabel(b)));
+      }
+      if (libraryState.sort === "status") {
+        return next.sort((a, b) => {
+          if (a.status === "in progress" && b.status !== "in progress") return -1;
+          if (b.status === "in progress" && a.status !== "in progress") return 1;
+          return new Date(b.updatedAt) - new Date(a.updatedAt);
+        });
+      }
+      return next.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    }
+
+    function renderGamesList() {
+      const allGames = state.library && Array.isArray(state.library.games) ? state.library.games : [];
+      const games = sortGames(filterGames(allGames));
+      els.gameResultsCount.textContent = `${games.length} game${games.length === 1 ? "" : "s"}`;
+      if (!games.length) {
+        els.gamesList.innerHTML = `
+          <div class="empty">
+            No games match "${escapeHtml(libraryState.search)}"
+            <div class="setup-actions" style="margin-top:10px">
+              <button class="btn btn-secondary" type="button" data-clear-game-search>Clear search</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      els.gamesList.innerHTML = games.map((game) => {
+        const side = game.state && game.state.half === "bottom" ? "Bottom" : "Top";
+        const venue = game.venueName || "No venue";
+        const status = game.status === "final" ? "Final" : `${side} ${game.state ? game.state.inning : 1}`;
+        const playCount = Array.isArray(game.plays) ? game.plays.length : 0;
+        return `
+          <article class="game-item ${game.id === state.game.id ? "is-active" : ""}">
+            <button class="game-main" type="button" data-game-select="${escapeHtml(game.id)}">
+              <strong>${escapeHtml(getGameLabel(game))}</strong>
+              <span>${escapeHtml(status)} · ${playCount} plays · ${escapeHtml(venue)}</span>
+            </button>
+            <button class="btn btn-secondary" type="button" data-game-delete="${escapeHtml(game.id)}" ${games.length === 1 ? "disabled" : ""}>Remove</button>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderLineups() {
+      const game = state.game;
+      const battingSide = game.state.half === "top" ? "away" : "home";
+      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[battingSide]) || 0;
+      els.awayLineupTitle.textContent = game.awayName || "Away";
+      els.homeLineupTitle.textContent = game.homeName || "Home";
+
+      const build = (side) => game.lineups[side].map((name, index) => `
+        <label class="lineup-row">
+          <span>${index + 1}</span>
+          <input
+            type="text"
+            value="${escapeHtml(name || "")}"
+            placeholder="${escapeHtml(getLineupName(game, side, index))}"
+            data-lineup-side="${escapeHtml(side)}"
+            data-lineup-slot="${index}"
+            aria-label="${escapeHtml(side === "away" ? game.awayName : game.homeName)} batter ${index + 1}${side === battingSide && index === currentSlot ? ", up next" : ""}"
+          >
+        </label>
+      `).join("");
+
+      els.awayLineupList.innerHTML = build("away");
+      els.homeLineupList.innerHTML = build("home");
+    }
+
+    function renderEventButtons() {
+      els.eventGrid.innerHTML = Object.entries(EVENTS).map(([key, event]) => `
+        <button class="event-btn ${escapeHtml(event.style)}" type="button" data-event="${escapeHtml(key)}">
+          <div>${escapeHtml(key)}</div>
+          <div class="meta-label">${escapeHtml(event.label)}</div>
+        </button>
+      `).join("");
+    }
+
+    function render() {
+      renderImportCard();
+      syncInputs();
+      renderGamesList();
+      renderLineups();
+      renderScoreboard();
+      renderScorebook();
+      renderStatus();
+      renderSaveStatus();
+      renderEditState();
+      renderPlayLog();
+      if (state.game.plays.length > lastRenderedPlayCount) {
+        if (typeof els.playLog.scrollTo === "function") {
+          els.playLog.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          els.playLog.scrollTop = 0;
+        }
+      }
+      lastRenderedPlayCount = state.game.plays.length;
+    }
+
+    function updatePlayEvent(game, playIndex, eventKey) {
+      if (!EVENTS[eventKey] || playIndex === null || !game.plays[playIndex]) return game;
+      const next = clone(game);
+      next.plays[playIndex].event = eventKey;
+      return replayGame(next);
+    }
+
+    function processPendingImport() {
+      state.importPayload = readImportPayload();
+      if (!state.importPayload || !state.importPayload.venue) return;
+      if (isFreshGame(state.game)) {
+        applyImportedVenue(state.importPayload, { appendNote: true, clearPending: true });
+      }
+    }
+
+    function exportGame() {
+      const blob = new Blob([JSON.stringify(state.game, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${getGameLabel(state.game).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "mlb-scorekeeper-game"}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      showToast("Game JSON exported", "success", 2600);
+    }
+
+    function exportNotes() {
+      const line = getLineScore(state.game);
+      const lines = [
+        `Game: ${getGameLabel(state.game)}`,
+        `Venue: ${state.game.venueName || "No venue assigned"}`,
+        `Status: ${state.game.status}`,
+        `Scheduled innings: ${state.game.innings}`,
+        "",
+        "Line score:",
+        `Away runs: ${line.totals.away.R}`,
+        `Home runs: ${line.totals.home.R}`,
+        "",
+        `${state.game.awayName} lineup:`,
+        ...state.game.lineups.away.map((name, index) => `${index + 1}. ${getLineupName(state.game, "away", index)}`),
+        "",
+        `${state.game.homeName} lineup:`,
+        ...state.game.lineups.home.map((name, index) => `${index + 1}. ${getLineupName(state.game, "home", index)}`),
+        "",
+        "Notes:",
+        state.game.notes || "No notes recorded",
+        "",
+        "Play log:",
+        ...(state.game.plays.length
+          ? state.game.plays.map((play) => `${play.half === "top" ? "Top" : "Bottom"} ${play.inning} | ${play.batterName || "Batter"} | ${play.event} | ${EVENTS[play.event].label} | Runs ${play.runsScored || 0} | Outs ${play.outsAdded || 0}`)
+          : ["No plays logged"])
+      ];
+      const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${getGameLabel(state.game).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "mlb-scorekeeper-game"}.txt`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      showToast("Game notes exported", "success", 2600);
+    }
+
+    function bindEvents() {
+      renderEventButtons();
+
+      els.eventGrid.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-event]");
+        if (!button) return;
+        const nextEvent = button.getAttribute("data-event");
+        maybeShowLineupTip();
+        if (state.editingPlayIndex !== null) {
+          state.game = updatePlayEvent(state.game, state.editingPlayIndex, nextEvent);
+          state.editingPlayIndex = null;
+        } else {
+          state.game = applyEvent(state.game, nextEvent);
+        }
+        saveGame();
+        render();
+      });
+
+      els.playLog.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-play-edit]");
+        if (!button) return;
+        state.editingPlayIndex = Number(button.getAttribute("data-play-edit"));
+        render();
+      });
+
+      els.addGameBtn.addEventListener("click", () => {
+        const fresh = createNewGame();
+        fresh.awayName = state.game.awayName;
+        fresh.homeName = state.game.homeName;
+        fresh.innings = state.game.innings;
+        state.game = fresh;
+        state.importPayload = readImportPayload();
+        state.editingPlayIndex = null;
+        saveGame();
+        render();
+        showToast("Tracked game created", "success", 2600);
+      });
+
+      els.gamesList.addEventListener("click", (event) => {
+        const selectButton = event.target.closest("[data-game-select]");
+        const deleteButton = event.target.closest("[data-game-delete]");
+        const clearSearchButton = event.target.closest("[data-clear-game-search]");
+        if (clearSearchButton) {
+          libraryState.search = "";
+          els.gameSearch.value = "";
+          renderGamesList();
+          return;
+        }
+        if (selectButton) {
+          const id = selectButton.getAttribute("data-game-select");
+          const found = state.library.games.find((game) => game.id === id);
+          if (!found) return;
+          state.library.activeGameId = id;
+          state.game = replayGame(found);
+          state.editingPlayIndex = null;
+          saveGame();
+          render();
+          return;
+        }
+        if (deleteButton) {
+          const id = deleteButton.getAttribute("data-game-delete");
+          if (state.library.games.length === 1) return;
+          const removedIndex = state.library.games.findIndex((game) => game.id === id);
+          const removedGame = removedIndex >= 0 ? clone(state.library.games[removedIndex]) : null;
+          state.library.games = state.library.games.filter((game) => game.id !== id);
+          if (state.game.id === id) {
+            state.library.activeGameId = state.library.games[0].id;
+            state.game = replayGame(state.library.games[0]);
+          }
+          state.editingPlayIndex = null;
+          saveGame();
+          render();
+          if (removedGame) {
+            showToast("Game removed", "undo", 5000, "Undo", () => {
+              state.library.games.splice(Math.max(0, removedIndex), 0, removedGame);
+              state.game = replayGame(removedGame);
+              state.library.activeGameId = removedGame.id;
+              saveGame();
+              render();
+            });
+          }
+        }
+      });
+
+      els.awayInput.addEventListener("input", (event) => {
+        state.game.awayName = event.target.value || "Away";
+        saveGame();
+        render();
+      });
+
+      els.homeInput.addEventListener("input", (event) => {
+        state.game.homeName = event.target.value || "Home";
+        saveGame();
+        render();
+      });
+
+      els.venueInput.addEventListener("input", (event) => {
+        state.game.venueName = event.target.value;
+        saveGame();
+        render();
+      });
+
+      els.gameTitleInput.addEventListener("input", (event) => {
+        state.game.title = event.target.value;
+        saveGame();
+        renderGamesList();
+      });
+
+      els.inningsSelect.addEventListener("change", (event) => {
+        state.game.innings = Number(event.target.value) || 9;
+        saveGame();
+        render();
+      });
+
+      els.notesInput.addEventListener("input", (event) => {
+        state.game.notes = event.target.value;
+        saveGame();
+      });
+
+      const handleLineupInput = (event) => {
+        const input = event.target.closest("[data-lineup-side]");
+        if (!input) return;
+        const side = input.getAttribute("data-lineup-side");
+        const slot = Number(input.getAttribute("data-lineup-slot"));
+        if (!state.game.lineups[side] || Number.isNaN(slot)) return;
+        state.game.lineups[side][slot] = input.value;
+        saveGame();
+        renderStatus();
+        renderScorebook();
+        renderPlayLog();
+      };
+
+      els.awayLineupList.addEventListener("input", handleLineupInput);
+      els.homeLineupList.addEventListener("input", handleLineupInput);
+
+      els.newGameBtn.addEventListener("click", () => {
+        const fresh = createNewGame();
+        fresh.awayName = state.game.awayName;
+        fresh.homeName = state.game.homeName;
+        fresh.innings = state.game.innings;
+        fresh.lineups = clone(state.game.lineups);
+        state.game = fresh;
+        state.importPayload = readImportPayload();
+        state.editingPlayIndex = null;
+        saveGame();
+        render();
+        showToast("New game ready", "success", 2600);
+      });
+
+      els.undoBtn.addEventListener("click", () => {
+        if (!state.game.plays.length) return;
+        state.game.plays.pop();
+        state.game = replayGame(state.game);
+        state.editingPlayIndex = null;
+        saveGame();
+        render();
+      });
+
+      els.finalizeBtn.addEventListener("click", () => {
+        state.game.status = state.game.status === "final" ? "in progress" : "final";
+        saveGame();
+        render();
+      });
+
+      els.exportBtn.addEventListener("click", exportGame);
+      els.exportNotesBtn.addEventListener("click", exportNotes);
+
+      els.importBtn.addEventListener("click", () => {
+        els.importFile.value = "";
+        els.importFile.click();
+      });
+
+      els.importFile.addEventListener("change", async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          const validation = validateGameImport(parsed);
+          if (!validation.ok) {
+            showToast(`Import failed: ${validation.reason}`, "error", 6000);
+            return;
+          }
+          state.game = replayGame(parsed);
+          state.editingPlayIndex = null;
+          saveGame();
+          render();
+          showToast("Game imported", "success", 3200);
+        } catch (error) {
+          console.error("Import failed", error);
+          showToast("Import failed: file is not valid JSON", "error", 6000);
+        }
+      });
+
+      els.resetBtn.addEventListener("click", () => {
+        const snapshot = clone(state.game);
+        state.game = createNewGame();
+        state.importPayload = readImportPayload();
+        state.editingPlayIndex = null;
+        saveGame();
+        render();
+        showToast("Game reset", "undo", 5000, "Undo", () => {
+          state.game = replayGame(snapshot);
+          state.editingPlayIndex = null;
+          saveGame();
+          render();
+        });
+      });
+
+      els.useImportBtn.addEventListener("click", () => {
+        if (!state.importPayload) return;
+        applyImportedVenue(state.importPayload, { appendNote: true, clearPending: true });
+        showToast("Venue imported", "success", 2600);
+      });
+
+      els.refreshImportBtn.addEventListener("click", () => {
+        state.importPayload = readImportPayload();
+        render();
+      });
+
+      els.clearImportBtn.addEventListener("click", () => {
+        clearImportPayload();
+        render();
+      });
+
+      els.cancelEditBtn.addEventListener("click", () => {
+        state.editingPlayIndex = null;
+        render();
+      });
+
+      els.gameSearch.addEventListener("input", (event) => {
+        libraryState.search = event.target.value;
+        renderGamesList();
+      });
+
+      els.gameSort.addEventListener("change", (event) => {
+        libraryState.sort = event.target.value;
+        renderGamesList();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const tag = event.target && event.target.tagName ? event.target.tagName : "";
+        const inField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+        const mod = event.metaKey || event.ctrlKey;
+        if (mod && event.key.toLowerCase() === "z") {
+          event.preventDefault();
+          if (state.game.plays.length) {
+            els.undoBtn.click();
+          }
+          return;
+        }
+        if (inField) return;
+        if (event.key === "Escape") {
+          if (activeToast) {
+            clearToast();
+            return;
+          }
+          if (state.editingPlayIndex !== null) {
+            state.editingPlayIndex = null;
+            render();
+          }
+        }
+      });
+    }
+
+    function init() {
+      state.library = loadLibrary() || createLibrary();
+      state.game = getActiveGame();
+      bindEvents();
+      processPendingImport();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>

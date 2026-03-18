@@ -5,6 +5,7 @@
   var storage = namespace.storage;
   var data = namespace.data;
   var utils = namespace.utils;
+  var schedule = namespace.schedule;
 
   if (!storage || !data || !utils) {
     throw new Error("Ballparks Quest infrastructure modules must load before app.js");
@@ -99,6 +100,7 @@
 
       return visits;
     });
+    storage.flush(data.KEYS.visits);
 
     return cloneValue(nextVisit);
   }
@@ -109,6 +111,7 @@
         return visit.parkId !== parkId;
       });
     });
+    storage.flush(data.KEYS.visits);
   }
 
   function toggleVisited(parkId, patch) {
@@ -181,7 +184,17 @@
       : [];
 
     var existingLegs = Array.isArray(source.legs) ? source.legs : [];
+    var nextGameSelections = {};
     var nextLegs = [];
+
+    if (source.gameSelections && typeof source.gameSelections === "object") {
+      validParkIds.forEach(function mapSelection(parkId) {
+        var gameId = source.gameSelections[parkId];
+        if (typeof gameId !== "string" || !gameId) return;
+        var game = getGameById(gameId);
+        if (game && game.parkId === parkId) nextGameSelections[parkId] = gameId;
+      });
+    }
 
     for (var index = 0; index < validParkIds.length - 1; index += 1) {
       var fromParkId = validParkIds[index];
@@ -197,6 +210,7 @@
       id: source.id || createId("trip"),
       title: source.title || "Next Ballpark Run",
       parkIds: validParkIds,
+      gameSelections: nextGameSelections,
       legs: nextLegs,
       startDate: source.startDate || null,
       endDate: source.endDate || null,
@@ -220,6 +234,7 @@
     var sanitizedTrip = sanitizeActiveTrip(nextTrip);
     sanitizedTrip.updatedAt = nowIso();
     storage.set(data.KEYS.activeTrip, sanitizedTrip);
+    storage.flush(data.KEYS.activeTrip);
     return cloneValue(sanitizedTrip);
   }
 
@@ -231,6 +246,7 @@
       nextTrip.updatedAt = nowIso();
       return nextTrip;
     });
+    storage.flush(data.KEYS.activeTrip);
     return cloneValue(nextTrip || getActiveTrip());
   }
 
@@ -238,13 +254,26 @@
     var trip = getActiveTrip();
     return {
       version: 1,
-      stops: cloneValue(trip.parkIds)
+      stops: trip.parkIds.map(function mapStop(parkId) {
+        return {
+          parkId: parkId,
+          gameId: trip.gameSelections[parkId] || null
+        };
+      })
     };
   }
 
   function saveRouteStore(store) {
     return updateActiveTrip(function applyRoute(currentTrip) {
-      currentTrip.parkIds = Array.isArray(store && store.stops) ? store.stops.slice() : [];
+      var nextStops = Array.isArray(store && store.stops) ? store.stops.slice() : [];
+      currentTrip.parkIds = nextStops.map(function mapStop(stop) {
+        return typeof stop === "string" ? stop : stop && stop.parkId;
+      }).filter(Boolean);
+      currentTrip.gameSelections = {};
+      nextStops.forEach(function assignSelection(stop) {
+        if (!stop || typeof stop === "string" || !stop.parkId || !stop.gameId) return;
+        currentTrip.gameSelections[stop.parkId] = stop.gameId;
+      });
       return currentTrip;
     });
   }
@@ -272,11 +301,23 @@
       .filter(Boolean);
   }
 
-  function addRouteStop(parkId) {
+  function getRouteStops() {
+    var trip = getActiveTrip();
+    return trip.parkIds.map(function mapStop(parkId) {
+      var park = getParkById(parkId);
+      var gameId = trip.gameSelections[parkId] || null;
+      var game = gameId ? getGameById(gameId) : null;
+      return park ? { park: park, parkId: parkId, gameId: game ? game.gameId : null, game: game } : null;
+    }).filter(Boolean);
+  }
+
+  function addRouteStop(parkId, gameId) {
     return updateActiveTrip(function addStop(currentTrip) {
       if (!currentTrip.parkIds.includes(parkId)) {
         currentTrip.parkIds.push(parkId);
       }
+      currentTrip.gameSelections = currentTrip.gameSelections || {};
+      if (gameId && getGameById(gameId)) currentTrip.gameSelections[parkId] = gameId;
       return currentTrip;
     }).parkIds.slice();
   }
@@ -286,8 +327,20 @@
       currentTrip.parkIds = currentTrip.parkIds.filter(function keep(id) {
         return id !== parkId;
       });
+      currentTrip.gameSelections = currentTrip.gameSelections || {};
+      delete currentTrip.gameSelections[parkId];
       return currentTrip;
     }).parkIds.slice();
+  }
+
+  function setRouteStopGame(parkId, gameId) {
+    return updateActiveTrip(function updateStopGame(currentTrip) {
+      currentTrip.gameSelections = currentTrip.gameSelections || {};
+      if (!currentTrip.parkIds.includes(parkId)) currentTrip.parkIds.push(parkId);
+      if (gameId && getGameById(gameId)) currentTrip.gameSelections[parkId] = gameId;
+      else delete currentTrip.gameSelections[parkId];
+      return currentTrip;
+    });
   }
 
   function setLegStatus(legId, status) {
@@ -326,6 +379,106 @@
       .slice(0, limit);
   }
 
+  function getGameById(gameId) {
+    var game = schedule && schedule.getGameById ? schedule.getGameById(gameId) : null;
+    if (!game) return null;
+    var park = getParkById(game.parkId);
+    game.startDateTimeLocal = game.startDateTimeLocal || buildLocalStartDateTime(game);
+    game.venue = game.venue || (park ? park.name : "");
+    return game;
+  }
+
+  function buildLocalStartDateTime(game) {
+    if (!game || !game.d || !game.t || /tbd/i.test(game.t)) return "";
+    var match = String(game.t).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return "";
+    var hours = Number(match[1]) % 12;
+    var minutes = Number(match[2]);
+    if (/pm/i.test(match[3])) hours += 12;
+    var hh = String(hours).padStart(2, "0");
+    var mm = String(minutes).padStart(2, "0");
+    return game.d + "T" + hh + ":" + mm + ":00";
+  }
+
+  function getGamesByPark(parkId) {
+    var park = getParkById(parkId);
+    if (!park || !schedule || !schedule.getGamesForPark || !schedule.decorateGame) return [];
+    return schedule.getGamesForPark(parkId).map(function mapGame(game) {
+      var decorated = schedule.decorateGame(parkId, park.team, game);
+      decorated.startDateTimeLocal = buildLocalStartDateTime(game);
+      decorated.venue = park.name;
+      return decorated;
+    });
+  }
+
+  function getUpcomingGamesByPark(parkId, limit) {
+    var park = getParkById(parkId);
+    if (!park || !schedule || !schedule.getUpcomingGames || !schedule.decorateGame) return [];
+    return schedule.getUpcomingGames(parkId, limit || 3).map(function mapGame(game) {
+      var decorated = schedule.decorateGame(parkId, park.team, game);
+      decorated.startDateTimeLocal = buildLocalStartDateTime(game);
+      decorated.venue = park.name;
+      return decorated;
+    });
+  }
+
+  function buildMapsUrl(destination, origin, travelMode) {
+    var mode = travelMode || "driving";
+    var params = new URLSearchParams({ api: "1", destination: destination, travelmode: mode });
+    if (origin) params.set("origin", origin);
+    return "https://www.google.com/maps/dir/?" + params.toString();
+  }
+
+  function buildGameICS(game) {
+    if (!game) return "";
+
+    function toIcsDate(date) {
+      return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+    }
+
+    var startRaw = game.startDateTimeLocal || (game.d ? game.d + "T19:05:00" : "");
+    var startDate = new Date(startRaw);
+    if (!Number.isFinite(startDate.getTime())) startDate = new Date(game.d + "T19:05:00");
+    var endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
+    var park = getParkById(game.parkId);
+    var location = game.venue || (park ? park.name : "");
+    var summary = (game.awayTeam || "Away") + " at " + (game.homeTeam || "Home");
+    var uid = "bpq-" + (game.gameId || createId("game")) + "@ballparksquest.local";
+
+    return [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Ballparks Quest//EN",
+      "BEGIN:VEVENT",
+      "UID:" + uid,
+      "DTSTAMP:" + toIcsDate(new Date()),
+      "DTSTART:" + toIcsDate(startDate),
+      "DTEND:" + toIcsDate(endDate),
+      "SUMMARY:" + summary,
+      "LOCATION:" + location,
+      "END:VEVENT",
+      "END:VCALENDAR"
+    ].join("\r\n");
+  }
+
+  function downloadICS(filename, content) {
+    var blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var link = global.document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    global.document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadGameICS(game) {
+    if (!game) return;
+    var filename = ((game.gameId || "ballparks-quest-game") + ".ics").replace(/[^a-z0-9._-]+/gi, "-").toLowerCase();
+    downloadICS(filename, buildGameICS(game));
+  }
+
   function getNotes(scope, scopeId) {
     return data.getNotes(scope, scopeId);
   }
@@ -359,17 +512,30 @@
     return saveNote("park", parkId, text);
   }
 
-  function setScorekeeperContext(parkId) {
+  function setScorekeeperContext(input) {
     var activeTrip = getActiveTrip();
-    var targetParkId = parkId || activeTrip.parkIds[0] || null;
+    var targetGameId = input && typeof input === "object" ? input.gameId : null;
+    var targetParkId = input && typeof input === "object"
+      ? input.parkId
+      : (typeof input === "string" ? input : null);
+    if (!targetParkId && targetGameId) {
+      var selectedGame = getGameById(targetGameId);
+      targetParkId = selectedGame ? selectedGame.parkId : null;
+    }
+    targetParkId = targetParkId || activeTrip.parkIds[0] || null;
     var park = targetParkId ? getParkById(targetParkId) : null;
+    var game = targetGameId ? getGameById(targetGameId) : null;
     if (!park) return null;
 
     var payload = {
-      version: 2,
+      version: 3,
       parkId: park.id,
       venue: park.name,
       homeTeam: park.team,
+      awayTeam: game ? game.awayTeam : "",
+      gameId: game ? game.gameId : "",
+      startDateTimeLocal: game ? (game.startDateTimeLocal || "") : "",
+      gameLabel: game && schedule && schedule.formatGameLine ? schedule.formatGameLine(game) : "",
       city: park.city,
       color: park.color,
       tripId: activeTrip.id,
@@ -390,7 +556,10 @@
 
     var activeTrip = getActiveTrip();
     if (!activeTrip.parkIds.length) return null;
-    return setScorekeeperContext(activeTrip.parkIds[0]);
+    return setScorekeeperContext({
+      parkId: activeTrip.parkIds[0],
+      gameId: activeTrip.gameSelections[activeTrip.parkIds[0]] || ""
+    });
   }
 
   function clearScorekeeperContext() {
@@ -430,11 +599,16 @@
     saveRouteStore: saveRouteStore,
     setTripWindow: setTripWindow,
     getRouteParks: getRouteParks,
+    getRouteStops: getRouteStops,
     addRouteStop: addRouteStop,
     removeRouteStop: removeRouteStop,
+    setRouteStopGame: setRouteStopGame,
     getLegById: getLegById,
     setLegStatus: setLegStatus,
     getNextTargets: getNextTargets,
+    getGameById: getGameById,
+    getGamesByPark: getGamesByPark,
+    getUpcomingGamesByPark: getUpcomingGamesByPark,
     getNotes: getNotes,
     saveNote: saveNote,
     getTripScratchpad: getTripScratchpad,
@@ -446,6 +620,10 @@
     setScorekeeperContext: setScorekeeperContext,
     getScorekeeperContext: getScorekeeperContext,
     clearScorekeeperContext: clearScorekeeperContext,
+    buildMapsUrl: buildMapsUrl,
+    buildGameICS: buildGameICS,
+    downloadICS: downloadICS,
+    downloadGameICS: downloadGameICS,
     distanceMiles: utils.distanceMiles,
     formatDate: utils.formatDate,
     minutesToReadable: utils.minutesToReadable

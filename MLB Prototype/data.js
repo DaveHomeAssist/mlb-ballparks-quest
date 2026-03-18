@@ -69,22 +69,14 @@
     { id: "nationals-park", name: "Nationals Park", team: "Washington Nationals", city: "Washington, DC", opened: 2008, capacity: 41313, roof: "Open", tier: "B", color: "#AB0003", logo: "https://a.espncdn.com/i/teamlogos/mlb/500/30.png", ticketApproach: "Good availability outside marquee series. Buy for shade in peak summer.", transitNote: "Navy Yard Metro stop is excellent. Riverfront path is a good pregame walk.", coordinates: { lat: 38.8730, lng: -77.0074 }, specialEvents: ["Cherry blossom timing", "Presidents race theme nights", "Postgame concerts"] }
   ];
 
-  var SEEDED_VISITS = [
-    { id: createId("visit"), parkId: "citizens-bank-park", visitDate: "2023-08-12", rating: 5, bestFeature: "Atmosphere", notes: "Lower deck, left field side. The Phanatic showed up in the third and the park still feels made for offense.", createdAt: "2023-08-12T18:30:00Z", updatedAt: "2023-08-12T18:30:00Z" },
-    { id: createId("visit"), parkId: "fenway-park", visitDate: "2021-09-18", rating: 5, bestFeature: "The Monster", notes: "Standing room near left. Tight concourses, perfect sightlines once the game starts.", createdAt: "2021-09-18T16:00:00Z", updatedAt: "2021-09-18T16:00:00Z" },
-    { id: createId("visit"), parkId: "dodger-stadium", visitDate: "2022-04-10", rating: 4, bestFeature: "Views", notes: "Loge level behind home. Sunset over the hills justified the traffic after the game.", createdAt: "2022-04-10T19:15:00Z", updatedAt: "2022-04-10T19:15:00Z" },
-    { id: createId("visit"), parkId: "sutter-health-park", visitDate: "2022-06-04", rating: 4, bestFeature: "History", notes: "Upper deck third base side. Small park feel, odd Athletics chapter, still worth seeing in person.", createdAt: "2022-06-04T14:45:00Z", updatedAt: "2022-06-04T14:45:00Z" }
-  ];
+  var SEEDED_VISITS = [];
 
   function createDefaultActiveTrip() {
     return {
       id: createId("trip"),
       title: "Next Ballpark Run",
-      parkIds: ["pnc-park", "yankee-stadium", "dodger-stadium"],
-      legs: [
-        { id: createId("leg"), fromParkId: "pnc-park", toParkId: "yankee-stadium", travelMinutes: 430 },
-        { id: createId("leg"), fromParkId: "yankee-stadium", toParkId: "dodger-stadium", travelMinutes: 360 }
-      ],
+      parkIds: [],
+      legs: [],
       startDate: null,
       endDate: null,
       notes: "",

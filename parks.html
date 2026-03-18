@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB Ballparks Quest · All 30 Parks</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F38">
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ═══ PARKS PAGE ════════════════════════════ */
+
+.parks-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  padding-top: 32px;
+  padding-bottom: 64px;
+  align-items: start;
+}
+
+.parks-main { min-width: 0; }
+
+.parks-hero {
+  padding: 40px 0 28px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 24px;
+}
+
+.parks-headline {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+/* ─── Filter strip ──────────────────────── */
+.filter-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 180px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-md);
+  padding: 8px 14px;
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 140ms;
+}
+
+.filter-search:focus { border-color: var(--border-mid); }
+.filter-search::placeholder { color: var(--text-muted); }
+
+.filter-chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.filter-chip:hover { color: var(--text-primary); border-color: var(--border-mid); }
+.filter-chip.active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+
+/* ─── Park list ─────────────────────────── */
+.park-count {
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.parks-list { display: flex; flex-direction: column; gap: 6px; }
+
+.park-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: all 140ms;
+  border-left: 3px solid transparent;
+}
+
+.park-row:hover {
+  border-left-color: var(--border-mid);
+  box-shadow: 0 2px 8px rgba(15,31,56,0.06);
+}
+
+.park-row.selected {
+  border-left-color: var(--red);
+  background: rgba(200,48,42,0.04);
+}
+
+.park-row-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  flex: 1;
+  letter-spacing: -0.01em;
+}
+
+.park-row-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.park-team-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.park-row-team {
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.park-row-city {
+  font-family: var(--font-data);
+  font-size: 9px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ─── Detail panel ──────────────────────── */
+.detail-panel {
+  position: sticky;
+  top: 72px;
+  background: var(--navy);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  color: var(--cream);
+}
+
+.detail-stripe { height: 5px; background: var(--red); }
+
+.detail-body { padding: 24px; }
+
+.detail-park-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.detail-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(245,237,216,0.8);
+  margin-bottom: 16px;
+}
+
+.detail-team-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.detail-team-text {
+  min-width: 0;
+}
+
+.detail-photo {
+  margin-bottom: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  position: relative;
+}
+
+.detail-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15,31,56,0.02), rgba(15,31,56,0.26));
+  pointer-events: none;
+}
+
+.detail-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.detail-photo-caption {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  z-index: 1;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.9);
+}
+
+.detail-map {
+  margin-bottom: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.detail-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.detail-map-base {
+  fill: rgba(245,237,216,0.04);
+  stroke: rgba(245,237,216,0.1);
+  stroke-width: 1.2;
+}
+
+.detail-map-ring {
+  fill: none;
+  stroke: rgba(126,180,224,0.22);
+  stroke-width: 16;
+}
+
+.detail-map-line {
+  fill: none;
+  stroke: rgba(245,237,216,0.18);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.detail-map-label {
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: rgba(245,237,216,0.9);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.detail-datum {
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+}
+
+.detail-datum-label {
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.72);
+  margin-bottom: 3px;
+}
+
+.detail-datum-value {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cream);
+  letter-spacing: 0.04em;
+}
+
+.detail-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(245,237,216,0.92);
+  line-height: 1.55;
+  border-left: 2px solid rgba(200,168,100,0.25);
+  padding-left: 10px;
+  margin-bottom: 20px;
+}
+
+.detail-signals {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.detail-signal {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+}
+
+.detail-signal-label {
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.7);
+  margin-bottom: 5px;
+}
+
+.detail-signal-text {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: rgba(245,237,216,0.82);
+  line-height: 1.5;
+}
+
+.detail-schedule-list { display: flex; flex-direction: column; gap: 3px; }
+.detail-schedule-line { font-family: var(--font-data); font-size: 11px; color: rgba(245,237,216,0.82); padding: 2px 0; line-height: 1.5; }
+.detail-schedule-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+}
+.detail-schedule-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.detail-schedule-actions .btn {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 9px;
+}
+
+.detail-event-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.detail-event-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(200,168,100,0.1);
+  border: 1px solid rgba(200,168,100,0.16);
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+}
+
+.detail-scratch-label {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.7);
+  margin-bottom: 8px;
+}
+
+.detail-scratchpad {
+  width: 100%;
+  min-height: 124px;
+  resize: vertical;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-md);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 12px;
+  outline: none;
+  margin-bottom: 18px;
+}
+
+.detail-scratchpad:focus {
+  border-color: rgba(200,168,100,0.34);
+  box-shadow: 0 0 0 3px rgba(200,168,100,0.08);
+}
+
+.detail-scratchpad::placeholder { color: rgba(245,237,216,0.3); }
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+}
+
+@media (max-width: 1200px) {
+  .parks-layout { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+}
+
+@media (max-width: 900px) {
+  .parks-layout { grid-template-columns: 1fr; }
+  .detail-panel { position: static; }
+}
+
+@media (max-width: 640px) {
+  .filter-strip { flex-direction: column; align-items: stretch; }
+  .filter-search { width: 100%; }
+  .detail-actions .btn,
+  .detail-actions a { width: 100%; text-align: center; justify-content: center; }
+}
+</style>
+</head>
+<body>
+<script src="storage.js"></script>
+<script src="utils.js"></script>
+<script src="data.js"></script>
+<script src="logos.js"></script>
+<script src="schedule.js"></script>
+<script src="device.js"></script>
+<script src="app.js"></script>
+
+<nav class="site-nav">
+  <a href="index.html" class="nav-brand">
+    <span class="nav-brand-name">Ballparks Quest</span>
+    <span class="nav-brand-mark">MLB · 30 Parks</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html"       class="nav-link">Home</a>
+    <a href="parks.html"       class="nav-link active">Parks</a>
+    <a href="route.html"       class="nav-link">Route</a>
+    <a href="scorekeeper.html" class="nav-link nav-cta">⬥ Scorekeeper</a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+<div class="parks-layout">
+
+  <!-- Left: park list -->
+  <div class="parks-main">
+    <div class="parks-hero fade-up">
+      <div class="section-label">Park directory</div>
+      <h1 class="parks-headline">All 30 parks.<br>Compare fast.</h1>
+    </div>
+
+    <div class="filter-strip fade-up fade-up-1">
+      <input class="filter-search" id="park-search" placeholder="Search parks, cities, teams…">
+      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip" data-filter="visited">Visited</button>
+      <button class="filter-chip" data-filter="unvisited">Not visited</button>
+      <button class="filter-chip" data-filter="open">Open air</button>
+      <button class="filter-chip" data-filter="retractable">Retractable</button>
+    </div>
+
+    <div class="park-count fade-up fade-up-2" id="park-count">30 parks</div>
+
+    <div class="parks-list fade-up fade-up-2" id="parks-list">
+      <!-- JS populated -->
+    </div>
+  </div>
+
+  <!-- Right: detail panel -->
+  <div>
+    <div class="detail-panel fade-up fade-up-3" id="detail-panel">
+      <div class="detail-stripe" id="detail-stripe"></div>
+      <div class="detail-body">
+        <div class="detail-park-name" id="d-name">Select a park</div>
+        <div class="detail-team" id="d-team">Click any row to inspect</div>
+        <div class="detail-photo">
+          <img src="assets/baseball1.jpg" alt="Baseball scorecard close up">
+          <div class="detail-photo-caption">Scouting board</div>
+        </div>
+        <div class="detail-map" id="d-map"></div>
+        <div class="detail-grid" id="d-grid"></div>
+        <div class="detail-note" id="d-note">Park details will appear here.</div>
+        <div class="detail-signals" id="d-signals"></div>
+        <label class="detail-scratch-label" for="d-scratchpad">Research scratchpad</label>
+        <textarea class="detail-scratchpad" id="d-scratchpad" placeholder="Keep quick scouting notes, date windows, transit warnings, or anything you want in reach while comparing parks."></textarea>
+        <div class="detail-actions">
+          <button type="button" class="btn btn-success" style="justify-content:center;" id="d-visit-toggle">Mark as visited</button>
+          <button type="button" class="btn btn-primary" style="justify-content:center;" id="d-route-toggle">Add to route</button>
+          <a href="scorekeeper.html" class="btn btn-red" style="justify-content:center;" id="d-score-link">Score a game here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function() {
+  const app = window.BPQ && window.BPQ.app;
+  const utils = window.BPQ && window.BPQ.utils;
+  const logos = window.BPQ && window.BPQ.logos;
+  if (!app || !utils) return;
+
+  const escapeHtml = utils.escapeHtml;
+  const safeColor = utils.safeColor;
+  const safeToken = utils.safeToken;
+  const projectPoint = utils.projectPoint;
+
+  function teamLogoImg(teamName, className) {
+    const src = logos && logos.getTeamLogo ? logos.getTeamLogo(teamName) : '';
+    return src ? `<img class="${className}" src="${escapeHtml(src)}" alt="${escapeHtml(teamName)} logo" loading="lazy">` : '';
+  }
+
+  let selectedParkId = null;
+  let activeFilter = 'all';
+  let searchTerm = '';
+
+  function renderDetailMap(park, onRoute) {
+    const width = 280;
+    const height = 170;
+    const point = projectPoint(park.coordinates, width, height, { left: 22, top: 18, horizontalInset: 44, verticalInset: 36 });
+    const routeParks = app.getRouteParks().slice(0, 4).map((item) => ({
+      park: item,
+      point: projectPoint(item.coordinates, width, height, { left: 22, top: 18, horizontalInset: 44, verticalInset: 36 })
+    }));
+    const routeLine = routeParks.map((entry) => `${entry.point.x.toFixed(1)},${entry.point.y.toFixed(1)}`).join(' ');
+
+    document.getElementById('d-map').innerHTML = `
+      <svg class="detail-map-svg" viewBox="0 0 ${width} ${height}" aria-label="Park location context">
+        <path class="detail-map-base" d="M34 32 L60 24 L96 30 L126 24 L166 31 L205 44 L228 68 L238 100 L224 126 L188 140 L146 146 L98 138 L62 124 L38 98 L28 70 Z"></path>
+        ${routeLine ? `<polyline class="detail-map-line" points="${routeLine}"></polyline>` : ''}
+        <circle class="detail-map-ring" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="14"></circle>
+        ${routeParks.map(({ park: routePark, point: routePoint }) => `
+          <circle cx="${routePoint.x.toFixed(1)}" cy="${routePoint.y.toFixed(1)}" r="4.5" fill="${safeColor(routePark.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="1.4"></circle>
+        `).join('')}
+        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6.5" fill="${safeColor(park.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="2"></circle>
+        <text class="detail-map-label" x="${(point.x + 9).toFixed(1)}" y="${(point.y - 8).toFixed(1)}">${escapeHtml(park.city)}</text>
+        ${onRoute ? `<text class="detail-map-label" x="16" y="${height - 12}" fill="rgba(240,188,67,0.92)">On current route</text>` : ''}
+      </svg>
+    `;
+  }
+
+  function getFilteredParks() {
+    return app.getParks().filter((park) => {
+      const q = searchTerm.toLowerCase();
+      const matchSearch = !q ||
+        park.name.toLowerCase().includes(q) ||
+        park.team.toLowerCase().includes(q) ||
+        park.city.toLowerCase().includes(q);
+      const matchFilter =
+        activeFilter === 'all' ? true :
+        activeFilter === 'visited' ? app.isVisited(park.id) :
+        activeFilter === 'unvisited' ? !app.isVisited(park.id) :
+        activeFilter === 'open' ? park.roof === 'Open' :
+        activeFilter === 'retractable' ? park.roof === 'Retractable' : true;
+      return matchSearch && matchFilter;
+    });
+  }
+
+  function updateDetailActions(park) {
+    const visitButton = document.getElementById('d-visit-toggle');
+    const routeButton = document.getElementById('d-route-toggle');
+    const scoreLink = document.getElementById('d-score-link');
+    const routeIds = app.getRouteStore().stops.map((stop) => typeof stop === 'string' ? stop : stop.parkId);
+    const visited = app.isVisited(park.id);
+    const onRoute = routeIds.includes(park.id);
+
+    visitButton.textContent = visited ? 'Remove visited mark' : 'Mark as visited';
+    routeButton.textContent = onRoute ? 'Remove from route' : 'Add to route';
+    visitButton.className = `btn ${visited ? 'btn-danger-outline' : 'btn-success'}`;
+    routeButton.className = `btn ${onRoute ? 'btn-danger-outline' : 'btn-primary'}`;
+    scoreLink.href = 'scorekeeper.html';
+    scoreLink.dataset.parkId = park.id;
+  }
+
+  function renderList() {
+    const list = document.getElementById('parks-list');
+    const count = document.getElementById('park-count');
+    const filtered = getFilteredParks();
+    count.textContent = `${filtered.length} park${filtered.length !== 1 ? 's' : ''}`;
+    list.innerHTML = filtered.map((park) => `
+      <div class="park-row ${selectedParkId === park.id ? 'selected' : ''}" data-park-id="${escapeHtml(park.id)}" tabindex="0" role="button" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
+        <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
+        <div class="park-row-brand">
+          ${teamLogoImg(park.team, 'park-team-logo')}
+          <div class="park-row-name">${escapeHtml(park.name)}</div>
+        </div>
+        <div class="park-row-city">${escapeHtml(park.city)}</div>
+        ${app.isVisited(park.id) ? '<span class="badge badge-visited">✓</span>' : '<span class="badge badge-unvisited">Open</span>'}
+      </div>
+    `).join('');
+  }
+
+  function selectPark(id) {
+    const park = app.getParkById(id);
+    if (!park) return;
+    selectedParkId = park.id;
+    const visitMeta = app.getVisitedMeta(park.id);
+    const parkScratchpad = app.getParkScratchpad(park.id);
+    const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === park.id);
+    const specialEvents = Array.isArray(park.specialEvents) && park.specialEvents.length ? park.specialEvents : ['No current event signal'];
+    document.getElementById('detail-stripe').style.background = safeColor(park.color, '#7EB4E0');
+    document.getElementById('d-name').textContent = park.name;
+    document.getElementById('d-team').innerHTML = `
+      ${teamLogoImg(park.team, 'detail-team-logo')}
+      <div class="detail-team-text">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
+    `;
+    renderDetailMap(park, onRoute);
+    document.getElementById('d-note').textContent = visitMeta && visitMeta.notes ? visitMeta.notes : (park.note || '');
+    document.getElementById('d-grid').innerHTML = `
+      <div class="detail-datum"><div class="detail-datum-label">Opened</div><div class="detail-datum-value">${escapeHtml(park.opened)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Capacity</div><div class="detail-datum-value">${escapeHtml(park.capacity.toLocaleString())}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Roof</div><div class="detail-datum-value">${escapeHtml(park.roof)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Priority</div><div class="detail-datum-value">Tier ${escapeHtml(park.tier)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Visited</div><div class="detail-datum-value">${escapeHtml(visitMeta ? (visitMeta.visitDate || 'Marked') : 'Not yet')}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Standout</div><div class="detail-datum-value">${escapeHtml(visitMeta?.bestFeature || 'Still scouting')}</div></div>
+    `;
+    document.getElementById('d-signals').innerHTML = `
+      <div class="detail-signal">
+        <div class="detail-signal-label">Ticket approach</div>
+        <div class="detail-signal-text">${escapeHtml(park.ticketApproach)}</div>
+      </div>
+      <div class="detail-signal">
+        <div class="detail-signal-label">Transit note</div>
+        <div class="detail-signal-text">${escapeHtml(park.transitNote)}</div>
+      </div>
+      <div class="detail-signal">
+        <div class="detail-signal-label">Special events</div>
+        <div class="detail-event-list">
+          ${specialEvents.map((eventName) => `<span class="detail-event-pill">${escapeHtml(eventName)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="detail-signal">
+        <div class="detail-signal-label">Route status</div>
+        <div class="detail-signal-text">${onRoute ? 'Already in the current run.' : 'Not on the route yet.'}</div>
+      </div>
+      ${(function() {
+        var games = app.getUpcomingGamesByPark ? app.getUpcomingGamesByPark(park.id, 4) : [];
+        if (!games.length) return '';
+        return '<div class="detail-signal"><div class="detail-signal-label">Upcoming home games</div><div class="detail-schedule-list">' +
+          games.map(function(g) {
+            var onGameRoute = app.getRouteStore().stops.some(function(stop) {
+              return stop && typeof stop === 'object' && stop.gameId === g.gameId;
+            });
+            return '<div class="detail-schedule-card">' +
+              '<div class="detail-schedule-line">' + escapeHtml(window.BPQ.schedule.formatGameLine(g)) +
+              (g.s ? ' <span class="detail-event-pill" style="margin-left:6px;font-size:8px;">' + escapeHtml(g.s) + '</span>' : '') + '</div>' +
+              '<div class="detail-schedule-actions">' +
+                '<button type="button" class="btn btn-primary" data-route-game="' + escapeHtml(g.gameId) + '" data-route-park="' + escapeHtml(park.id) + '">' + (onGameRoute ? 'Game on route' : 'Add game to route') + '</button>' +
+                '<a href="scorekeeper.html" class="btn btn-red" data-score-game="' + escapeHtml(g.gameId) + '" data-score-park="' + escapeHtml(park.id) + '">Score this game</a>' +
+                '<button type="button" class="btn btn-ghost" data-calendar-game="' + escapeHtml(g.gameId) + '">Add to calendar</button>' +
+              '</div>' +
+            '</div>';
+          }).join('') + '</div></div>';
+      })()}
+    `;
+    document.getElementById('d-scratchpad').value = parkScratchpad ? parkScratchpad.text : '';
+    updateDetailActions(park);
+    renderList();
+  }
+
+  document.getElementById('park-search').addEventListener('input', (event) => {
+    searchTerm = event.target.value;
+    renderList();
+  });
+
+  document.querySelectorAll('.filter-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach((node) => node.classList.remove('active'));
+      chip.classList.add('active');
+      activeFilter = chip.dataset.filter;
+      renderList();
+    });
+  });
+
+  document.getElementById('parks-list').addEventListener('click', (event) => {
+    const row = event.target.closest('[data-park-id]');
+    if (!row) return;
+    selectPark(row.dataset.parkId);
+  });
+
+  document.getElementById('parks-list').addEventListener('keydown', (event) => {
+    const row = event.target.closest('[data-park-id]');
+    if (!row) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectPark(row.dataset.parkId);
+    }
+  });
+
+  document.getElementById('d-visit-toggle').addEventListener('click', () => {
+    if (!selectedParkId) return;
+    const park = app.getParkById(selectedParkId);
+    const nowVisited = app.toggleVisited(selectedParkId, { bestFeature: park.tier === 'S' ? 'Must-see atmosphere' : 'Route stop', notes: park.note });
+    if (nowVisited) app.addRouteStop(selectedParkId);
+    selectPark(selectedParkId);
+  });
+
+  document.getElementById('d-route-toggle').addEventListener('click', () => {
+    if (!selectedParkId) return;
+    const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === selectedParkId);
+    if (onRoute) app.removeRouteStop(selectedParkId);
+    else app.addRouteStop(selectedParkId);
+    selectPark(selectedParkId);
+  });
+
+  document.getElementById('d-score-link').addEventListener('click', () => {
+    if (!selectedParkId) return;
+    app.setScorekeeperContext(selectedParkId);
+  });
+
+  document.getElementById('d-signals').addEventListener('click', (event) => {
+    const routeGame = event.target.closest('[data-route-game]');
+    if (routeGame) {
+      app.addRouteStop(routeGame.dataset.routePark, routeGame.dataset.routeGame);
+      selectPark(routeGame.dataset.routePark);
+      return;
+    }
+
+    const scoreGame = event.target.closest('[data-score-game]');
+    if (scoreGame) {
+      app.setScorekeeperContext({ parkId: scoreGame.dataset.scorePark, gameId: scoreGame.dataset.scoreGame });
+      return;
+    }
+
+    const calendarGame = event.target.closest('[data-calendar-game]');
+    if (calendarGame) {
+      const game = app.getGameById(calendarGame.dataset.calendarGame);
+      if (game) app.downloadGameICS(game);
+    }
+  });
+
+  document.getElementById('d-scratchpad').addEventListener('input', (event) => {
+    if (!selectedParkId) return;
+    app.saveParkScratchpad(selectedParkId, event.target.value);
+  });
+
+  renderList();
+  const preferredStop = app.getRouteStore().stops[0];
+  const preferred = (typeof preferredStop === 'string' ? preferredStop : preferredStop && preferredStop.parkId) || app.getNextTargets(1)[0]?.id || app.getParks()[0]?.id;
+  if (preferred) selectPark(preferred);
+})();
+</script>
+</body>
+</html>

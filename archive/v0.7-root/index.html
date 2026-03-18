@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MLB Ballparks Quest</title>
+  <meta name="description" content="A low overhead MLB park tracker for route planning, visit notes, and next stadium priorities.">
+  <meta name="theme-color" content="#111111">
+  <link rel="stylesheet" href="theme-tokens.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23f8f5ef'/%3E%3Cpath d='M18 20c5 3 9 8 11 14M46 20c-5 3-9 8-11 14M18 44c5-3 9-8 11-14M46 44c-5-3-9-8-11-14' stroke='%23ba3a2a' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root{
+      --radius:18px;
+      --maxw:1180px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:var(--theme-stripes), var(--theme-wash);
+      line-height:1.5;
+    }
+
+    img,svg{display:block;max-width:100%}
+    a{color:inherit}
+    button,input,select{font:inherit}
+
+    .shell{width:min(100% - 28px,var(--maxw));margin:0 auto}
+    .skip-link{
+      position:absolute;left:16px;top:-48px;padding:10px 14px;border-radius:999px;
+      background:var(--ink);color:#fff;text-decoration:none;z-index:20;
+    }
+    .skip-link:focus{top:16px}
+
+    .site-header{
+      position:sticky;top:0;z-index:10;
+      background:color-mix(in srgb, var(--bg) 92%, transparent);
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      backdrop-filter:blur(8px);
+    }
+
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+      padding:14px 0;
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:12px;text-decoration:none;
+    }
+
+    .brand-mark{
+      width:42px;height:42px;border-radius:14px;border:1px solid rgba(20,36,51,.12);
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), rgba(255,255,255,.65) 45%, rgba(255,255,255,.2) 46%),
+        linear-gradient(140deg, var(--field), var(--accent));
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
+      position:relative;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after{
+      content:"";
+      position:absolute;
+      inset:9px;
+      border-radius:50%;
+      border:2px solid color-mix(in srgb, var(--accent) 88%, transparent);
+      clip-path:inset(0 42% 0 42%);
+    }
+
+    .brand-mark::after{transform:rotate(90deg)}
+
+    .brand-copy strong{
+      display:block;
+      font-size:1rem;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .brand-copy span{
+      display:block;
+      font-size:.76rem;
+      color:var(--muted);
+    }
+
+    .nav{
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+
+    .nav a{
+      text-decoration:none;
+      padding:10px 14px;
+      border-radius:999px;
+      color:var(--muted);
+      transition:background-color .14s ease,color .14s ease,transform .14s ease;
+    }
+
+    .nav a:hover,
+    .nav a:focus-visible{
+      background:#fff;
+      color:var(--ink);
+      transform:translateY(-1px);
+    }
+
+    .hero{
+      padding:52px 0 30px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.25fr) minmax(320px,.85fr);
+      gap:24px;
+      align-items:start;
+    }
+
+    .hero-copy,
+    .hero-panel,
+    .section-card,
+    .detail-panel,
+    .route-card,
+    .milestone,
+    .highlight-card{
+      background:linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.94));
+      border:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .hero-copy,
+    .hero-panel,
+    .section-card,
+    .detail-panel,
+    .route-card,
+    .milestone,
+    .highlight-card{
+      background:var(--theme-panel-overlay);
+    }
+
+    .hero-copy{padding:30px}
+
+    .eyebrow,
+    .section-kicker,
+    .stat-label,
+    .meta-label,
+    .pill,
+    .detail-meta span,
+    .milestone-status,
+    .filters label{
+      font-size:.72rem;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    h1,h2,h3,p{margin:0}
+    h1{
+      margin-top:12px;
+      font-size:clamp(2.4rem,5vw,4.7rem);
+      line-height:.95;
+      letter-spacing:-.04em;
+      max-width:10ch;
+    }
+
+    .hero-copy p{
+      margin-top:18px;
+      max-width:54ch;
+      color:var(--muted);
+      font-size:1.03rem;
+    }
+
+    .hero-actions{
+      display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;
+    }
+
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      min-height:46px;padding:0 18px;border-radius:999px;border:1px solid transparent;
+      text-decoration:none;cursor:pointer;font-weight:700;
+      transition:transform .14s ease,background-color .14s ease,border-color .14s ease,color .14s ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible{transform:translateY(-1px)}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover,
+    .btn-primary:focus-visible{background:var(--accent-strong)}
+    .btn-secondary{background:#fff;border-color:rgba(20,36,51,.12);color:var(--ink)}
+    .btn-secondary:hover,
+    .btn-secondary:focus-visible{border-color:rgba(20,36,51,.24)}
+
+    .hero-notes{
+      margin-top:28px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .hero-note{
+      padding:12px 14px;border-radius:16px;
+      background:color-mix(in srgb, var(--field) 6%, white);
+      border:1px solid color-mix(in srgb, var(--field) 14%, transparent);
+    }
+
+    .hero-note strong{display:block;font-size:1.1rem}
+    .hero-note span{display:block;color:var(--muted);font-size:.88rem}
+
+    .hero-panel{padding:24px}
+
+    .panel-header{
+      display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+      margin-bottom:18px;
+    }
+
+    .panel-header p{color:var(--muted);max-width:28ch}
+
+    .scoreboard{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+      margin-bottom:18px;
+    }
+
+    .stat{
+      padding:16px;border-radius:16px;background:#fff;border:1px solid rgba(20,36,51,.08);
+    }
+
+    .stat strong{display:block;font-size:2rem;line-height:1}
+
+    .progress{
+      margin-top:6px;height:8px;border-radius:999px;overflow:hidden;background:#eadfce;
+    }
+    .progress > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--field),var(--accent))}
+
+    .route-preview{
+      margin-top:16px;padding-top:16px;border-top:1px solid rgba(20,36,51,.08);
+      display:grid;gap:10px;
+    }
+
+    .route-row{
+      display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+      padding:12px 14px;border-radius:14px;background:#fff;border:1px solid rgba(20,36,51,.08);
+    }
+    .route-row strong{display:block}
+    .route-row span{display:block;color:var(--muted);font-size:.92rem}
+
+    main section{padding:24px 0}
+
+    .section-head{
+      display:flex;justify-content:space-between;align-items:end;gap:16px;
+      margin-bottom:18px;
+    }
+
+    .section-head p{max-width:50ch;color:var(--muted)}
+
+    .cards-3{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+    }
+
+    .section-card{padding:22px}
+    .section-card h3{margin:10px 0 8px;font-size:1.15rem}
+    .section-card p{color:var(--muted)}
+
+    .route-grid{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+    }
+
+    .route-card{padding:20px;display:grid;gap:10px}
+    .route-rank{
+      width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+      background:rgba(161,44,33,.08);color:var(--accent);font-weight:800;
+    }
+    .route-card h3{font-size:1.18rem}
+    .route-card p{color:var(--muted)}
+
+    .highlights{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;
+    }
+    .highlight-card{padding:18px;display:grid;gap:10px}
+    .highlight-card blockquote{
+      margin:0;color:var(--muted);font-size:.94rem
+    }
+
+    .directory-layout{
+      display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:18px;
+      align-items:start;
+    }
+
+    .directory-panel,
+    .detail-panel{
+      padding:20px;
+    }
+
+    .directory-panel{
+      background:rgba(255,250,243,.72);
+      border:1px solid rgba(20,36,51,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .filters{
+      display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,.6fr));gap:12px;
+      margin-bottom:16px;
+    }
+
+    .filters label{display:grid;gap:6px}
+
+    .filters input,
+    .filters select{
+      width:100%;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid rgba(20,36,51,.12);
+      background:#fff;color:var(--ink);
+    }
+
+    .results-meta{
+      display:flex;justify-content:space-between;gap:12px;align-items:center;
+      margin-bottom:12px;color:var(--muted);font-size:.92rem;
+    }
+
+    .park-list{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+    }
+
+    .park-card{
+      text-align:left;padding:16px;border-radius:16px;border:1px solid rgba(20,36,51,.08);
+      background:#fff;cursor:pointer;display:grid;gap:8px;
+      transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease;
+    }
+
+    .park-card:hover,
+    .park-card:focus-visible{
+      transform:translateY(-1px);
+      border-color:rgba(20,36,51,.18);
+      box-shadow:0 12px 24px rgba(20,36,51,.08);
+    }
+
+    .park-card.is-active{
+      border-color:rgba(161,44,33,.4);
+      box-shadow:0 16px 28px rgba(161,44,33,.1);
+    }
+
+    .park-top{
+      display:flex;justify-content:space-between;gap:12px;align-items:flex-start;
+    }
+
+    .park-card strong{font-size:1rem}
+    .park-card p{color:var(--muted);font-size:.9rem}
+
+    .meta-row,
+    .detail-meta{
+      display:flex;flex-wrap:wrap;gap:8px;
+    }
+
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:999px;background:rgba(20,36,51,.05);
+      border:1px solid rgba(20,36,51,.06);
+      letter-spacing:.08em;
+    }
+
+    .tier{
+      min-width:32px;justify-content:center;font-weight:800;
+    }
+    .tier-pill[data-tier="S"]{color:var(--tier-s-ink);background:var(--tier-s-bg)}
+    .tier-pill[data-tier="A"]{color:var(--tier-a-ink);background:var(--tier-a-bg)}
+    .tier-pill[data-tier="B"]{color:var(--tier-b-ink);background:var(--tier-b-bg)}
+    .tier-pill[data-tier="C"]{color:var(--tier-c-ink);background:var(--tier-c-bg)}
+
+    .status-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      min-height:32px;padding:0 12px;border-radius:999px;
+      border:1px solid rgba(20,36,51,.08);
+      background:#fff;color:var(--muted);
+      font-size:.78rem;font-weight:700;letter-spacing:.04em;
+    }
+    .status-chip.is-success{
+      border-color:color-mix(in srgb, var(--field) 24%, transparent);
+      color:var(--field);
+    }
+    .status-chip.is-error{
+      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
+      color:var(--danger);
+    }
+    .panel-status-row{
+      margin-top:14px;
+      display:flex;justify-content:flex-start;
+    }
+
+    .detail-panel{
+      position:sticky;top:90px;
+      display:grid;gap:16px;
+    }
+
+    .detail-header h3{font-size:1.5rem;line-height:1.05}
+    .detail-header p{margin-top:8px;color:var(--muted)}
+    .detail-copy{color:var(--muted)}
+    .detail-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+    .detail-grid{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+    }
+
+    .detail-metric{
+      padding:14px;border-radius:14px;background:#fff;border:1px solid rgba(20,36,51,.08);
+    }
+    .detail-metric strong{display:block;font-size:1.2rem}
+
+    .milestones{
+      display:grid;gap:14px;
+    }
+    .milestone{
+      padding:18px;display:grid;gap:8px;
+    }
+    .milestone-header{
+      display:flex;justify-content:space-between;gap:12px;align-items:start;
+    }
+
+    .milestone-status{
+      padding:6px 10px;border-radius:999px;border:1px solid rgba(20,36,51,.08);background:#fff;
+    }
+    .milestone-status[data-state="in-progress"]{color:var(--field)}
+    .milestone-status[data-state="not-started"]{color:var(--accent)}
+
+    .toast{
+      position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+      width:min(calc(100% - 28px), 520px);
+      display:flex;justify-content:space-between;align-items:center;gap:14px;
+      padding:14px 16px;border-radius:16px;background:var(--panel-strong);
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      box-shadow:var(--shadow);z-index:300;
+    }
+    .toast.is-success{border-color:color-mix(in srgb, var(--field) 24%, transparent)}
+    .toast.is-error{border-color:color-mix(in srgb, var(--danger) 28%, transparent)}
+    .toast-copy{color:var(--ink);font-size:.94rem}
+    .toast-actions{display:flex;align-items:center;gap:10px}
+    .toast-action,
+    .toast-close{
+      min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(20,36,51,.08);
+      background:#fff;color:var(--ink);cursor:pointer;font:inherit;font-weight:700;
+    }
+
+    .footer{
+      padding:24px 0 40px;color:var(--muted);font-size:.92rem;
+    }
+
+    .footer-bar{
+      border-top:1px solid rgba(20,36,51,.08);
+      padding-top:18px;
+      display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    }
+
+    :focus-visible{
+      outline:3px solid color-mix(in srgb, var(--accent) 72%, white 8%);
+      outline-offset:3px;
+    }
+
+    @media (max-width: 980px){
+      .hero-grid,
+      .directory-layout,
+      .route-grid,
+      .cards-3,
+      .highlights{grid-template-columns:1fr}
+      .filters{grid-template-columns:1fr 1fr}
+      .park-list{grid-template-columns:1fr}
+      .detail-panel{position:static}
+      .hero-notes,
+      .scoreboard{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media (max-width: 700px){
+      .topbar{align-items:flex-start;flex-direction:column}
+      .nav{width:100%}
+      .nav a{padding:8px 10px}
+      .hero{padding-top:34px}
+      .hero-copy,
+      .hero-panel,
+      .directory-panel,
+      .detail-panel{padding:18px}
+      .hero-notes,
+      .scoreboard,
+      .detail-grid{grid-template-columns:1fr}
+      .filters{grid-template-columns:1fr}
+      h1{max-width:12ch}
+      .section-head{align-items:start;flex-direction:column}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      *,
+      *::before,
+      *::after{transition:none !important}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="shell topbar">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <strong>MLB Ballparks Quest</strong>
+          <span>Route planning, visit tracking, and park notes in one static page</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="#overview">Overview</a>
+        <a href="#route">Next route</a>
+        <a href="#parks">Parks</a>
+        <a href="scorekeeper.html">Scorekeeper</a>
+        <a href="#roadmap">Roadmap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="shell hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Land • understand • explore • trust • act</div>
+          <h1>Track every ballpark without hauling in an app stack.</h1>
+          <p>MLB Ballparks Quest is a low overhead planning board for visits, notes, and next stadium priorities. It ships as one static page, loads fast, and keeps the important questions obvious: what has been visited, what is next, and why a park deserves the trip.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#parks">Browse all 30 parks</a>
+            <a class="btn btn-secondary" href="#route">Open next route plan</a>
+            <a class="btn btn-secondary" href="scorekeeper.html" id="heroScorekeeperLink">Open scorekeeper</a>
+          </div>
+          <div class="hero-notes" aria-label="Quick proof">
+            <div class="hero-note">
+              <strong id="visitedHeroCount">4</strong>
+              <span>parks already logged</span>
+            </div>
+            <div class="hero-note">
+              <strong id="tierHeroCount">6</strong>
+              <span>S and A tier targets mapped</span>
+            </div>
+            <div class="hero-note">
+              <strong>0</strong>
+              <span>runtime dependencies</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-labelledby="heroPanelTitle">
+          <div class="panel-header">
+            <div>
+              <div class="section-kicker">Current board</div>
+              <h2 id="heroPanelTitle">Trip progress at a glance</h2>
+            </div>
+            <p>One screen for route focus, park context, and practical next steps.</p>
+          </div>
+          <div class="scoreboard">
+            <div class="stat">
+              <div class="stat-label">Visited</div>
+              <strong id="visitedCount">4</strong>
+              <div class="progress" aria-hidden="true"><span id="visitedProgress" style="width:13.3%"></span></div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">Still open</div>
+              <strong id="remainingCount">26</strong>
+              <div class="progress" aria-hidden="true"><span id="remainingProgress" style="width:86.7%"></span></div>
+            </div>
+          </div>
+          <div class="route-preview" id="routePreview" aria-label="Next route targets"></div>
+          <div class="panel-status-row">
+            <span class="status-chip" id="trackerStatusChip" aria-live="polite">Tracker ready</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="overview">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">What this page does</div>
+            <h2>Small, direct, and useful from the first glance</h2>
+          </div>
+          <p>The site is built around three jobs only: understand overall progress, review the next stadiums to target, and inspect any park without fighting the UI.</p>
+        </div>
+        <div class="cards-3">
+          <article class="section-card">
+            <div class="section-kicker">Progress</div>
+            <h3>Visited and unvisited split</h3>
+            <p>Live totals make the quest legible. You know the current percentage, the remaining count, and the strongest unvisited targets without hunting through a spreadsheet.</p>
+          </article>
+          <article class="section-card">
+            <div class="section-kicker">Context</div>
+            <h3>Real notes, not just data rows</h3>
+            <p>Visited parks keep short field notes and a standout feature so the tracker remembers why a place mattered, not just when it happened.</p>
+          </article>
+          <article class="section-card">
+            <div class="section-kicker">Action</div>
+            <h3>Route planning stays practical</h3>
+            <p>The next target board and park detail panel keep travel decisions clear. The page favors momentum over overbuilt tooling.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="route">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Next route</div>
+            <h2>Three high value parks to plan around next</h2>
+          </div>
+          <p>These targets come from the current prototype source and keep the immediate travel conversation focused.</p>
+        </div>
+        <div class="route-grid" id="routeGrid"></div>
+      </div>
+    </section>
+
+    <section id="highlights">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Visited proof</div>
+            <h2>What the best parks already earned</h2>
+          </div>
+          <p>Real notes from completed visits give the tracker emotional weight and help define what counts as a worthwhile stop.</p>
+        </div>
+        <div class="highlights" id="highlightGrid"></div>
+      </div>
+    </section>
+
+    <section id="parks">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Park directory</div>
+            <h2>Filter the full league without losing context</h2>
+          </div>
+          <p>Search by team, stadium, or city. Narrow by roof or visit state. Select any park to inspect the details in the side panel.</p>
+        </div>
+        <div class="directory-layout">
+          <div class="directory-panel">
+            <form class="filters" id="filterForm">
+              <label>
+                Search
+                <input id="searchInput" name="search" type="search" placeholder="Team, stadium, or city (/)">
+              </label>
+              <label>
+                Visit state
+                <select id="visitFilter" name="visit">
+                  <option value="all">All</option>
+                  <option value="visited">Visited</option>
+                  <option value="open">Not visited</option>
+                </select>
+              </label>
+              <label>
+                Roof
+                <select id="roofFilter" name="roof">
+                  <option value="all">Any roof</option>
+                  <option value="Open">Open</option>
+                  <option value="Retractable">Retractable</option>
+                  <option value="Fixed">Fixed</option>
+                </select>
+              </label>
+              <label>
+                Sort
+                <select id="sortSelect" name="sort">
+                  <option value="priority">Priority</option>
+                  <option value="opened">Oldest first</option>
+                  <option value="capacity">Largest first</option>
+                  <option value="alpha">Alphabetical</option>
+                </select>
+              </label>
+            </form>
+            <div class="results-meta">
+              <div id="resultsCount" aria-live="polite">30 parks</div>
+              <div>Click a park card for the full snapshot.</div>
+            </div>
+            <div class="park-list" id="parkList"></div>
+          </div>
+
+          <aside class="detail-panel" id="detailPanel" aria-live="polite">
+            <div class="detail-header">
+              <div class="section-kicker">Selected park</div>
+              <h3 id="detailTitle">PNC Park</h3>
+              <p id="detailSubtitle">Pittsburgh Pirates · Pittsburgh, PA</p>
+            </div>
+            <div class="detail-meta" id="detailMeta"></div>
+            <div class="detail-grid" id="detailMetrics"></div>
+            <p class="detail-copy" id="detailCopy">A high priority target with elite skyline views and one of the clearest cases for the next trip board.</p>
+            <div class="detail-actions">
+              <a class="btn btn-primary" href="scorekeeper.html" id="detailScorekeeperLink">Open scorekeeper with this park</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="roadmap">
+      <div class="shell">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Roadmap</div>
+            <h2>Keep scope tight and shippable</h2>
+          </div>
+          <p>The project already has a defined next step path. This section keeps the tracker focused on what should be built next instead of turning into a vague feature dump.</p>
+        </div>
+        <div class="milestones" id="milestoneList"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-bar">
+      <div>MLB Ballparks Quest is a static first planning artifact. It works by opening the file directly or dropping it onto static hosting.</div>
+      <div><a href="#top">Back to top</a></div>
+    </div>
+  </footer>
+  <script src="theme-switcher.js" defer></script>
+  <script src="theme-switcher-ui.js" defer></script>
+
+  <noscript>
+    <div style="padding:14px 18px;background:#fff4dd;border-top:1px solid #e2c78d;color:#5a4421;text-align:center">
+      JavaScript is off. The hero, route summary, and roadmap still explain the project, but the interactive park directory needs JavaScript to filter and switch details.
+    </div>
+  </noscript>
+
+  <script>
+    const PARKS = [
+      { id: 1, team: "Arizona Diamondbacks", stadium: "Chase Field", city: "Phoenix, AZ", capacity: 48519, roof: "Retractable", surface: "Artificial", opened: 1998, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 2, team: "Atlanta Braves", stadium: "Truist Park", city: "Cumberland, GA", capacity: 41084, roof: "Open", surface: "Grass", opened: 2017, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 3, team: "Baltimore Orioles", stadium: "Oriole Park at Camden Yards", city: "Baltimore, MD", capacity: 44970, roof: "Open", surface: "Grass", opened: 1992, tier: "S", visited: true, visitDate: "2023-07-15", rating: 5, notes: "Iconic retro classic. The B and O Warehouse beyond right field is unforgettable.", bestFeature: "B and O Warehouse backdrop" },
+      { id: 4, team: "Boston Red Sox", stadium: "Fenway Park", city: "Boston, MA", capacity: 37755, roof: "Open", surface: "Grass", opened: 1912, tier: "S", visited: true, visitDate: "2022-08-20", rating: 5, notes: "The Green Monster is even more impressive in person. Cramped but magical.", bestFeature: "Green Monster" },
+      { id: 5, team: "Chicago Cubs", stadium: "Wrigley Field", city: "Chicago, IL", capacity: 41649, roof: "Open", surface: "Grass", opened: 1914, tier: "S", visited: true, visitDate: "2023-05-12", rating: 5, notes: "Ivy walls and rooftops across the street. Pure baseball history.", bestFeature: "Ivy covered outfield walls" },
+      { id: 6, team: "Chicago White Sox", stadium: "Guaranteed Rate Field", city: "Chicago, IL", capacity: 40615, roof: "Open", surface: "Grass", opened: 1991, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 7, team: "Cincinnati Reds", stadium: "Great American Ball Park", city: "Cincinnati, OH", capacity: 42319, roof: "Open", surface: "Grass", opened: 2003, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 8, team: "Cleveland Guardians", stadium: "Progressive Field", city: "Cleveland, OH", capacity: 34830, roof: "Open", surface: "Grass", opened: 1994, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 9, team: "Colorado Rockies", stadium: "Coors Field", city: "Denver, CO", capacity: 50144, roof: "Open", surface: "Grass", opened: 1995, tier: "A", visited: true, visitDate: "2023-09-03", rating: 4, notes: "Mile High air changes every fly ball. The mountain view beyond left field is the draw.", bestFeature: "Mountain views" },
+      { id: 10, team: "Detroit Tigers", stadium: "Comerica Park", city: "Detroit, MI", capacity: 41083, roof: "Open", surface: "Grass", opened: 2000, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 11, team: "Houston Astros", stadium: "Minute Maid Park", city: "Houston, TX", capacity: 41168, roof: "Retractable", surface: "Grass", opened: 2000, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 12, team: "Kansas City Royals", stadium: "Kauffman Stadium", city: "Kansas City, MO", capacity: 37903, roof: "Open", surface: "Grass", opened: 1973, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 13, team: "Los Angeles Angels", stadium: "Angel Stadium", city: "Anaheim, CA", capacity: 45517, roof: "Open", surface: "Grass", opened: 1966, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 14, team: "Los Angeles Dodgers", stadium: "Dodger Stadium", city: "Los Angeles, CA", capacity: 56000, roof: "Open", surface: "Grass", opened: 1962, tier: "A", visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 15, team: "Miami Marlins", stadium: "loanDepot park", city: "Miami, FL", capacity: 36742, roof: "Retractable", surface: "Artificial", opened: 2012, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 16, team: "Milwaukee Brewers", stadium: "American Family Field", city: "Milwaukee, WI", capacity: 41900, roof: "Retractable", surface: "Grass", opened: 2001, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 17, team: "Minnesota Twins", stadium: "Target Field", city: "Minneapolis, MN", capacity: 38544, roof: "Open", surface: "Grass", opened: 2010, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 18, team: "New York Mets", stadium: "Citi Field", city: "New York, NY", capacity: 41922, roof: "Open", surface: "Grass", opened: 2009, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 19, team: "New York Yankees", stadium: "Yankee Stadium", city: "New York, NY", capacity: 54251, roof: "Open", surface: "Grass", opened: 2009, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 20, team: "Oakland Athletics", stadium: "Sutter Health Park", city: "Sacramento, CA", capacity: 14014, roof: "Open", surface: "Grass", opened: 1999, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 21, team: "Philadelphia Phillies", stadium: "Citizens Bank Park", city: "Philadelphia, PA", capacity: 42792, roof: "Open", surface: "Grass", opened: 2004, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 22, team: "Pittsburgh Pirates", stadium: "PNC Park", city: "Pittsburgh, PA", capacity: 38747, roof: "Open", surface: "Grass", opened: 2001, tier: "S", visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 23, team: "San Diego Padres", stadium: "Petco Park", city: "San Diego, CA", capacity: 40162, roof: "Open", surface: "Grass", opened: 2004, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 24, team: "San Francisco Giants", stadium: "Oracle Park", city: "San Francisco, CA", capacity: 41915, roof: "Open", surface: "Grass", opened: 2000, tier: "A", visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 25, team: "Seattle Mariners", stadium: "T Mobile Park", city: "Seattle, WA", capacity: 47929, roof: "Retractable", surface: "Artificial", opened: 1999, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 26, team: "St. Louis Cardinals", stadium: "Busch Stadium", city: "St. Louis, MO", capacity: 44494, roof: "Open", surface: "Grass", opened: 2006, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 27, team: "Tampa Bay Rays", stadium: "Tropicana Field", city: "St. Petersburg, FL", capacity: 25000, roof: "Fixed", surface: "Artificial", opened: 1990, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 28, team: "Texas Rangers", stadium: "Globe Life Field", city: "Arlington, TX", capacity: 40518, roof: "Retractable", surface: "Artificial", opened: 2020, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 29, team: "Toronto Blue Jays", stadium: "Rogers Centre", city: "Toronto, ON", capacity: 49282, roof: "Retractable", surface: "Artificial", opened: 1989, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" },
+      { id: 30, team: "Washington Nationals", stadium: "Nationals Park", city: "Washington, DC", capacity: 41313, roof: "Open", surface: "Grass", opened: 2008, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" }
+    ];
+
+    const NEXT_TARGETS = [22, 19, 14];
+    const SCOREKEEPER_IMPORT_KEY = "mlb_ballparks_scorekeeper_import_v1";
+
+    const MILESTONES = [
+      { title: "Database backbone complete", done: "All 30 parks populated for mapping.", target: "March 2026", status: "in-progress" },
+      { title: "First roadtrip plan locked", done: "Next 3 parks chosen, dates penciled, route sketched.", target: "TBD", status: "not-started" },
+      { title: "Visited workflow proven", done: "At least 3 parks logged with notes and rating.", target: "TBD", status: "not-started" },
+      { title: "Game scorer v0", done: "Play loop working end to end with correct out and inning progression.", target: "TBD", status: "not-started" }
+    ];
+
+    const state = {
+      search: "",
+      visit: "all",
+      roof: "all",
+      sort: "priority",
+      activeParkId: NEXT_TARGETS[0]
+    };
+
+    const els = {
+      routePreview: document.getElementById("routePreview"),
+      routeGrid: document.getElementById("routeGrid"),
+      highlightGrid: document.getElementById("highlightGrid"),
+      parkList: document.getElementById("parkList"),
+      resultsCount: document.getElementById("resultsCount"),
+      detailTitle: document.getElementById("detailTitle"),
+      detailSubtitle: document.getElementById("detailSubtitle"),
+      detailMeta: document.getElementById("detailMeta"),
+      detailMetrics: document.getElementById("detailMetrics"),
+      detailCopy: document.getElementById("detailCopy"),
+      heroScorekeeperLink: document.getElementById("heroScorekeeperLink"),
+      detailScorekeeperLink: document.getElementById("detailScorekeeperLink"),
+      milestoneList: document.getElementById("milestoneList"),
+      visitedCount: document.getElementById("visitedCount"),
+      remainingCount: document.getElementById("remainingCount"),
+      visitedHeroCount: document.getElementById("visitedHeroCount"),
+      tierHeroCount: document.getElementById("tierHeroCount"),
+      visitedProgress: document.getElementById("visitedProgress"),
+      remainingProgress: document.getElementById("remainingProgress"),
+      searchInput: document.getElementById("searchInput"),
+      visitFilter: document.getElementById("visitFilter"),
+      roofFilter: document.getElementById("roofFilter"),
+      sortSelect: document.getElementById("sortSelect"),
+      trackerStatusChip: document.getElementById("trackerStatusChip")
+    };
+
+    let activeToast = null;
+    let activeToastTimer = null;
+    let trackerStatusTimer = null;
+
+    function clearToast() {
+      if (activeToastTimer) {
+        clearTimeout(activeToastTimer);
+        activeToastTimer = null;
+      }
+      if (!activeToast) return;
+      activeToast.remove();
+      activeToast = null;
+    }
+
+    function showToast(message, tone = "info", duration = 3200) {
+      clearToast();
+      const toast = document.createElement("section");
+      toast.className = `toast is-${tone}`;
+      toast.setAttribute("role", tone === "error" ? "alert" : "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.innerHTML = `
+        <div class="toast-copy">${escapeHtml(message)}</div>
+        <div class="toast-actions">
+          <button class="toast-close" type="button" aria-label="Dismiss notification">Dismiss</button>
+        </div>
+      `;
+      toast.querySelector(".toast-close").addEventListener("click", clearToast);
+      document.body.appendChild(toast);
+      activeToast = toast;
+      if (duration > 0) {
+        activeToastTimer = setTimeout(clearToast, duration);
+      }
+    }
+
+    function setTrackerStatus(message, tone = "info", duration = 2200) {
+      if (!els.trackerStatusChip) return;
+      els.trackerStatusChip.textContent = message;
+      els.trackerStatusChip.className = `status-chip${tone === "success" ? " is-success" : tone === "error" ? " is-error" : ""}`;
+      if (trackerStatusTimer) clearTimeout(trackerStatusTimer);
+      if (duration > 0) {
+        trackerStatusTimer = setTimeout(() => {
+          els.trackerStatusChip.textContent = "Tracker ready";
+          els.trackerStatusChip.className = "status-chip";
+        }, duration);
+      }
+    }
+
+    function priorityScore(park) {
+      let score = park.visited ? -100 : 0;
+      if (park.tier === "S") score += 30;
+      if (park.tier === "A") score += 20;
+      if (NEXT_TARGETS.includes(park.id)) score += 40;
+      score += Math.max(0, 2026 - park.opened) * 0.05;
+      return score;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("en-US").format(value);
+    }
+
+    function writeScorekeeperImport(park) {
+      if (!park) return;
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        venue: {
+          id: park.id,
+          team: park.team,
+          stadium: park.stadium,
+          city: park.city,
+          roof: park.roof,
+          surface: park.surface,
+          tier: park.tier || "",
+          bestFeature: park.bestFeature || ""
+        }
+      };
+      try {
+        localStorage.setItem(SCOREKEEPER_IMPORT_KEY, JSON.stringify(payload));
+        setTrackerStatus("Handoff ready", "success");
+      } catch (error) {
+        console.error("Failed to write scorekeeper import payload", error);
+        setTrackerStatus("Save failed", "error", 8000);
+        showToast("Could not prepare scorekeeper handoff", "error", 6000);
+      }
+    }
+
+    function getTierPill(park) {
+      if (!park.tier) return "";
+      return `<span class="pill tier tier-pill" data-tier="${escapeHtml(park.tier)}">${escapeHtml(park.tier)}</span>`;
+    }
+
+    function getFilteredParks() {
+      const query = state.search.trim().toLowerCase();
+      const filtered = PARKS.filter((park) => {
+        if (state.visit === "visited" && !park.visited) return false;
+        if (state.visit === "open" && park.visited) return false;
+        if (state.roof !== "all" && park.roof !== state.roof) return false;
+        if (!query) return true;
+        return [park.team, park.stadium, park.city].some((value) => value.toLowerCase().includes(query));
+      });
+
+      filtered.sort((a, b) => {
+        if (state.sort === "opened") return a.opened - b.opened;
+        if (state.sort === "capacity") return b.capacity - a.capacity;
+        if (state.sort === "alpha") return a.team.localeCompare(b.team);
+        return priorityScore(b) - priorityScore(a);
+      });
+      return filtered;
+    }
+
+    function renderTopStats() {
+      const visited = PARKS.filter((park) => park.visited).length;
+      const total = PARKS.length;
+      const remaining = total - visited;
+      const tierTargets = PARKS.filter((park) => park.tier === "S" || park.tier === "A").length;
+      const visitedPct = (visited / total) * 100;
+
+      els.visitedCount.textContent = String(visited);
+      els.remainingCount.textContent = String(remaining);
+      els.visitedHeroCount.textContent = String(visited);
+      els.tierHeroCount.textContent = String(tierTargets);
+      els.visitedProgress.style.width = `${visitedPct}%`;
+      els.remainingProgress.style.width = `${100 - visitedPct}%`;
+    }
+
+    function renderRoutePreview() {
+      const rows = NEXT_TARGETS
+        .map((id, index) => PARKS.find((park) => park.id === id))
+        .filter(Boolean)
+        .map((park, index) => `
+          <div class="route-row">
+            <div>
+              <strong>${index + 1}. ${park.stadium}</strong>
+              <span>${park.team} · ${park.city}</span>
+            </div>
+            ${getTierPill(park)}
+          </div>
+        `)
+        .join("");
+      els.routePreview.innerHTML = rows;
+    }
+
+    function renderRouteCards() {
+      els.routeGrid.innerHTML = NEXT_TARGETS
+        .map((id, index) => PARKS.find((park) => park.id === id))
+        .filter(Boolean)
+        .map((park, index) => `
+          <article class="route-card">
+            <div class="route-rank">${index + 1}</div>
+            <div class="section-kicker">${park.team}</div>
+            <h3>${park.stadium}</h3>
+            <p>${park.city}. ${park.tier ? `${park.tier} tier draw.` : "Strong open target."} ${park.bestFeature ? `Known for ${park.bestFeature.toLowerCase()}.` : "Needs a first visit note."}</p>
+            <div class="meta-row">
+              <span class="pill">${park.roof}</span>
+              <span class="pill">${park.surface}</span>
+              <span class="pill">Opened ${park.opened}</span>
+            </div>
+          </article>
+        `)
+        .join("");
+    }
+
+    function renderHighlights() {
+      const visited = PARKS.filter((park) => park.visited).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
+      if (!visited.length) {
+        els.highlightGrid.innerHTML = `
+          <article class="section-card">
+            <div class="section-kicker">Highlights</div>
+            <h3>No parks visited yet</h3>
+            <p>Score your first game to start building your ballpark collection.</p>
+          </article>
+        `;
+        return;
+      }
+      els.highlightGrid.innerHTML = visited
+        .map((park) => `
+          <article class="highlight-card">
+            <div class="section-kicker">${park.team}</div>
+            <h3>${park.stadium}</h3>
+            <blockquote>${park.notes || "Visit logged with no note yet."}</blockquote>
+            <div class="meta-row">
+              ${getTierPill(park)}
+              <span class="pill">${park.rating ? `${park.rating}/5` : "No rating"}</span>
+            </div>
+          </article>
+        `)
+        .join("");
+    }
+
+    function renderParks() {
+      const parks = getFilteredParks();
+      els.resultsCount.textContent = `${parks.length} park${parks.length === 1 ? "" : "s"} shown`;
+      if (state.activeParkId !== null && !parks.some((park) => park.id === state.activeParkId)) {
+        state.activeParkId = parks.length ? parks[0].id : null;
+      }
+      els.parkList.innerHTML = parks.length
+        ? parks
+            .map((park) => `
+              <button class="park-card${park.id === state.activeParkId ? " is-active" : ""}" type="button" data-park-id="${park.id}">
+                <div class="park-top">
+                  <div>
+                    <strong>${park.stadium}</strong>
+                    <p>${park.team}</p>
+                  </div>
+                  ${getTierPill(park)}
+                </div>
+                <p>${park.city}</p>
+                <div class="meta-row">
+                  <span class="pill">${park.roof}</span>
+                  <span class="pill">${park.surface}</span>
+                  <span class="pill">${park.visited ? "Visited" : "Open"}</span>
+                </div>
+              </button>
+            `)
+            .join("")
+        : `<div class="section-card"><div class="section-kicker">No match</div><h3>Nothing fits the current filter set</h3><p>Clear one filter or broaden the search term to bring parks back into view.</p></div>`;
+
+      renderDetail();
+    }
+
+    function renderDetail() {
+      if (state.activeParkId == null) {
+        els.detailTitle.textContent = "No park selected";
+        els.detailSubtitle.textContent = "Choose a park card to inspect the full snapshot";
+        els.detailMeta.innerHTML = `<span class="pill">Use search or filters</span>`;
+        els.detailMetrics.innerHTML = "";
+        els.detailCopy.textContent = "The detail panel will update with route notes, venue context, and the scorekeeper handoff action once a park is selected.";
+        if (els.detailScorekeeperLink) {
+          els.detailScorekeeperLink.setAttribute("href", "#parks");
+          els.detailScorekeeperLink.textContent = "Select a park to use scorekeeper";
+          els.detailScorekeeperLink.removeAttribute("aria-label");
+        }
+        return;
+      }
+      const park = PARKS.find((entry) => entry.id === state.activeParkId) || PARKS[0];
+      if (!park) return;
+      els.detailTitle.textContent = park.stadium;
+      els.detailSubtitle.textContent = `${park.team} · ${park.city}`;
+      els.detailMeta.innerHTML = [
+        getTierPill(park),
+        `<span class="pill">${park.roof}</span>`,
+        `<span class="pill">${park.surface}</span>`,
+        `<span class="pill">${park.visited ? "Visited" : "Not visited"}</span>`
+      ].join("");
+      els.detailMetrics.innerHTML = `
+        <div class="detail-metric">
+          <div class="meta-label">Opened</div>
+          <strong>${park.opened}</strong>
+        </div>
+        <div class="detail-metric">
+          <div class="meta-label">Capacity</div>
+          <strong>${formatNumber(park.capacity)}</strong>
+        </div>
+        <div class="detail-metric">
+          <div class="meta-label">Best feature</div>
+          <strong>${park.bestFeature || "To be logged"}</strong>
+        </div>
+        <div class="detail-metric">
+          <div class="meta-label">Visit date</div>
+          <strong>${park.visitDate || "Open target"}</strong>
+        </div>
+      `;
+      els.detailCopy.textContent = park.notes
+        ? park.notes
+        : `${park.stadium} is still open in the quest. Use this slot to capture seat notes, route logic, and what would make the trip worth locking.`;
+      if (els.detailScorekeeperLink) {
+        els.detailScorekeeperLink.setAttribute("href", "scorekeeper.html");
+        els.detailScorekeeperLink.textContent = "Open scorekeeper with this park";
+        els.detailScorekeeperLink.setAttribute("aria-label", `Open scorekeeper with ${park.stadium}`);
+      }
+    }
+
+    function renderMilestones() {
+      els.milestoneList.innerHTML = MILESTONES.map((item) => `
+        <article class="milestone">
+          <div class="milestone-header">
+            <div>
+              <div class="section-kicker">Target ${item.target}</div>
+              <h3>${item.title}</h3>
+            </div>
+            <span class="milestone-status" data-state="${item.status}">${item.status.replace("-", " ")}</span>
+          </div>
+          <p>${item.done}</p>
+        </article>
+      `).join("");
+    }
+
+    function bindEvents() {
+      if (els.heroScorekeeperLink) {
+        els.heroScorekeeperLink.addEventListener("click", () => {
+          const park = PARKS.find((entry) => entry.id === state.activeParkId) || PARKS[0];
+          writeScorekeeperImport(park);
+        });
+      }
+
+      if (els.detailScorekeeperLink) {
+        els.detailScorekeeperLink.addEventListener("click", () => {
+          const park = PARKS.find((entry) => entry.id === state.activeParkId) || PARKS[0];
+          writeScorekeeperImport(park);
+        });
+      }
+
+      els.searchInput.addEventListener("input", (event) => {
+        state.search = event.target.value;
+        renderParks();
+      });
+
+      els.visitFilter.addEventListener("change", (event) => {
+        state.visit = event.target.value;
+        renderParks();
+      });
+
+      els.roofFilter.addEventListener("change", (event) => {
+        state.roof = event.target.value;
+        renderParks();
+      });
+
+      els.sortSelect.addEventListener("change", (event) => {
+        state.sort = event.target.value;
+        renderParks();
+      });
+
+      els.parkList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-park-id]");
+        if (!button) return;
+        state.activeParkId = Number(button.getAttribute("data-park-id"));
+        renderParks();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const tag = event.target && event.target.tagName ? event.target.tagName : "";
+        const inField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+        if (!inField && event.key === "/") {
+          event.preventDefault();
+          els.searchInput.focus();
+          els.searchInput.select();
+          return;
+        }
+        if (event.key === "Escape") {
+          if (inField && event.target === els.searchInput && !els.searchInput.value.trim()) {
+            els.searchInput.blur();
+          } else if (inField) {
+            return;
+          }
+          if (activeToast) {
+            clearToast();
+            return;
+          }
+          if (state.activeParkId !== null) {
+            state.activeParkId = null;
+            renderParks();
+          }
+        }
+      });
+    }
+
+    function init() {
+      renderTopStats();
+      renderRoutePreview();
+      renderRouteCards();
+      renderHighlights();
+      renderMilestones();
+      renderParks();
+      bindEvents();
+    }
+
+    init();
+  </script>
+</body>
+</html>
