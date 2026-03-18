@@ -239,6 +239,146 @@ body {
   overflow: hidden;
 }
 
+.sk-story-shell {
+  padding: 18px 18px 0;
+}
+
+.sk-story-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 240px;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid rgba(200,168,100,0.16);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,252,243,0.055), rgba(255,252,243,0.02));
+}
+
+.sk-story-card[hidden] {
+  display: none;
+}
+
+.sk-story-media {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 240px;
+  background:
+    linear-gradient(180deg, rgba(15,31,56,0.18), rgba(15,31,56,0.5)),
+    radial-gradient(circle at 15% 18%, rgba(240,184,67,0.22), transparent 28%),
+    linear-gradient(135deg, rgba(15,31,56,0.88), rgba(28,26,20,0.96));
+}
+
+.sk-story-video,
+.sk-story-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sk-story-poster {
+  position: absolute;
+  inset: 0;
+}
+
+.sk-story-video {
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.sk-story-media.has-video .sk-story-video {
+  opacity: 1;
+}
+
+.sk-story-media.has-video .sk-story-poster {
+  opacity: 0;
+}
+
+.sk-story-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 18px;
+  background: linear-gradient(180deg, transparent, rgba(15,31,56,0.88));
+}
+
+.sk-story-kicker {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240,184,67,0.78);
+  margin-bottom: 8px;
+}
+
+.sk-story-title {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 700;
+  color: var(--sc-cream);
+  line-height: 1.08;
+}
+
+.sk-story-caption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: rgba(245,237,216,0.78);
+  max-width: 42ch;
+}
+
+.sk-story-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sk-story-meta {
+  display: grid;
+  gap: 10px;
+}
+
+.sk-story-meta-row {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(200,168,100,0.12);
+}
+
+.sk-story-meta-label {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200,168,100,0.58);
+  margin-bottom: 4px;
+}
+
+.sk-story-meta-value {
+  font-size: 14px;
+  line-height: 1.35;
+  color: rgba(245,237,216,0.92);
+}
+
+.sk-story-fallback {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(255,252,243,0.05);
+  border: 1px solid rgba(200,168,100,0.12);
+}
+
+.sk-story-fallback-title {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(240,184,67,0.76);
+  margin-bottom: 6px;
+}
+
+.sk-story-fallback-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(245,237,216,0.72);
+}
+
 /* ─── Notes panel ───────────────────────── */
 .sk-notes-panel {
   width: 220px;
@@ -815,6 +955,7 @@ body {
 @media (max-width: 1200px) {
   :root { --cell-size: 84px; --lineup-w: 160px; --totals-w: 54px; }
   .sk-notes-panel { width: 204px; }
+  .sk-story-card { grid-template-columns: 1fr 220px; }
 }
 
 @media (max-width: 900px) and (min-width: 641px) {
@@ -832,6 +973,9 @@ body {
   .sk-nav { padding: 0 8px; gap: 6px; }
   .sk-nav-actions { gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
   .sk-btn { font-size: 8px; padding: 4px 7px; }
+  .sk-story-shell { padding: 14px 14px 0; }
+  .sk-story-card { grid-template-columns: 1fr; gap: 14px; padding: 12px; }
+  .sk-story-media { min-height: 190px; }
 }
 
 /* ─── Pencil canvas overlay ─────────────── */
@@ -894,6 +1038,51 @@ body {
 
   <!-- Scorecard column -->
   <div class="sk-card-col">
+
+    <section class="sk-story-shell">
+      <div class="sk-story-card" id="sk-story-card">
+        <div class="sk-story-media" id="sk-story-media">
+          <img class="sk-story-poster" src="icons/icon-512.png" alt="" aria-hidden="true">
+          <video
+            class="sk-story-video"
+            id="sk-story-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="icons/icon-512.png"
+          >
+            <source src="VIDEO-scoring-video-MLB-QUEST-v2.mp4" type="video/mp4">
+          </video>
+          <div class="sk-story-overlay">
+            <div class="sk-story-kicker">At the park</div>
+            <div class="sk-story-title">Keep the score where the trip pays off.</div>
+            <div class="sk-story-caption">When the game starts, this turns into the working card.</div>
+          </div>
+        </div>
+        <div class="sk-story-side">
+          <div class="sk-story-meta">
+            <div class="sk-story-meta-row">
+              <div class="sk-story-meta-label">Park</div>
+              <div class="sk-story-meta-value" id="sk-story-park">Waiting on the park</div>
+            </div>
+            <div class="sk-story-meta-row">
+              <div class="sk-story-meta-label">Matchup</div>
+              <div class="sk-story-meta-value" id="sk-story-matchup">Away at Home</div>
+            </div>
+            <div class="sk-story-meta-row">
+              <div class="sk-story-meta-label">Mode</div>
+              <div class="sk-story-meta-value">Starts as a cover. Clears once you log the game.</div>
+            </div>
+          </div>
+          <div class="sk-story-fallback" id="sk-story-fallback">
+            <div class="sk-story-fallback-title">Video slot</div>
+            <div class="sk-story-fallback-text">The scorekeeper cover falls back to the poster if `VIDEO-scoring-video-MLB-QUEST-v2.mp4` cannot load.</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Linescore -->
     <div class="sk-linescore-wrap">
@@ -1026,7 +1215,7 @@ body {
     </div>
     <div class="sk-notes-input-area">
       <input class="sk-notes-input" id="note-input" placeholder="Add note…">
-      <button class="sk-btn" id="note-add-btn">+</button>
+      <button class="sk-btn" id="note-add-btn" type="button">+</button>
     </div>
   </div>
 
@@ -1049,8 +1238,8 @@ const utils = window.BPQ && window.BPQ.utils;
 const SESSION_KEY = 'bpq_scorekeeper_session_v1';
 const INNINGS = 9;
 const BATTERS = 9;
-const POSITIONS = ['CF','SS','1B','LF','DH','3B','RF','C','2B'];
-const NAMES = ['Stott','Schwarber','Harper','Castellanos','Realmuto','Bohm','Sosa','Marsh','Turner'];
+const DEFAULT_POSITIONS = ['CF','SS','1B','LF','DH','3B','RF','C','2B'];
+const DEFAULT_NAMES = ['Stott','Schwarber','Harper','Castellanos','Realmuto','Bohm','Sosa','Marsh','Turner'];
 
 const HIT_CODES   = new Set(['1B','2B','3B','HR']);
 const REACH_CODES = new Set(['BB','HBP','FC']);
@@ -1108,6 +1297,8 @@ let curInning = 0;
 let outsThisHalf = 0;
 let batterIndex = { away: 0, home: 0 };
 let undoStack = [];
+let lineupNames = DEFAULT_NAMES.slice();
+let lineupPositions = DEFAULT_POSITIONS.slice();
 
 const ordinals = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
 
@@ -1127,6 +1318,8 @@ function captureSession() {
     totals: clone(totals),
     ls: clone(ls),
     notes: clone(notes),
+    lineupNames: clone(lineupNames),
+    lineupPositions: clone(lineupPositions),
     currentSide,
     viewSide,
     curInning,
@@ -1140,6 +1333,10 @@ function updateMetaLabels() {
   document.getElementById('sk-venue-label').textContent = meta.venue || '';
   document.getElementById('ls-away-name').textContent = meta.awayName || 'Away';
   document.getElementById('ls-home-name').textContent = meta.homeName || 'Home';
+  const storyPark = document.getElementById('sk-story-park');
+  const storyMatchup = document.getElementById('sk-story-matchup');
+  if (storyPark) storyPark.textContent = meta.venue || 'Waiting on the park';
+  if (storyMatchup) storyMatchup.textContent = `${meta.awayName || 'Away'} at ${meta.homeName || 'Home'}`;
 }
 
 function saveSession() {
@@ -1158,6 +1355,12 @@ function restoreSession(snapshot) {
   totals = snapshot.totals || emptyTotals();
   ls = snapshot.ls || emptyLinescore();
   notes = Array.isArray(snapshot.notes) ? snapshot.notes : [];
+  lineupNames = Array.isArray(snapshot.lineupNames) && snapshot.lineupNames.length === BATTERS
+    ? snapshot.lineupNames.slice()
+    : DEFAULT_NAMES.slice();
+  lineupPositions = Array.isArray(snapshot.lineupPositions) && snapshot.lineupPositions.length === BATTERS
+    ? snapshot.lineupPositions.slice()
+    : DEFAULT_POSITIONS.slice();
   currentSide = snapshot.currentSide || 'away';
   viewSide = snapshot.viewSide || snapshot.currentSide || 'away';
   curInning = Number.isFinite(snapshot.curInning) ? snapshot.curInning : 0;
@@ -1405,7 +1608,39 @@ function renderNotes() {
 function renderAll() {
   updateLinescore();
   renderNotes();
+  updateStoryState();
   refreshActive();
+}
+
+function updateStoryState() {
+  const storyCard = document.getElementById('sk-story-card');
+  if (!storyCard) return;
+  storyCard.hidden = totalLoggedPlays() > 0;
+}
+
+function setupStoryMedia() {
+  const media = document.getElementById('sk-story-media');
+  const video = document.getElementById('sk-story-video');
+  const fallback = document.getElementById('sk-story-fallback');
+  if (!media || !video || !fallback) return;
+
+  function showFallback() {
+    media.classList.remove('has-video');
+    fallback.hidden = false;
+  }
+
+  function showVideo() {
+    media.classList.add('has-video');
+    fallback.hidden = true;
+  }
+
+  video.addEventListener('loadeddata', showVideo, { once: true });
+  video.addEventListener('error', showFallback, { once: true });
+
+  const playAttempt = video.play();
+  if (playAttempt && typeof playAttempt.catch === 'function') {
+    playAttempt.then(showVideo).catch(showFallback);
+  }
 }
 
 function logPlay(code, count) {
@@ -1636,6 +1871,7 @@ window.advanceTime = function advanceTime() {
 };
 
 buildGrid();
+setupStoryMedia();
 loadSession();
 updateViewSideUI();
 renderAll();
