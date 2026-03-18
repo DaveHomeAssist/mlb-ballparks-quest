@@ -172,6 +172,43 @@
   margin-bottom: 16px;
 }
 
+.detail-photo {
+  margin-bottom: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  position: relative;
+}
+
+.detail-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15,31,56,0.02), rgba(15,31,56,0.26));
+  pointer-events: none;
+}
+
+.detail-photo img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.detail-photo-caption {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  z-index: 1;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.9);
+}
+
 .detail-map {
   margin-bottom: 16px;
   border-radius: 14px;
@@ -417,6 +454,10 @@
       <div class="detail-body">
         <div class="detail-park-name" id="d-name">Select a park</div>
         <div class="detail-team" id="d-team">Click any row to inspect</div>
+        <div class="detail-photo">
+          <img src="assets/baseball1.jpg" alt="Baseball scorecard close up">
+          <div class="detail-photo-caption">Scouting board</div>
+        </div>
         <div class="detail-map" id="d-map"></div>
         <div class="detail-grid" id="d-grid"></div>
         <div class="detail-note" id="d-note">Park details will appear here.</div>
