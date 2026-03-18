@@ -493,6 +493,68 @@
   .hero-stats { gap: 20px; }
   .hero-stat-num { font-size: 28px; }
 }
+
+/* ─── Toast notifications ──────────────── */
+.bpq-toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--border-mid);
+  background: rgba(15,31,56,0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--cream);
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  max-width: min(480px, calc(100vw - 32px));
+  box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+.bpq-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.bpq-toast[data-tone="info"]    { border-left-color: #7EB4E0; }
+.bpq-toast[data-tone="success"] { border-left-color: #2E7D52; }
+.bpq-toast[data-tone="error"]   { border-left-color: var(--red); }
+.bpq-toast[data-tone="undo"]    { border-left-color: var(--gold); }
+.bpq-toast-msg { flex: 1; line-height: 1.35; }
+.bpq-toast-action {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 4px;
+  color: var(--cream);
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms;
+}
+.bpq-toast-action:hover { background: rgba(255,255,255,0.2); }
+.bpq-toast-close {
+  background: none;
+  border: none;
+  color: rgba(245,237,216,0.45);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.bpq-toast-close:hover { color: var(--cream); }
 </style>
 </head>
 <body>
@@ -627,6 +689,44 @@
 </footer>
 
 <script>
+/* ── Toast system (shared with scorekeeper) ── */
+var activeToast = null;
+var activeToastTimer = null;
+
+function showToast(message, tone, duration, actionLabel, onAction) {
+  if (tone === undefined) tone = 'info';
+  if (duration === undefined) duration = 3200;
+  if (actionLabel === undefined) actionLabel = '';
+  clearToast();
+  var escMsg = String(message == null ? '' : message).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  var el = document.createElement('div');
+  el.className = 'bpq-toast';
+  el.dataset.tone = tone;
+  el.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+  if (tone !== 'error') el.setAttribute('aria-live', 'polite');
+  var html = '<span class="bpq-toast-msg">' + escMsg + '</span>';
+  if (actionLabel && onAction) {
+    html += '<button class="bpq-toast-action" type="button">' + String(actionLabel).replace(/</g,'&lt;') + '</button>';
+  }
+  html += '<button class="bpq-toast-close" type="button" aria-label="Dismiss">\u00d7</button>';
+  el.innerHTML = html;
+  document.body.appendChild(el);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('visible'); }); });
+  el.querySelector('.bpq-toast-close').addEventListener('click', clearToast);
+  if (actionLabel && onAction) {
+    el.querySelector('.bpq-toast-action').addEventListener('click', function () { onAction(); clearToast(); });
+  }
+  activeToast = el;
+  if (duration > 0) {
+    activeToastTimer = setTimeout(clearToast, duration);
+  }
+}
+
+function clearToast() {
+  if (activeToastTimer) { clearTimeout(activeToastTimer); activeToastTimer = null; }
+  if (activeToast) { activeToast.remove(); activeToast = null; }
+}
+
 (function() {
   const app = window.BPQ && window.BPQ.app;
   const utils = window.BPQ && window.BPQ.utils;

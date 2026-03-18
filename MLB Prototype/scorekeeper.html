@@ -1024,6 +1024,90 @@ body {
 }
 .theme-switcher__swatch { border-color: rgba(245,237,216,0.2); }
 
+/* ─── Toast notifications ──────────────── */
+.bpq-toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--sc-line);
+  background: rgba(15,31,56,0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #F5EDD8;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  max-width: min(480px, calc(100vw - 32px));
+  box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+.bpq-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+.bpq-toast[data-tone="info"]    { border-left-color: #7EB4E0; }
+.bpq-toast[data-tone="success"] { border-left-color: #4B8750; }
+.bpq-toast[data-tone="error"]   { border-left-color: #C85050; }
+.bpq-toast[data-tone="undo"]    { border-left-color: #C8920A; }
+.bpq-toast-msg { flex: 1; line-height: 1.35; }
+.bpq-toast-action {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 4px;
+  color: #F5EDD8;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms;
+}
+.bpq-toast-action:hover { background: rgba(255,255,255,0.2); }
+.bpq-toast-close {
+  background: none;
+  border: none;
+  color: rgba(245,237,216,0.45);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.bpq-toast-close:hover { color: #F5EDD8; }
+
+/* ─── Save status chip ─────────────────── */
+.sk-save-chip {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 3px;
+  transition: opacity 180ms ease, background 180ms ease, color 180ms ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.sk-save-chip.saved {
+  opacity: 1;
+  background: rgba(75,135,80,0.18);
+  color: #8ACA8A;
+}
+.sk-save-chip.failed {
+  opacity: 1;
+  background: rgba(200,80,80,0.18);
+  color: #E08080;
+}
+
 </style>
 </head>
 <body>
@@ -1035,10 +1119,13 @@ body {
   <span class="sk-nav-title" id="sk-game-title">New Game</span>
   <span class="sk-nav-venue" id="sk-venue-label"></span>
   <div class="sk-nav-actions">
+    <span class="sk-save-chip" id="saveStatusChip"></span>
     <button class="sk-btn" id="btn-setup">Setup</button>
     <button class="sk-btn" id="btn-notes-toggle">Notes</button>
     <button class="sk-btn sk-btn-amber" id="btn-undo">⌘Z Undo</button>
     <button class="sk-btn sk-btn-green" id="btn-export">Export</button>
+    <button class="sk-btn sk-btn-green" id="btn-import">Import</button>
+    <button class="sk-btn sk-btn-red" id="btn-reset">Reset</button>
     <button class="sk-btn sk-btn-red" id="btn-finish">Finish game</button>
   </div>
 </nav>
@@ -1052,7 +1139,7 @@ body {
     <section class="sk-story-shell">
       <div class="sk-story-card" id="sk-story-card">
         <div class="sk-story-media" id="sk-story-media">
-          <img class="sk-story-poster" src="icons/icon-512.png" alt="" aria-hidden="true">
+          <img class="sk-story-poster" src="assets/video/scorekeeper-cover-poster.jpg" alt="" aria-hidden="true">
           <video
             class="sk-story-video"
             id="sk-story-video"
@@ -1061,7 +1148,7 @@ body {
             loop
             playsinline
             preload="metadata"
-            poster="icons/icon-512.png"
+            poster="assets/video/scorekeeper-cover-poster.jpg"
           >
             <source src="VIDEO-scoring-video-MLB-QUEST-v2.mp4" type="video/mp4">
           </video>
@@ -1374,8 +1461,68 @@ function updateMetaLabels() {
   if (storyMatchup) storyMatchup.innerHTML = `${teamLogoImg(awayName)}${awayName} at ${teamLogoImg(homeName)}${homeName}`;
 }
 
+/* ── Toast system ─────────────────────── */
+let activeToast = null;
+let activeToastTimer = null;
+
+function showToast(message, tone, duration, actionLabel, onAction) {
+  if (tone === undefined) tone = 'info';
+  if (duration === undefined) duration = 3200;
+  if (actionLabel === undefined) actionLabel = '';
+  clearToast();
+  const el = document.createElement('div');
+  el.className = 'bpq-toast';
+  el.dataset.tone = tone;
+  el.setAttribute(tone === 'error' ? 'role' : 'role', tone === 'error' ? 'alert' : 'status');
+  if (tone !== 'error') el.setAttribute('aria-live', 'polite');
+  let html = '<span class="bpq-toast-msg">' + escapeHtml(message) + '</span>';
+  if (actionLabel && onAction) {
+    html += '<button class="bpq-toast-action" type="button">' + escapeHtml(actionLabel) + '</button>';
+  }
+  html += '<button class="bpq-toast-close" type="button" aria-label="Dismiss">×</button>';
+  el.innerHTML = html;
+  document.body.appendChild(el);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('visible'); }); });
+  el.querySelector('.bpq-toast-close').addEventListener('click', clearToast);
+  if (actionLabel && onAction) {
+    el.querySelector('.bpq-toast-action').addEventListener('click', function () { onAction(); clearToast(); });
+  }
+  activeToast = el;
+  if (duration > 0) {
+    activeToastTimer = setTimeout(clearToast, duration);
+  }
+}
+
+function clearToast() {
+  if (activeToastTimer) { clearTimeout(activeToastTimer); activeToastTimer = null; }
+  if (activeToast) { activeToast.remove(); activeToast = null; }
+}
+
+/* ── Save chip ────────────────────────── */
+let _saveChipTimer = null;
+
+function flashSaveChip(success) {
+  const chip = document.getElementById('saveStatusChip');
+  if (!chip) return;
+  if (_saveChipTimer) { clearTimeout(_saveChipTimer); _saveChipTimer = null; }
+  chip.className = 'sk-save-chip ' + (success ? 'saved' : 'failed');
+  chip.textContent = success ? 'Saved ✓' : 'Save failed';
+  if (success) {
+    _saveChipTimer = setTimeout(function () {
+      chip.className = 'sk-save-chip';
+      chip.textContent = '';
+    }, 2000);
+  }
+}
+
 function saveSession() {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(captureSession()));
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(captureSession()));
+    flashSaveChip(true);
+  } catch (err) {
+    flashSaveChip(false);
+    showToast('Save failed — storage may be full. Export your data.', 'error', 0);
+  }
 }
 
 function pushUndo() {
@@ -1853,6 +2000,123 @@ function undoLastAction() {
   saveSession();
 }
 
+/* ── Reset with undo ─────────────────── */
+function resetGame() {
+  const priorSnapshot = captureSession();
+  meta = getInitialMeta();
+  plays = emptyPlays();
+  totals = emptyTotals();
+  ls = emptyLinescore();
+  notes = [];
+  currentSide = 'away';
+  viewSide = 'away';
+  curInning = 0;
+  outsThisHalf = 0;
+  batterIndex = { away: 0, home: 0 };
+  lineupNames = DEFAULT_NAMES.slice();
+  lineupPositions = DEFAULT_POSITIONS.slice();
+  undoStack = [];
+  renderAll();
+  saveSession();
+  showToast('Game reset.', 'undo', 5000, 'Undo', function () {
+    restoreSession(priorSnapshot);
+    saveSession();
+    showToast('Reset undone.', 'success', 2200);
+  });
+}
+
+/* ── Clear session (delete) with undo ── */
+function clearSession() {
+  const priorSnapshot = captureSession();
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) { /* ignore */ }
+  meta = getInitialMeta();
+  plays = emptyPlays();
+  totals = emptyTotals();
+  ls = emptyLinescore();
+  notes = [];
+  currentSide = 'away';
+  viewSide = 'away';
+  curInning = 0;
+  outsThisHalf = 0;
+  batterIndex = { away: 0, home: 0 };
+  lineupNames = DEFAULT_NAMES.slice();
+  lineupPositions = DEFAULT_POSITIONS.slice();
+  undoStack = [];
+  renderAll();
+  showToast('Session cleared.', 'undo', 5000, 'Undo', function () {
+    restoreSession(priorSnapshot);
+    saveSession();
+    showToast('Session restored.', 'success', 2200);
+  });
+}
+
+/* ── Import validation + flow ────────── */
+const VALID_PLAY_CODES = new Set([
+  'K', 'Ʞ', '6-3', '5-3', '4-3', '1-3', '3-1', 'F7', 'F8', 'F9', 'F3', 'F4', 'F5', 'F6',
+  'L7', 'L8', 'L9', 'L3', 'L4', 'L5', 'L6',
+  'DP4-6-3', 'DP6-4-3', 'DP5-4-3', 'DP3-6-3',
+  '1B', '2B', '3B', 'HR', 'BB', 'HBP', 'FC',
+  'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9',
+  'SAC', 'SF'
+]);
+
+function validateGameImport(obj) {
+  if (!obj || typeof obj !== 'object') return 'Import data is not a valid object.';
+  if (typeof obj.version !== 'number') return 'Missing version field.';
+  if (!obj.meta || typeof obj.meta !== 'object') return 'Missing meta object.';
+  if (!obj.meta.awayName || typeof obj.meta.awayName !== 'string') return 'Missing or invalid meta.awayName.';
+  if (!obj.meta.homeName || typeof obj.meta.homeName !== 'string') return 'Missing or invalid meta.homeName.';
+  if (!obj.plays || typeof obj.plays !== 'object') return 'Missing plays object.';
+  for (const side of ['away', 'home']) {
+    if (!Array.isArray(obj.plays[side])) return 'plays.' + side + ' must be an array.';
+    for (let b = 0; b < obj.plays[side].length; b++) {
+      if (!Array.isArray(obj.plays[side][b])) return 'plays.' + side + '[' + b + '] must be an array.';
+      for (let i = 0; i < obj.plays[side][b].length; i++) {
+        const play = obj.plays[side][b][i];
+        if (play === null) continue;
+        if (!play || typeof play !== 'object' || !play.code) return 'Invalid play at ' + side + '[' + b + '][' + i + '].';
+        if (!VALID_PLAY_CODES.has(play.code) && !isOut(play.code) && !isHit(play.code) && !isErr(play.code)) {
+          return 'Unknown play code "' + play.code + '" at ' + side + '[' + b + '][' + i + '].';
+        }
+      }
+    }
+  }
+  if (!obj.ls || typeof obj.ls !== 'object') return 'Missing linescore (ls) object.';
+  return null;
+}
+
+function importSession() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.addEventListener('change', function () {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      let parsed;
+      try { parsed = JSON.parse(reader.result); } catch (e) {
+        showToast('Invalid JSON file.', 'error', 5000);
+        return;
+      }
+      const error = validateGameImport(parsed);
+      if (error) {
+        showToast(error, 'error', 5000);
+        return;
+      }
+      pushUndo();
+      restoreSession(parsed);
+      saveSession();
+      showToast('Game imported: ' + escapeHtml(parsed.meta.title || 'Untitled'), 'success', 3200);
+    };
+    reader.onerror = function () {
+      showToast('Failed to read file.', 'error', 5000);
+    };
+    reader.readAsText(file);
+  });
+  input.click();
+}
+
 function submitNoteInput() {
   const input = document.getElementById('note-input');
   const value = input.value.trim();
@@ -1905,6 +2169,8 @@ document.getElementById('note-input').addEventListener('keydown', (event) => {
 
 document.getElementById('btn-undo').addEventListener('click', undoLastAction);
 document.getElementById('btn-export').addEventListener('click', exportSession);
+document.getElementById('btn-import').addEventListener('click', importSession);
+document.getElementById('btn-reset').addEventListener('click', resetGame);
 document.getElementById('btn-finish').addEventListener('click', finalizeGame);
 document.getElementById('btn-setup').addEventListener('click', runSetup);
 document.getElementById('view-away-btn').addEventListener('click', () => setViewSide('away'));

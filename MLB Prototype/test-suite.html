@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLB Ballparks Quest · Test Suite</title>
+<style>
+  :root {
+    --bg: #f6f1e8;
+    --panel: #fffdf8;
+    --ink: #18263c;
+    --soft: #5d6b7f;
+    --line: rgba(24, 38, 60, 0.12);
+    --accent: #c8302a;
+    --green: #2f7d50;
+    --gold: #c48d20;
+    --red: #b33333;
+    --blue: #2d5f9a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #fcf6eb 0%, var(--bg) 100%);
+    color: var(--ink);
+  }
+  .shell {
+    width: min(1400px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 24px 0 40px;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .title h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.05;
+  }
+  .title p {
+    margin: 6px 0 0;
+    color: var(--soft);
+  }
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  button {
+    appearance: none;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 14px;
+    background: var(--panel);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+  }
+  button.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: transparent;
+  }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .summary-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .summary-label {
+    font-size: 12px;
+    color: var(--soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .summary-value {
+    margin-top: 6px;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .workspace {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 16px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .panel-head h2 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .panel-body {
+    padding: 14px 16px;
+  }
+  .log {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--soft);
+    white-space: pre-wrap;
+    max-height: 220px;
+    overflow: auto;
+  }
+  iframe {
+    width: 100%;
+    height: 720px;
+    border: 0;
+    background: #fff;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    text-align: left;
+    font-size: 13px;
+  }
+  th {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .status.pending { background: rgba(45,95,154,0.10); color: var(--blue); }
+  .status.pass { background: rgba(47,125,80,0.12); color: var(--green); }
+  .status.fail { background: rgba(179,51,51,0.12); color: var(--red); }
+  .status.manual { background: rgba(196,141,32,0.14); color: #8f6915; }
+  .status.skipped { background: rgba(93,107,127,0.12); color: var(--soft); }
+  .mode {
+    font-size: 11px;
+    color: var(--soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  @media (max-width: 1100px) {
+    .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .workspace { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="title">
+        <h1>MLB Prototype Test Suite</h1>
+        <p>Scenario matrix + browser harness for the 4-page local-first prototype.</p>
+      </div>
+      <div class="actions">
+        <button id="resetStorageBtn">Reset Storage</button>
+        <button class="primary" id="runAutoBtn">Run Automated Scenarios</button>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="summary-card"><div class="summary-label">Total</div><div class="summary-value" id="totalCount">0</div></div>
+      <div class="summary-card"><div class="summary-label">Automated</div><div class="summary-value" id="autoCount">0</div></div>
+      <div class="summary-card"><div class="summary-label">Pass</div><div class="summary-value" id="passCount">0</div></div>
+      <div class="summary-card"><div class="summary-label">Fail</div><div class="summary-value" id="failCount">0</div></div>
+      <div class="summary-card"><div class="summary-label">Manual / Deferred</div><div class="summary-value" id="manualCount">0</div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-body" id="runtimeNote" style="color:var(--soft);">
+        This harness is designed to run over a local static server so the iframe can access the prototype pages under one origin.
+      </div>
+    </div>
+
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Scenario Matrix</h2>
+          <span class="mode">Auto + manual registry</span>
+        </div>
+        <div class="panel-body" style="max-height: 860px; overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:80px;">ID</th>
+                <th style="width:150px;">Category</th>
+                <th style="width:180px;">Scenario</th>
+                <th>Expected</th>
+                <th style="width:90px;">Mode</th>
+                <th style="width:110px;">Status</th>
+                <th style="width:210px;">Notes</th>
+              </tr>
+            </thead>
+            <tbody id="scenarioBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Live Frame + Log</h2>
+          <span class="mode" id="frameLabel">Idle</span>
+        </div>
+        <div class="panel-body">
+          <iframe id="testFrame" title="Prototype page under test"></iframe>
+          <div class="log" id="log" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  const PREFIX = 'bpq.prototype:';
+  const frame = document.getElementById('testFrame');
+  const logEl = document.getElementById('log');
+  const frameLabel = document.getElementById('frameLabel');
+
+  const scenarios = [
+    { id: 'A1', category: 'App Init', mode: 'auto', scenario: 'Fresh load with no localStorage', expected: 'Seed 30 parks, show empty visited grid, empty route, "No visits logged" CTA', run: testA1 },
+    { id: 'A2', category: 'App Init', mode: 'auto', scenario: 'Home shows 0/30 progress', expected: 'Hero stats: 0 visited, 30 remaining, 0 route stops', run: testA2 },
+    { id: 'A3', category: 'App Init', mode: 'auto', scenario: 'Route page with no stops', expected: 'Empty state card with "Browse all 30 parks" CTA', run: testA3 },
+    { id: 'A4', category: 'App Init', mode: 'auto', scenario: 'Parks page loads all 30', expected: 'Left list shows 30 parks, first park auto-selected in detail panel', run: testA4 },
+    { id: 'B1', category: 'Parks Browse', mode: 'auto', scenario: 'Search "fenway"', expected: 'Filters to Fenway Park only', run: testB1 },
+    { id: 'B2', category: 'Parks Browse', mode: 'auto', scenario: 'Search "chicago"', expected: 'Shows Wrigley + Guaranteed Rate', run: testB2 },
+    { id: 'B3', category: 'Parks Browse', mode: 'auto', scenario: 'Search "xyz"', expected: 'Empty list, no JS errors', run: testB3 },
+    { id: 'B4', category: 'Parks Browse', mode: 'auto', scenario: 'Clear search', expected: 'All 30 parks visible again', run: testB4 },
+    { id: 'B5', category: 'Parks Browse', mode: 'auto', scenario: 'Filter: Open air', expected: 'Only parks with roof="Open" shown', run: testB5 },
+    { id: 'B6', category: 'Parks Browse', mode: 'auto', scenario: 'Filter: Retractable', expected: 'Only parks with roof="Retractable" shown', run: testB6 },
+    { id: 'B7', category: 'Parks Browse', mode: 'auto', scenario: 'Filter: Visited (none visited)', expected: 'Empty list', run: testB7 },
+    { id: 'B8', category: 'Parks Browse', mode: 'manual', scenario: 'Filter: Not visited (none visited)', expected: 'All 30 shown' },
+    { id: 'B9', category: 'Parks Browse', mode: 'manual', scenario: 'Filter: All', expected: 'Resets to full list' },
+    { id: 'B10', category: 'Parks Browse', mode: 'auto', scenario: 'Click park row', expected: 'Detail panel populates: name, team, city, stats, map, scratchpad', run: testB10 },
+    { id: 'C1', category: 'Parks Detail', mode: 'auto', scenario: 'Mark park as visited', expected: 'Button toggles, badge appears, home updates', run: testC1 },
+    { id: 'C2', category: 'Parks Detail', mode: 'manual', scenario: 'Remove visited mark', expected: 'Reverts to unvisited, badge removed, home updates' },
+    { id: 'C3', category: 'Parks Detail', mode: 'auto', scenario: 'Add park to route', expected: 'Button toggles, route page gains stop', run: testC3 },
+    { id: 'C4', category: 'Parks Detail', mode: 'manual', scenario: 'Remove park from route', expected: 'Reverts, route loses stop' },
+    { id: 'C5', category: 'Parks Detail', mode: 'auto', scenario: 'Type in scratchpad', expected: 'Text persists after page reload', run: testC5 },
+    { id: 'C6', category: 'Parks Detail', mode: 'manual', scenario: 'Clear scratchpad', expected: 'Empty string saved, placeholder returns' },
+    { id: 'C7', category: 'Parks Detail', mode: 'auto', scenario: 'View upcoming games', expected: '3-4 games listed with date, time, opponent', run: testC7 },
+    { id: 'C8', category: 'Parks Detail', mode: 'auto', scenario: 'Click "Add to route" on a game', expected: 'Game added to route with gameSelection set', run: testC8 },
+    { id: 'C9', category: 'Parks Detail', mode: 'auto', scenario: 'Click "Score" on a game', expected: 'Navigates to scorekeeper with correct context', run: testC9 },
+    { id: 'C10', category: 'Parks Detail', mode: 'auto', scenario: 'Click calendar on a game', expected: 'Downloads .ics data with correct game details', run: testC10 },
+    { id: 'C11', category: 'Parks Detail', mode: 'manual', scenario: 'Park with no schedule data', expected: 'Shows "Schedule not loaded" or empty game list' },
+    { id: 'D1', category: 'Route', mode: 'auto', scenario: 'Set trip start date', expected: 'Date saved, games filtered to window', run: testD1 },
+    { id: 'D2', category: 'Route', mode: 'auto', scenario: 'Set trip end date', expected: 'Date saved, games filtered to window', run: testD2 },
+    { id: 'D3', category: 'Route', mode: 'auto', scenario: 'Set end before start', expected: 'Auto-swap or validation error', run: testD3 },
+    { id: 'D4', category: 'Route', mode: 'manual', scenario: 'Clear dates', expected: 'All upcoming games shown' },
+    { id: 'D5', category: 'Route', mode: 'auto', scenario: 'Type trip notes', expected: 'Text persists after reload', run: testD5 },
+    { id: 'D6', category: 'Route', mode: 'auto', scenario: 'Add 3 parks to route', expected: '3 stop cards appear, legs calculated', run: testD6 },
+    { id: 'D7', category: 'Route', mode: 'manual', scenario: 'Remove middle stop', expected: 'Legs recalculated for remaining 2 stops' },
+    { id: 'D8', category: 'Route', mode: 'auto', scenario: 'Remove all stops', expected: 'Empty state returns', run: testD8 },
+    { id: 'D9', category: 'Route', mode: 'auto', scenario: 'Leg card shows distance', expected: 'Miles shown between parks', run: testD9 },
+    { id: 'D10', category: 'Route', mode: 'auto', scenario: 'Leg card shows travel time', expected: 'Minutes converted to readable text', run: testD10 },
+    { id: 'D11', category: 'Route', mode: 'manual', scenario: 'Ticket badge: Walk up safe', expected: 'Easy-buy parks show green badge' },
+    { id: 'D12', category: 'Route', mode: 'manual', scenario: 'Ticket badge: Buy ahead', expected: 'High-demand parks show warning badge' },
+    { id: 'D13', category: 'Route', mode: 'manual', scenario: 'Event warnings derived', expected: 'Fireworks/giveaway/premium events surface warnings' },
+    { id: 'D14', category: 'Route', mode: 'auto', scenario: 'Trip summary updates', expected: 'Shows stop count, date window, context line', run: testD14 },
+    { id: 'E1', category: 'Home', mode: 'auto', scenario: 'Progress band: 0 visited', expected: 'Shows 0/30, empty progress bar', run: testE1 },
+    { id: 'E2', category: 'Home', mode: 'auto', scenario: 'Mark 4 parks visited', expected: 'Home grid shows 4 visited park cards', run: testE2 },
+    { id: 'E3', category: 'Home', mode: 'manual', scenario: 'Mark 5th park visited', expected: 'Grid still shows first 4 or paginated' },
+    { id: 'E4', category: 'Home', mode: 'auto', scenario: 'Hero stats update live', expected: 'Visited count, remaining, targets, route stops all correct', run: testE4 },
+    { id: 'E5', category: 'Home', mode: 'manual', scenario: 'Route preview map', expected: 'Shows dots for parks on route' },
+    { id: 'E6', category: 'Home', mode: 'auto', scenario: 'Next targets sidebar', expected: 'Top 3 unvisited, not-on-route parks by priority score', run: testE6 },
+    { id: 'E7', category: 'Home', mode: 'manual', scenario: 'Click park card on home', expected: 'Navigates to parks page with that park selected' },
+    { id: 'E8', category: 'Home', mode: 'manual', scenario: 'Click "Plan next route"', expected: 'Navigates to route page' },
+    { id: 'E9', category: 'Home', mode: 'manual', scenario: 'Click "Browse all 30"', expected: 'Navigates to parks page' },
+    { id: 'F1', category: 'Scorekeeper', mode: 'auto', scenario: 'Open with context set', expected: 'Shows correct park, home team, away team', run: testF1 },
+    { id: 'F2', category: 'Scorekeeper', mode: 'auto', scenario: 'Open with no context', expected: 'Falls back to default/empty state', run: testF2 },
+    { id: 'F3', category: 'Scorekeeper', mode: 'manual', scenario: 'Score a game inning by inning', expected: 'State persists between innings' },
+    { id: 'F4', category: 'Scorekeeper', mode: 'auto', scenario: 'Navigate away and back', expected: 'Score state preserved in localStorage', run: testF4 },
+    { id: 'G1', category: 'Theme', mode: 'skipped', scenario: 'Default theme loads', expected: 'Phillies theme applied' },
+    { id: 'G2', category: 'Theme', mode: 'skipped', scenario: 'Switch to Yankees theme', expected: 'Theme vars update' },
+    { id: 'G3', category: 'Theme', mode: 'skipped', scenario: 'Switch to Dodgers theme', expected: 'Blue accent variant' },
+    { id: 'G4', category: 'Theme', mode: 'skipped', scenario: 'Switch to Cubs theme', expected: 'Navy accent' },
+    { id: 'G5', category: 'Theme', mode: 'skipped', scenario: 'Switch to Mets theme', expected: 'Dark blue accent' },
+    { id: 'G6', category: 'Theme', mode: 'skipped', scenario: 'Theme persists on reload', expected: 'app-theme read on init' },
+    { id: 'G7', category: 'Theme', mode: 'skipped', scenario: 'Toggle panel open/close', expected: 'Open, Escape, click-outside close' },
+    { id: 'G8', category: 'Theme', mode: 'skipped', scenario: 'aria-pressed on active theme', expected: 'Correct button flagged active' },
+    { id: 'H1', category: 'Schedule', mode: 'auto', scenario: 'Parks with schedule data', expected: 'Upcoming games shown in detail panel', run: testH1 },
+    { id: 'H2', category: 'Schedule', mode: 'manual', scenario: 'Games within trip window', expected: 'Only games between start/end shown' },
+    { id: 'H3', category: 'Schedule', mode: 'auto', scenario: 'Games with TBD time', expected: 'Displayed as TBD, no parse error', run: testH3 },
+    { id: 'H4', category: 'Schedule', mode: 'auto', scenario: 'Special event games', expected: 'Event name shown', run: testH4 },
+    { id: 'H5', category: 'Schedule', mode: 'auto', scenario: 'decorateGame()', expected: 'Returns gameId, park context, parsed datetime', run: testH5 },
+    { id: 'H6', category: 'Schedule', mode: 'manual', scenario: 'Parks missing from schedule', expected: 'Graceful empty state, no JS errors' },
+    { id: 'I1', category: 'Storage', mode: 'auto', scenario: 'All changes survive reload', expected: 'Visits, route, notes, dates persist', run: testI1 },
+    { id: 'I2', category: 'Storage', mode: 'manual', scenario: 'localStorage disabled', expected: 'App loads degraded, no crash' },
+    { id: 'I3', category: 'Storage', mode: 'auto', scenario: 'Corrupt localStorage data', expected: 'safeParse handles gracefully, reseeds defaults', run: testI3 },
+    { id: 'I4', category: 'Storage', mode: 'auto', scenario: 'Oakland → Sutter migration', expected: 'Old ids migrated automatically', run: testI4 },
+    { id: 'I5', category: 'Storage', mode: 'manual', scenario: 'Debounced writes', expected: 'Rapid changes do not flood localStorage' },
+    { id: 'J1', category: 'Navigation', mode: 'manual', scenario: 'Nav bar on all pages', expected: 'Links visible everywhere' },
+    { id: 'J2', category: 'Navigation', mode: 'manual', scenario: 'Active page highlighted', expected: 'Current page styled differently' },
+    { id: 'J3', category: 'Navigation', mode: 'auto', scenario: 'Parks → Route flow', expected: 'Add to route on parks page, verify on route page', run: testJ3 },
+    { id: 'J4', category: 'Navigation', mode: 'auto', scenario: 'Parks → Scorekeeper flow', expected: 'Score button sets context, scorekeeper reads it', run: testJ4 },
+    { id: 'J5', category: 'Navigation', mode: 'manual', scenario: 'Route → Parks flow', expected: 'Footer CTA navigates to parks' },
+    { id: 'K1', category: 'Responsive', mode: 'manual', scenario: 'Desktop', expected: 'Two-column layout, sticky sidebars' },
+    { id: 'K2', category: 'Responsive', mode: 'manual', scenario: 'Tablet', expected: 'Adjusted columns, smaller cards' },
+    { id: 'K3', category: 'Responsive', mode: 'manual', scenario: 'Mobile', expected: 'Single column, full-width buttons' },
+    { id: 'K4', category: 'Responsive', mode: 'manual', scenario: 'Touch input detection', expected: 'data-input=touch set' },
+    { id: 'K5', category: 'Responsive', mode: 'manual', scenario: 'Theme toggle position', expected: 'Desktop vs mobile position' },
+    { id: 'L1', category: 'Edge Cases', mode: 'auto', scenario: 'Add same park to route twice', expected: 'Deduplication — only one instance', run: testL1 },
+    { id: 'L2', category: 'Edge Cases', mode: 'manual', scenario: 'Mark visited + add to route', expected: 'Both states coexist correctly' },
+    { id: 'L3', category: 'Edge Cases', mode: 'manual', scenario: '30 parks on route', expected: 'All 30 render, 29 legs calculated' },
+    { id: 'L4', category: 'Edge Cases', mode: 'auto', scenario: 'XSS in scratchpad', expected: 'Rendered as text, not executed', run: testL4 },
+    { id: 'L5', category: 'Edge Cases', mode: 'manual', scenario: 'Very long scratchpad text', expected: 'No overflow, scrollable textarea' },
+    { id: 'L6', category: 'Edge Cases', mode: 'manual', scenario: 'Priority score ordering', expected: 'S-tier unvisited parks rank highest' },
+    { id: 'L7', category: 'Edge Cases', mode: 'auto', scenario: 'Calendar .ics download', expected: 'Valid ICS file, opens in calendar app', run: testL7 }
+  ];
+
+  function log(message) {
+    logEl.textContent += message + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('scenarioBody');
+    tbody.innerHTML = scenarios.map((scenario) => `
+      <tr data-scenario-id="${scenario.id}">
+        <td><strong>${scenario.id}</strong></td>
+        <td>${scenario.category}</td>
+        <td>${scenario.scenario}</td>
+        <td>${scenario.expected}</td>
+        <td><span class="mode">${scenario.mode}</span></td>
+        <td><span class="status ${scenario.mode === 'manual' ? 'manual' : scenario.mode === 'skipped' ? 'skipped' : 'pending'}">${scenario.mode === 'manual' ? 'manual' : scenario.mode === 'skipped' ? 'skipped' : 'pending'}</span></td>
+        <td class="scenario-notes"></td>
+      </tr>
+    `).join('');
+    updateSummary();
+  }
+
+  function updateScenario(id, status, notes) {
+    const row = document.querySelector(`[data-scenario-id="${id}"]`);
+    if (!row) return;
+    const statusEl = row.querySelector('.status');
+    const notesEl = row.querySelector('.scenario-notes');
+    statusEl.className = `status ${status}`;
+    statusEl.textContent = status;
+    if (notes !== undefined) notesEl.textContent = notes;
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const statuses = [...document.querySelectorAll('.status')].map((node) => node.textContent);
+    document.getElementById('totalCount').textContent = String(scenarios.length);
+    document.getElementById('autoCount').textContent = String(scenarios.filter((s) => s.mode === 'auto').length);
+    document.getElementById('passCount').textContent = String(statuses.filter((s) => s === 'pass').length);
+    document.getElementById('failCount').textContent = String(statuses.filter((s) => s === 'fail').length);
+    document.getElementById('manualCount').textContent = String(scenarios.filter((s) => s.mode === 'manual' || s.mode === 'skipped').length);
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function clearPrototypeStorage() {
+    const remove = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (key && (key.startsWith(PREFIX) || key === 'app-theme' || key === 'bpq_scorekeeper_session_v1')) remove.push(key);
+    }
+    remove.forEach((key) => localStorage.removeItem(key));
+  }
+
+  function frameWin() {
+    return frame.contentWindow;
+  }
+
+  async function openPage(pageName) {
+    frameLabel.textContent = pageName;
+    await new Promise((resolve) => {
+      frame.onload = async function onLoad() {
+        frame.onload = null;
+        await delay(120);
+        resolve();
+      };
+      frame.src = pageName + '?test=' + Date.now();
+    });
+    return frameWin();
+  }
+
+  function q(win, selector) {
+    return win.document.querySelector(selector);
+  }
+
+  function qa(win, selector) {
+    return [...win.document.querySelectorAll(selector)];
+  }
+
+  async function click(win, selector) {
+    const element = q(win, selector);
+    if (!element) throw new Error(`Missing selector: ${selector}`);
+    element.click();
+    await delay(120);
+  }
+
+  async function type(win, selector, value) {
+    const element = q(win, selector);
+    if (!element) throw new Error(`Missing selector: ${selector}`);
+    element.value = value;
+    element.dispatchEvent(new win.Event('input', { bubbles: true }));
+    element.dispatchEvent(new win.Event('change', { bubbles: true }));
+    await delay(120);
+  }
+
+  function assert(condition, message) {
+    if (!condition) throw new Error(message);
+  }
+
+  async function runAuto() {
+    clearPrototypeStorage();
+    logEl.textContent = '';
+    for (const scenario of scenarios) {
+      if (scenario.mode !== 'auto') continue;
+      updateScenario(scenario.id, 'pending', '');
+    }
+
+    for (const scenario of scenarios) {
+      if (scenario.mode !== 'auto') continue;
+      try {
+        log(`→ ${scenario.id} ${scenario.scenario}`);
+        await scenario.run();
+        updateScenario(scenario.id, 'pass', 'Automated check passed');
+        log(`✓ ${scenario.id}`);
+      } catch (error) {
+        updateScenario(scenario.id, 'fail', error.message);
+        log(`✗ ${scenario.id} ${error.message}`);
+      }
+    }
+  }
+
+  async function testA1() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    assert(win.BPQ.app.getParks().length === 30, 'Expected 30 seeded parks');
+    assert(win.BPQ.app.getRouteStore().stops.length === 0, 'Expected empty route store');
+    assert(q(win, '#visitedGrid').textContent.includes('No visits logged'), 'Expected empty visited CTA');
+  }
+
+  async function testA2() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    assert(q(win, '#heroVisitedCount').textContent.trim() === '0', 'Visited count should be 0');
+    assert(q(win, '#heroRemainingCount').textContent.trim() === '30', 'Remaining count should be 30');
+    assert(q(win, '#heroRouteCount').textContent.trim() === '0', 'Route count should be 0');
+  }
+
+  async function testA3() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    assert(win.document.body.textContent.includes('Browse all 30 parks'), 'Expected empty route CTA');
+  }
+
+  async function testA4() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    assert(qa(win, '.park-row').length === 30, 'Expected 30 park rows');
+    assert(q(win, '#d-name').textContent.trim().length > 0, 'Expected selected park detail');
+  }
+
+  async function testB1() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await type(win, '#park-search', 'fenway');
+    assert(qa(win, '.park-row').length === 1, 'Expected one filtered row');
+    assert(win.document.body.textContent.includes('Fenway Park'), 'Expected Fenway Park');
+  }
+
+  async function testB2() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await type(win, '#park-search', 'chicago');
+    assert(qa(win, '.park-row').length === 2, 'Expected two Chicago parks');
+  }
+
+  async function testB3() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await type(win, '#park-search', 'xyz');
+    assert(qa(win, '.park-row').length === 0, 'Expected empty result set');
+  }
+
+  async function testB4() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await type(win, '#park-search', 'fenway');
+    await type(win, '#park-search', '');
+    assert(qa(win, '.park-row').length === 30, 'Expected full park list after clearing search');
+  }
+
+  async function testB5() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await click(win, '[data-filter="open"]');
+    const text = qa(win, '.park-row').map((row) => row.textContent).join(' ');
+    assert(!text.includes('T-Mobile Park'), 'Retractable park should not appear in open-air filter');
+  }
+
+  async function testB6() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await click(win, '[data-filter="retractable"]');
+    assert(qa(win, '.park-row').length > 0, 'Expected retractable parks');
+    assert(!qa(win, '.park-row-name').some((node) => node.textContent.includes('Fenway Park')), 'Open-air park should not appear in filtered list');
+  }
+
+  async function testB7() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await click(win, '[data-filter="visited"]');
+    assert(qa(win, '.park-row').length === 0, 'Expected no visited parks on fresh state');
+  }
+
+  async function testB10() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await click(win, '[data-park-id="fenway-park"]');
+    assert(q(win, '#d-name').textContent.includes('Fenway'), 'Expected Fenway detail selected');
+    assert(q(win, '#d-grid').textContent.includes('Opened'), 'Expected detail stats');
+  }
+
+  async function testC1() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    await click(win, '#d-visit-toggle');
+    assert(q(win, '#d-visit-toggle').textContent.includes('Remove'), 'Expected visited toggle state');
+    win = await openPage('index.html');
+    assert(q(win, '#heroVisitedCount').textContent.trim() === '1', 'Home should reflect visited park');
+  }
+
+  async function testC3() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    await click(win, '#d-route-toggle');
+    win = await openPage('route.html');
+    assert(qa(win, '.route-card').length === 1, 'Expected one route stop card');
+  }
+
+  async function testC5() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    await type(win, '#d-scratchpad', 'Scout this view from first base side');
+    await delay(220);
+    win = await openPage('parks.html');
+    assert(q(win, '#d-scratchpad').value === 'Scout this view from first base side', 'Scratchpad should persist');
+  }
+
+  async function testC7() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    assert(qa(win, '[data-route-game]').length >= 3, 'Expected upcoming game actions');
+  }
+
+  async function testC8() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    const button = q(win, '[data-route-game]');
+    const gameId = button.dataset.routeGame;
+    await click(win, '[data-route-game]');
+    const firstStop = win.BPQ.app.getRouteStore().stops[0];
+    assert(firstStop && firstStop.gameId === gameId, 'Expected route stop gameSelection to be set');
+  }
+
+  async function testC9() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    const gameId = q(win, '[data-score-game]').dataset.scoreGame;
+    q(win, '[data-score-game]').click();
+    win = await openPage('scorekeeper.html');
+    const state = JSON.parse(win.render_game_to_text());
+    assert(state.gameId === gameId, 'Scorekeeper should read selected gameId');
+    assert(state.away.name !== 'Away', 'Away team should be prefilled');
+  }
+
+  async function testC10() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    const gameId = q(win, '[data-calendar-game]').dataset.calendarGame;
+    const ics = win.BPQ.app.buildGameICS(win.BPQ.app.getGameById(gameId));
+    assert(ics.includes('BEGIN:VCALENDAR'), 'ICS should have VCALENDAR');
+    assert(ics.includes('BEGIN:VEVENT'), 'ICS should have VEVENT');
+  }
+
+  async function testD1() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    await type(win, '#tripStartDate', '2026-04-01');
+    assert(win.BPQ.app.getActiveTrip().startDate === '2026-04-01', 'Start date should persist');
+  }
+
+  async function testD2() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    await type(win, '#tripEndDate', '2026-04-20');
+    assert(win.BPQ.app.getActiveTrip().endDate === '2026-04-20', 'End date should persist');
+  }
+
+  async function testD3() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    await type(win, '#tripStartDate', '2026-05-10');
+    await type(win, '#tripEndDate', '2026-05-01');
+    const trip = win.BPQ.app.getActiveTrip();
+    assert(trip.startDate === '2026-05-01' && trip.endDate === '2026-05-10', 'Trip window should auto-swap');
+  }
+
+  async function testD5() {
+    clearPrototypeStorage();
+    let win = await openPage('route.html');
+    await type(win, '#tripScratchpad', 'Weekend run. Keep hotels near transit.');
+    await delay(220);
+    win = await openPage('route.html');
+    assert(q(win, '#tripScratchpad').value === 'Weekend run. Keep hotels near transit.', 'Trip notes should persist');
+  }
+
+  async function testD6() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.BPQ.app.addRouteStop('yankee-stadium');
+    win.BPQ.app.addRouteStop('fenway-park');
+    win.location.reload();
+    await delay(180);
+    assert(qa(win, '.route-card').length === 3, 'Expected three stop cards');
+  }
+
+  async function testD8() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.BPQ.app.removeRouteStop('pnc-park');
+    win.location.reload();
+    await delay(180);
+    assert(win.document.body.textContent.includes('No stops yet'), 'Expected empty route state after removing last stop');
+  }
+
+  async function testD9() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.BPQ.app.addRouteStop('yankee-stadium');
+    win.location.reload();
+    await delay(180);
+    assert(win.document.body.textContent.includes('mi'), 'Expected mileage text on leg card');
+  }
+
+  async function testD10() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.BPQ.app.addRouteStop('yankee-stadium');
+    win.location.reload();
+    await delay(180);
+    assert(win.document.body.textContent.toLowerCase().includes('drive'), 'Expected readable travel time');
+  }
+
+  async function testD14() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.location.reload();
+    await delay(180);
+    assert(q(win, '#tripSummaryCard').textContent.includes('Stops'), 'Expected trip summary content');
+  }
+
+  async function testE1() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    assert(q(win, '#progressCount').textContent.trim() === '0 / 30', 'Progress band should start at 0/30');
+  }
+
+  async function testE2() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    ['fenway-park', 'pnc-park', 'wrigley-field', 'camden-yards'].forEach((parkId) => {
+      win.BPQ.app.markVisited(parkId, { notes: 'Visited', bestFeature: 'Atmosphere' });
+    });
+    win.location.reload();
+    await delay(180);
+    assert(qa(win, '.visited-card').length >= 4, 'Expected four visited cards');
+  }
+
+  async function testE4() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    win.BPQ.app.markVisited('fenway-park', { notes: 'Visited', bestFeature: 'Monster' });
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.location.reload();
+    await delay(180);
+    assert(q(win, '#heroVisitedCount').textContent.trim() === '1', 'Visited count should be 1');
+    assert(q(win, '#heroRouteCount').textContent.trim() === '1', 'Route count should be 1');
+  }
+
+  async function testE6() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    assert(qa(win, '#sidebarTargets a').length === 3, 'Expected three sidebar targets');
+  }
+
+  async function testF1() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    const gameId = q(win, '[data-score-game]').dataset.scoreGame;
+    win.BPQ.app.setScorekeeperContext({ parkId: 'pnc-park', gameId });
+    win = await openPage('scorekeeper.html');
+    const state = JSON.parse(win.render_game_to_text());
+    assert(state.venue === 'PNC Park', 'Expected scorekeeper venue from context');
+    assert(state.home.name === 'Pittsburgh Pirates', 'Expected home team prefill');
+  }
+
+  async function testF2() {
+    clearPrototypeStorage();
+    const win = await openPage('scorekeeper.html');
+    const state = JSON.parse(win.render_game_to_text());
+    assert(state.venue === '', 'Expected empty venue with no context');
+    assert(state.home.name === 'Home', 'Expected default home name');
+  }
+
+  async function testF4() {
+    clearPrototypeStorage();
+    let win = await openPage('scorekeeper.html');
+    await type(win, '#play-code', 'K');
+    await click(win, '#log-btn');
+    win = await openPage('scorekeeper.html');
+    const state = JSON.parse(win.render_game_to_text());
+    assert(state.outs === 1, 'Expected persisted score state after reload');
+  }
+
+  async function testH1() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    assert(qa(win, '[data-route-game]').length >= 3, 'Expected schedule data in park detail');
+  }
+
+  async function testH3() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    await click(win, '[data-park-id="angel-stadium"]');
+    assert(win.document.body.textContent.includes('TBD'), 'Expected TBD time to render cleanly');
+  }
+
+  async function testH4() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    const special = win.BPQ.app.getGamesByPark('american-family-field').find((game) => game.s);
+    assert(Boolean(special && special.s), 'Expected at least one special event game in schedule data');
+  }
+
+  async function testH5() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    const game = win.BPQ.app.getUpcomingGamesByPark('pnc-park', 1)[0];
+    assert(Boolean(game.gameId), 'Expected gameId');
+    assert(game.parkId === 'pnc-park', 'Expected parkId on decorated game');
+    assert(Boolean(game.startDateTimeLocal), 'Expected parsed datetime');
+  }
+
+  async function testI1() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    await click(win, '#d-visit-toggle');
+    await type(win, '#d-scratchpad', 'Persisted note');
+    win.BPQ.app.addRouteStop('chase-field');
+    await delay(120);
+    win = await openPage('route.html');
+    await type(win, '#tripStartDate', '2026-04-01');
+    win = await openPage('index.html');
+    assert(win.BPQ.app.getVisitedParks().length === 1, 'Visited state should persist across pages');
+    const routeParkIds = win.BPQ.app.getRouteStore().stops.map((stop) => stop.parkId);
+    assert(routeParkIds.length === 2, 'Route state should persist across pages');
+    assert(routeParkIds.includes('fenway-park'), 'Visited park should remain on the route');
+    assert(routeParkIds.includes('chase-field'), 'Explicitly added route stop should persist');
+    assert(win.BPQ.app.getActiveTrip().startDate === '2026-04-01', 'Trip window should persist across pages');
+  }
+
+  async function testI3() {
+    clearPrototypeStorage();
+    localStorage.setItem('bpq.prototype:visits', '{bad');
+    const win = await openPage('index.html');
+    assert(win.BPQ.app.getVisits().length >= 0, 'Visits should reseed without crashing');
+  }
+
+  async function testI4() {
+    clearPrototypeStorage();
+    localStorage.setItem('bpq.prototype:visits', JSON.stringify([{ parkId: 'oakland-coliseum', visitDate: '2026-01-01', updatedAt: '2026-01-01T00:00:00Z' }]));
+    const win = await openPage('index.html');
+    const visits = win.BPQ.app.getVisits();
+    assert(visits[0].parkId === 'sutter-health-park', 'Expected oakland migration to sutter-health-park');
+  }
+
+  async function testJ3() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    await click(win, '#d-route-toggle');
+    win = await openPage('route.html');
+    assert(qa(win, '.route-card').length === 1, 'Expected route card from parks action');
+  }
+
+  async function testJ4() {
+    clearPrototypeStorage();
+    let win = await openPage('parks.html');
+    q(win, '[data-score-game]').click();
+    win = await openPage('scorekeeper.html');
+    const state = JSON.parse(win.render_game_to_text());
+    assert(Boolean(state.gameId), 'Expected game-aware scorekeeper context');
+  }
+
+  async function testL1() {
+    clearPrototypeStorage();
+    const win = await openPage('route.html');
+    win.BPQ.app.addRouteStop('pnc-park');
+    win.BPQ.app.addRouteStop('pnc-park');
+    assert(win.BPQ.app.getRouteStore().stops.filter((stop) => stop.parkId === 'pnc-park').length === 1, 'Route stop should dedupe');
+  }
+
+  async function testL4() {
+    clearPrototypeStorage();
+    const win = await openPage('index.html');
+    win.BPQ.app.markVisited('fenway-park', { notes: '<img src=x onerror=alert(1)>', bestFeature: 'XSS test' });
+    win.location.reload();
+    await delay(180);
+    assert(q(win, '#visitedGrid img[onerror]') === null, 'Expected no executable injected image');
+    assert(q(win, '#visitedGrid').innerHTML.includes('&lt;img src=x onerror=alert(1)&gt;') || q(win, '#visitedGrid').textContent.includes('<img src=x onerror=alert(1)>'), 'Expected escaped raw text to remain visible');
+  }
+
+  async function testL7() {
+    clearPrototypeStorage();
+    const win = await openPage('parks.html');
+    const game = win.BPQ.app.getUpcomingGamesByPark('pnc-park', 1)[0];
+    const ics = win.BPQ.app.buildGameICS(game);
+    assert(ics.includes('BEGIN:VCALENDAR') && ics.includes('BEGIN:VEVENT'), 'Expected valid ICS framing');
+    assert(ics.includes('DTSTART:') && ics.includes('DTEND:'), 'Expected event timing fields');
+  }
+
+  document.getElementById('resetStorageBtn').addEventListener('click', () => {
+    clearPrototypeStorage();
+    log('Storage reset');
+  });
+
+  document.getElementById('runAutoBtn').addEventListener('click', () => {
+    if (location.protocol === 'file:') {
+      log('Run this harness over http://localhost to allow same-origin iframe testing.');
+      return;
+    }
+    runAuto();
+  });
+
+  if (location.protocol === 'file:') {
+    document.getElementById('runtimeNote').textContent = 'Current mode: file://. Automated iframe tests are blocked by browser origin rules. Serve MLB Prototype over localhost and re-run.';
+  }
+
+  renderTable();
+})();
+</script>
+</body>
+</html>

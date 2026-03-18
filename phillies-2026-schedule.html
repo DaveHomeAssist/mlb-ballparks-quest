@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚾ Phillies 2026 — Plan D Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E81828;
+    --red-dark: #9E0B14;
+    --red-deep: #5C0008;
+    --cream: #F5F0E8;
+    --cream-dark: #E8E0CE;
+    --navy: #002D72;
+    --navy-mid: #0A3A8A;
+    --navy-light: #1A4FA0;
+    --gold: #C4A44A;
+    --gold-light: #E8C96A;
+    --white: #FFFFFF;
+    --gray-light: #F0EDE8;
+    --gray-mid: #C8C0B0;
+    --struck: #A0937A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* STADIUM BG PATTERN */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 38px,
+        rgba(255,255,255,0.015) 38px,
+        rgba(255,255,255,0.015) 40px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 38px,
+        rgba(255,255,255,0.015) 38px,
+        rgba(255,255,255,0.015) 40px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 48px 0 32px;
+    position: relative;
+  }
+
+  .phillies-p {
+    font-size: 100px;
+    line-height: 1;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    color: var(--red);
+    text-shadow:
+      -3px -3px 0 var(--white),
+      3px -3px 0 var(--white),
+      -3px 3px 0 var(--white),
+      3px 3px 0 var(--white),
+      0 0 40px rgba(232,24,40,0.4);
+    letter-spacing: -4px;
+    display: block;
+    margin-bottom: -8px;
+  }
+
+  header h1 {
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 48px);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--white);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  header .subtitle {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 17px;
+    color: var(--gold-light);
+    margin-top: 8px;
+    letter-spacing: 2px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .divider-icon {
+    font-size: 20px;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(196,164,74,0.3);
+    border-radius: 4px;
+    padding: 14px 24px;
+    margin-bottom: 32px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold-light);
+    display: block;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* FILTER TABS */
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    justify-content: center;
+  }
+  .filter-btn {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: var(--cream);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--white);
+  }
+
+  /* GAME CARDS */
+  .games-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .game-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 4px solid var(--navy-light);
+    border-radius: 4px;
+    transition: all 0.25s;
+    overflow: hidden;
+    position: relative;
+  }
+  .game-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-left-color: var(--red);
+    transform: translateX(2px);
+  }
+  .game-card.attended {
+    border-left-color: var(--gold) !important;
+    opacity: 0.7;
+  }
+  .game-card.attended .game-summary {
+    text-decoration: line-through;
+    text-decoration-color: var(--gold);
+    text-decoration-thickness: 2px;
+    color: var(--struck);
+  }
+  .game-card.attended .check-badge {
+    display: flex;
+  }
+  .game-card.highlighted {
+    border-left-color: var(--red) !important;
+    background: rgba(232,24,40,0.08) !important;
+  }
+
+  .game-summary {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .game-num {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    line-height: 1;
+  }
+
+  .game-main {}
+  .game-matchup {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.5px;
+  }
+  .game-details {
+    font-size: 13px;
+    color: var(--gray-mid);
+    margin-top: 2px;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  .game-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .badge {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .badge-rivalry { background: var(--red-dark); color: var(--cream); }
+  .badge-day { background: rgba(196,164,74,0.3); color: var(--gold-light); border: 1px solid rgba(196,164,74,0.4); }
+  .badge-weekend { background: rgba(0,45,114,0.6); color: #90B4F0; border: 1px solid rgba(90,140,210,0.4); }
+  .badge-interleague { background: rgba(40,100,60,0.5); color: #80D4A0; border: 1px solid rgba(80,180,120,0.4); }
+  .badge-division { background: rgba(90,10,50,0.5); color: #F0A0C0; border: 1px solid rgba(160,40,100,0.4); }
+
+  .check-badge {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--gold);
+    border-radius: 50%;
+    color: var(--navy);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .expand-icon {
+    color: var(--gray-mid);
+    font-size: 12px;
+    transition: transform 0.2s;
+    margin-top: 4px;
+  }
+  .game-card.open .expand-icon {
+    transform: rotate(180deg);
+  }
+
+  /* DETAIL PANEL */
+  .game-detail {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    animation: fadeIn 0.2s ease;
+  }
+  .game-card.open .game-detail {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  @media(max-width: 560px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .game-summary { grid-template-columns: 36px 1fr auto; gap: 12px; padding: 14px 16px; }
+  }
+
+  .detail-block label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .detail-block p {
+    font-size: 14px;
+    color: var(--cream);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  .notes-area {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 3px;
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    resize: vertical;
+    min-height: 72px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .notes-area:focus {
+    border-color: var(--gold);
+  }
+  .notes-area::placeholder {
+    color: rgba(200,192,176,0.4);
+    font-style: italic;
+  }
+
+  .detail-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-attend {
+    background: var(--gold);
+    color: var(--navy);
+  }
+  .btn-attend:hover { background: var(--gold-light); }
+  .btn-unattend {
+    background: rgba(255,255,255,0.1);
+    color: var(--cream);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .btn-unattend:hover { background: rgba(255,255,255,0.18); }
+  .btn-ical {
+    background: var(--navy-light);
+    color: var(--white);
+  }
+  .btn-ical:hover { background: #2060C0; }
+
+  /* EXPORT SECTION */
+  .export-section {
+    margin-top: 40px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(196,164,74,0.3);
+    border-radius: 4px;
+    padding: 24px;
+    text-align: center;
+  }
+  .export-section h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+  .export-section p {
+    font-size: 14px;
+    color: var(--gray-mid);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+  .export-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn-export {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-export-all {
+    background: var(--red);
+    color: var(--white);
+  }
+  .btn-export-all:hover { background: var(--red-dark); transform: translateY(-1px); }
+  .btn-export-upcoming {
+    background: rgba(0,45,114,0.8);
+    color: var(--white);
+    border: 1px solid var(--navy-light);
+  }
+  .btn-export-upcoming:hover { background: var(--navy-light); transform: translateY(-1px); }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--gray-mid);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--navy-light);
+    border: 1px solid var(--gold);
+    color: var(--cream);
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding: 12px 24px;
+    border-radius: 3px;
+    transition: transform 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    margin-bottom: 28px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gray-mid);
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* OPPONENT INFO */
+  .opp-info {
+    font-size: 13px;
+    color: #90A8D0;
+    font-style: italic;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <span class="phillies-p">P</span>
+    <h1>PHILLIES 2026</h1>
+    <div class="subtitle">Partial Plan D &nbsp;·&nbsp; Citizens Bank Park</div>
+  </header>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-icon">⚾</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="stat-total">16</span>
+      <span class="stat-label">Total Games</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="stat-attended">0</span>
+      <span class="stat-label">Attended</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="stat-remaining">16</span>
+      <span class="stat-label">Remaining</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="stat-noted">0</span>
+      <span class="stat-label">With Notes</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Season Progress</span>
+      <span id="progress-pct">0% attended</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterGames('all', this)">All (16)</button>
+    <button class="filter-btn" onclick="filterGames('upcoming', this)">Upcoming</button>
+    <button class="filter-btn" onclick="filterGames('attended', this)">Attended</button>
+    <button class="filter-btn" onclick="filterGames('rivalry', this)">Big Matchups</button>
+    <button class="filter-btn" onclick="filterGames('weekend', this)">Weekends</button>
+    <button class="filter-btn" onclick="filterGames('day', this)">Day Games</button>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--red-dark)"></span>Rivalry</span>
+    <span class="legend-item"><span class="legend-dot" style="background:rgba(196,164,74,0.7)"></span>Day Game</span>
+    <span class="legend-item"><span class="legend-dot" style="background:rgba(90,140,210,0.8)"></span>Weekend</span>
+    <span class="legend-item"><span class="legend-dot" style="background:rgba(40,100,60,0.8)"></span>Interleague</span>
+    <span class="legend-item"><span class="legend-dot" style="background:rgba(160,40,100,0.7)"></span>Division</span>
+  </div>
+
+  <div class="games-list" id="games-list"></div>
+
+  <div class="export-section">
+    <h3>📅 Export to Calendar</h3>
+    <p>Download an .ics file to import into Apple Calendar, Google Calendar, or Outlook</p>
+    <div class="export-btns">
+      <button class="btn-export btn-export-all" onclick="exportICS('all')">⬇ All 16 Games</button>
+      <button class="btn-export btn-export-upcoming" onclick="exportICS('upcoming')">⬇ Upcoming Only</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GAMES = [
+  {
+    id: 1,
+    matchup: "Cubs at Phillies",
+    opponent: "Chicago Cubs",
+    date: "Wed, Apr 15, 2026",
+    time: "6:40 PM",
+    isoStart: "20260415T184000",
+    isoEnd:   "20260415T220000",
+    tags: [],
+    opponentInfo: "Cubs were NL contenders in 2025. Expect a competitive atmosphere early in the season.",
+    mustGo: "Strong opener — good warmup game to kick off your season.",
+  },
+  {
+    id: 2,
+    matchup: "Braves at Phillies",
+    opponent: "Atlanta Braves",
+    date: "Sat, Apr 18, 2026",
+    time: "7:15 PM",
+    isoStart: "20260418T191500",
+    isoEnd:   "20260418T223000",
+    tags: ["rivalry","weekend","division"],
+    opponentInfo: "Braves are the Phillies' fiercest NL East rival. Division games are always electric.",
+    mustGo: "⭐ Top tier. Saturday night, division rival, peak energy crowd.",
+  },
+  {
+    id: 3,
+    matchup: "Giants at Phillies",
+    opponent: "San Francisco Giants",
+    date: "Wed, Apr 29, 2026",
+    time: "6:40 PM",
+    isoStart: "20260429T184000",
+    isoEnd:   "20260429T220000",
+    tags: ["interleague"],
+    opponentInfo: "West Coast matchup. Giants are a storied franchise — always a fun crowd.",
+    mustGo: "Solid midweek game. Good seats available.",
+  },
+  {
+    id: 4,
+    matchup: "Rockies at Phillies",
+    opponent: "Colorado Rockies",
+    date: "Fri, May 8, 2026",
+    time: "6:40 PM",
+    isoStart: "20260508T184000",
+    isoEnd:   "20260508T220000",
+    tags: ["weekend"],
+    opponentInfo: "Rockies are typically a rebuilding team. Great chance to see the Phillies offense go off.",
+    mustGo: "Friday night, relaxed atmosphere. Perfect for a casual night out.",
+  },
+  {
+    id: 5,
+    matchup: "Reds at Phillies",
+    opponent: "Cincinnati Reds",
+    date: "Mon, May 18, 2026",
+    time: "6:40 PM",
+    isoStart: "20260518T184000",
+    isoEnd:   "20260518T220000",
+    tags: [],
+    opponentInfo: "Reds have a strong young core. Could be a surprise team by May.",
+    mustGo: "Monday game — lighter crowd, easier parking.",
+  },
+  {
+    id: 6,
+    matchup: "Guardians at Phillies",
+    opponent: "Cleveland Guardians",
+    date: "Sat, May 23, 2026",
+    time: "4:05 PM",
+    isoStart: "20260523T160500",
+    isoEnd:   "20260523T193000",
+    tags: ["weekend","interleague"],
+    opponentInfo: "Guardians are a perennial AL contender with great pitching. Interleague showdown.",
+    mustGo: "Saturday afternoon game — perfect weather window. Great family time.",
+  },
+  {
+    id: 7,
+    matchup: "Padres at Phillies",
+    opponent: "San Diego Padres",
+    date: "Thu, Jun 4, 2026",
+    time: "1:05 PM",
+    isoStart: "20260604T130500",
+    isoEnd:   "20260604T163000",
+    tags: ["day"],
+    opponentInfo: "Padres typically carry star power. Daytime baseball at its finest.",
+    mustGo: "Rare afternoon game. Pack sunscreen.",
+  },
+  {
+    id: 8,
+    matchup: "Marlins at Phillies",
+    opponent: "Miami Marlins",
+    date: "Mon, Jun 15, 2026",
+    time: "6:40 PM",
+    isoStart: "20260615T184000",
+    isoEnd:   "20260615T220000",
+    tags: ["division"],
+    opponentInfo: "Division game against Miami. Phillies should have the edge here.",
+    mustGo: "Division win opportunity. Great Phillies pitching matchup expected.",
+  },
+  {
+    id: 9,
+    matchup: "Mets at Phillies",
+    opponent: "New York Mets",
+    date: "Sat, Jun 20, 2026",
+    time: "7:15 PM",
+    isoStart: "20260620T191500",
+    isoEnd:   "20260620T223000",
+    tags: ["rivalry","weekend","division"],
+    opponentInfo: "The Mets rivalry is the loudest in the NL East. Citizens Bank Park gets LOUD.",
+    mustGo: "⭐ Must-go. Mets fans will travel. Electric atmosphere guaranteed.",
+  },
+  {
+    id: 10,
+    matchup: "Pirates at Phillies",
+    opponent: "Pittsburgh Pirates",
+    date: "Wed, Jul 1, 2026",
+    time: "6:40 PM",
+    isoStart: "20260701T184000",
+    isoEnd:   "20260701T220000",
+    tags: [],
+    opponentInfo: "Start of the peak summer stretch. Pirates are a building team.",
+    mustGo: "Kicks off the Dodgers/Yankees stretch. Good low-key warmup.",
+  },
+  {
+    id: 11,
+    matchup: "Dodgers at Phillies",
+    opponent: "Los Angeles Dodgers",
+    date: "Mon, Jul 20, 2026",
+    time: "7:10 PM",
+    isoStart: "20260720T191000",
+    isoEnd:   "20260720T223000",
+    tags: ["rivalry","interleague"],
+    opponentInfo: "Dodgers are always a marquee opponent. Star-studded roster, massive national TV draw.",
+    mustGo: "⭐ Top tier. Biggest brand-name team on the schedule. Don't miss it.",
+  },
+  {
+    id: 12,
+    matchup: "Yankees at Phillies",
+    opponent: "New York Yankees",
+    date: "Fri, Jul 24, 2026",
+    time: "6:40 PM",
+    isoStart: "20260724T184000",
+    isoEnd:   "20260724T220000",
+    tags: ["rivalry","weekend","interleague"],
+    opponentInfo: "Subway Series vibes come to Philly. Yankees fans will show up. Get ready.",
+    mustGo: "⭐ Must-go. Best resale value on the schedule. Friday night energy is unmatched.",
+  },
+  {
+    id: 13,
+    matchup: "Nationals at Phillies",
+    opponent: "Washington Nationals",
+    date: "Thu, Aug 6, 2026",
+    time: "6:05 PM",
+    isoStart: "20260806T180500",
+    isoEnd:   "20260806T213000",
+    tags: ["division"],
+    opponentInfo: "Nats have been rebuilding. Phillies typically dominate this matchup.",
+    mustGo: "Solid division game. Relaxed summer Thursday.",
+  },
+  {
+    id: 14,
+    matchup: "Cardinals at Phillies",
+    opponent: "St. Louis Cardinals",
+    date: "Sat, Aug 22, 2026",
+    time: "6:05 PM",
+    isoStart: "20260822T180500",
+    isoEnd:   "20260822T213000",
+    tags: ["weekend"],
+    opponentInfo: "Cardinals are a storied NL franchise. Always brings a good opposing crowd.",
+    mustGo: "Late summer Saturday. Great atmosphere, still warm.",
+  },
+  {
+    id: 15,
+    matchup: "Braves at Phillies",
+    opponent: "Atlanta Braves",
+    date: "Mon, Sep 7, 2026",
+    time: "1:05 PM",
+    isoStart: "20260907T130500",
+    isoEnd:   "20260907T163000",
+    tags: ["rivalry","day","division"],
+    opponentInfo: "Labor Day matchup vs Atlanta. Division race could be on the line in September.",
+    mustGo: "⭐ Holiday afternoon game, rival on the schedule. Pack a lunch.",
+  },
+  {
+    id: 16,
+    matchup: "Rays at Phillies",
+    opponent: "Tampa Bay Rays",
+    date: "Fri, Sep 25, 2026",
+    time: "6:40 PM",
+    isoStart: "20260925T184000",
+    isoEnd:   "20260925T220000",
+    tags: ["interleague","weekend"],
+    opponentInfo: "Season finale stretch. Rays are a smart organization — could be a playoff race game.",
+    mustGo: "Season send-off Friday night. Could be a playoff-seeding game.",
+  },
+];
+
+let state = JSON.parse(localStorage.getItem('phillies2026') || '{}');
+// state shape: { attended: {1:true,...}, notes: {1:"..."} }
+if (!state.attended) state.attended = {};
+if (!state.notes) state.notes = {};
+
+function saveState() {
+  localStorage.setItem('phillies2026', JSON.stringify(state));
+}
+
+function updateStats() {
+  const attended = Object.values(state.attended).filter(Boolean).length;
+  const total = GAMES.length;
+  const noted = Object.values(state.notes).filter(n => n && n.trim()).length;
+  document.getElementById('stat-attended').textContent = attended;
+  document.getElementById('stat-remaining').textContent = total - attended;
+  document.getElementById('stat-noted').textContent = noted;
+  const pct = Math.round((attended / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '% attended';
+}
+
+function buildCards() {
+  const list = document.getElementById('games-list');
+  list.innerHTML = '';
+  GAMES.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'game-card' + (state.attended[g.id] ? ' attended' : '');
+    card.dataset.id = g.id;
+    card.dataset.tags = g.tags.join(' ');
+
+    // badges
+    let badges = '';
+    if (g.tags.includes('rivalry')) badges += `<span class="badge badge-rivalry">Rivalry</span>`;
+    if (g.tags.includes('day')) badges += `<span class="badge badge-day">Day Game</span>`;
+    if (g.tags.includes('weekend') && !g.tags.includes('day')) badges += `<span class="badge badge-weekend">Weekend</span>`;
+    if (g.tags.includes('interleague')) badges += `<span class="badge badge-interleague">Interleague</span>`;
+    if (g.tags.includes('division')) badges += `<span class="badge badge-division">Division</span>`;
+
+    card.innerHTML = `
+      <div class="game-summary" onclick="toggleCard(${g.id})">
+        <div class="game-num">${g.id}</div>
+        <div class="game-main">
+          <div class="game-matchup">${g.matchup}</div>
+          <div class="game-details">${g.date} &nbsp;·&nbsp; ${g.time} &nbsp;·&nbsp; Citizens Bank Park</div>
+        </div>
+        <div class="game-meta">
+          ${badges}
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+            <div class="check-badge">✓</div>
+            <div class="expand-icon">▼</div>
+          </div>
+        </div>
+      </div>
+      <div class="game-detail">
+        <div class="detail-grid">
+          <div class="detail-block">
+            <label>Opponent Info</label>
+            <p class="opp-info">${g.opponentInfo}</p>
+          </div>
+          <div class="detail-block">
+            <label>Verdict</label>
+            <p>${g.mustGo}</p>
+          </div>
+          <div class="detail-block" style="grid-column:1/-1">
+            <label>Your Notes</label>
+            <textarea
+              class="notes-area"
+              placeholder="Seats, who you're going with, food plans, anything..."
+              oninput="saveNote(${g.id}, this.value)"
+            >${state.notes[g.id] || ''}</textarea>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn btn-attend" onclick="toggleAttended(${g.id}, event)">
+            ${state.attended[g.id] ? '✓ Attended' : '⚾ Mark Attended'}
+          </button>
+          ${state.attended[g.id] ? `<button class="btn btn-unattend" onclick="toggleAttended(${g.id}, event)">↩ Unmark</button>` : ''}
+          <button class="btn btn-ical" onclick="exportSingle(${g.id}, event)">📅 Export This Game</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+  updateStats();
+}
+
+function toggleCard(id) {
+  const card = document.querySelector(`.game-card[data-id="${id}"]`);
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.game-card.open').forEach(c => c.classList.remove('open'));
+  if (!isOpen) card.classList.add('open');
+}
+
+function toggleAttended(id, e) {
+  e.stopPropagation();
+  state.attended[id] = !state.attended[id];
+  saveState();
+  buildCards();
+  // re-open card
+  setTimeout(() => {
+    toggleCard(id);
+  }, 50);
+  showToast(state.attended[id] ? '⚾ Marked as attended!' : '↩ Unmarked');
+}
+
+function saveNote(id, val) {
+  state.notes[id] = val;
+  saveState();
+  updateStats();
+}
+
+function filterGames(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const today = new Date();
+  document.querySelectorAll('.game-card').forEach(card => {
+    const id = parseInt(card.dataset.id);
+    const g = GAMES.find(x => x.id === id);
+    const tags = (card.dataset.tags || '').split(' ');
+    const gameDate = new Date(g.isoStart.slice(0,4)+'-'+g.isoStart.slice(4,6)+'-'+g.isoStart.slice(6,8));
+
+    let show = true;
+    if (type === 'upcoming') show = gameDate >= today && !state.attended[id];
+    else if (type === 'attended') show = !!state.attended[id];
+    else if (type === 'rivalry') show = tags.includes('rivalry');
+    else if (type === 'weekend') show = tags.includes('weekend');
+    else if (type === 'day') show = tags.includes('day');
+
+    card.classList.toggle('hidden', !show);
+  });
+}
+
+function makeICS(games) {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Phillies 2026 Plan D//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:Phillies 2026 Schedule',
+    'X-WR-TIMEZONE:America/New_York',
+  ];
+  games.forEach(g => {
+    const note = state.notes[g.id] ? `\\nNotes: ${state.notes[g.id].replace(/\n/g,'\\n')}` : '';
+    lines.push(
+      'BEGIN:VEVENT',
+      `DTSTART;TZID=America/New_York:${g.isoStart}`,
+      `DTEND;TZID=America/New_York:${g.isoEnd}`,
+      `SUMMARY:⚾ ${g.matchup}`,
+      `DESCRIPTION:${g.mustGo}${note}`,
+      'LOCATION:Citizens Bank Park\\, 1 Citizens Bank Way\\, Philadelphia\\, PA 19148',
+      `UID:phillies2026-${g.id}@plan-d`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+    );
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadICS(content, filename) {
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportICS(type) {
+  const today = new Date();
+  let games = GAMES;
+  if (type === 'upcoming') {
+    games = GAMES.filter(g => {
+      const d = new Date(g.isoStart.slice(0,4)+'-'+g.isoStart.slice(4,6)+'-'+g.isoStart.slice(6,8));
+      return d >= today;
+    });
+  }
+  downloadICS(makeICS(games), `phillies-2026-${type}.ics`);
+  showToast(`📅 Downloaded ${games.length} games!`);
+}
+
+function exportSingle(id, e) {
+  e.stopPropagation();
+  const g = GAMES.find(x => x.id === id);
+  downloadICS(makeICS([g]), `phillies-2026-game${id}.ics`);
+  showToast('📅 Game exported!');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+buildCards();
+</script>
+</body>
+</html>

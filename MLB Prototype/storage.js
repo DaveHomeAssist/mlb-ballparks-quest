@@ -55,13 +55,20 @@
     function writeNow(fullKey, value) {
       if (!storageEnabled) return cloneValue(value);
 
-      if (value === undefined) {
-        global.localStorage.removeItem(fullKey);
-        return undefined;
-      }
+      try {
+        if (value === undefined) {
+          global.localStorage.removeItem(fullKey);
+          return undefined;
+        }
 
-      global.localStorage.setItem(fullKey, JSON.stringify(value));
-      return cloneValue(value);
+        global.localStorage.setItem(fullKey, JSON.stringify(value));
+        return cloneValue(value);
+      } catch (error) {
+        if (typeof global.showToast === "function") {
+          global.showToast("Save failed \u2014 storage may be full. Export your data.", "error", 0);
+        }
+        return cloneValue(value);
+      }
     }
 
     function flushKey(fullKey) {
