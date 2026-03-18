@@ -68,4 +68,5 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 [2026-03-18] [MLB] [feat] Add resolver.js with default runner advancement for walk, hit, homer, strikeout, fly out, sac fly, ground out, double play, fielder choice, error, stolen base, caught stealing, and wild pitch
 [2026-03-18] [MLB] [feat] Add guided play picker and projected result preview to the root scorekeeper
 [2026-03-18] [MLB] [refactor] Sync scorekeeper base state through guided play resolution while preserving manual fallback logging
+[2026-03-18] [MLB] [fix] Add visible quick note composer to scorekeeper cover and enlarge notes rail input
 [2026-03-18] [MLB] [todo] Add correction chips, stranded runner cell annotation, and retroactive diamond writeback using runner cellRef

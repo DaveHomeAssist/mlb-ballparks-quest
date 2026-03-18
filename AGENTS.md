@@ -26,6 +26,7 @@ MLB Ballparks Quest is a static local first MLB trip planning prototype. The cur
 | ID | Severity | Status | Title | Notes |
 |----|----------|--------|-------|-------|
 | 001 | P2 | resolved | Promote prototype to primary root app | Archived the old root build as v0.7 and promoted the prototype to the root entry path as v0.8 |
+| 002 | P2 | resolved | Make scorekeeper notes reachable before first pitch | Added a visible quick note composer in the cover card and enlarged the notes rail composer |
 
 ## Session Log
 
@@ -34,3 +35,4 @@ MLB Ballparks Quest is a static local first MLB trip planning prototype. The cur
 [2026-03-18] [MLB] [feat] Promote prototype build to primary root app v0.8
 [2026-03-18] [MLB] [fix] Harden Phillies 2026 schedule page interactions
 [2026-03-18] [MLB] [feat] Add guided resolver engine to scorekeeper
+[2026-03-18] [MLB] [fix] Make scorekeeper notes composer visible and easier to reach
