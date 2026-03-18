@@ -126,9 +126,31 @@ body {
   color: rgba(245,237,216,0.55);
   transition: all 140ms;
 }
-.sk-btn:hover { color: var(--sc-cream); border-color: rgba(200,168,100,0.4); }
-.sk-btn-red { border-color: rgba(184,48,48,0.3); color: rgba(184,48,48,0.7); }
-.sk-btn-red:hover { color: #E05050; border-color: #B03030; }
+.sk-btn:hover { color: var(--sc-cream); border-color: rgba(200,168,100,0.4); background: rgba(255,255,255,0.04); }
+.sk-btn-amber {
+  border-color: rgba(200,146,10,0.32);
+  color: rgba(240,184,67,0.88);
+  background: rgba(200,146,10,0.08);
+}
+.sk-btn-amber:hover {
+  border-color: rgba(240,184,67,0.5);
+  background: rgba(200,146,10,0.14);
+}
+.sk-btn-green {
+  border-color: rgba(46,125,82,0.38);
+  color: #8ACA8A;
+  background: rgba(46,125,82,0.1);
+}
+.sk-btn-green:hover {
+  border-color: rgba(138,202,138,0.55);
+  background: rgba(46,125,82,0.16);
+}
+.sk-btn-red {
+  border-color: rgba(184,48,48,0.36);
+  color: #E08080;
+  background: rgba(176,48,48,0.09);
+}
+.sk-btn-red:hover { color: #F1A4A4; border-color: #B03030; background: rgba(176,48,48,0.16); }
 
 /* ─── Main area ─────────────────────────── */
 .sk-main {
@@ -330,22 +352,22 @@ body {
   align-items: center;
   gap: 4px;
   margin-left: 10px;
-  padding: 2px;
-  border: 1px solid rgba(200,168,100,0.16);
+  padding: 3px;
+  border: 1px solid rgba(200,168,100,0.22);
   border-radius: 999px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.05);
 }
 
 .sk-side-tab {
   border: none;
   background: transparent;
-  color: rgba(245,237,216,0.56);
+  color: rgba(245,237,216,0.74);
   font-family: var(--f-mono);
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border-radius: 999px;
-  padding: 5px 9px;
+  padding: 6px 12px;
   cursor: pointer;
   transition: background 120ms, color 120ms, box-shadow 120ms;
 }
@@ -355,12 +377,14 @@ body {
 }
 
 .sk-side-tab.is-viewing {
-  background: rgba(200,168,100,0.12);
+  background: rgba(245,237,216,0.14);
   color: var(--sc-cream);
 }
 
 .sk-side-tab.is-batting {
-  box-shadow: inset 0 0 0 1px rgba(126,180,224,0.55);
+  background: rgba(42,74,138,0.34);
+  box-shadow: inset 0 0 0 1px rgba(126,180,224,0.68);
+  color: #D8E8F8;
 }
 
 .sk-view-info {
@@ -630,15 +654,15 @@ body {
   border-radius: 3px;
   border: 1px solid rgba(200,168,100,0.15);
   background: rgba(255,255,255,0.03);
-  color: rgba(200,168,100,0.6);
+  color: rgba(245,237,216,0.82);
   cursor: pointer;
   transition: all 120ms;
 }
 
-.sk-chip:hover { border-color: rgba(200,168,100,0.4); color: var(--sc-cream); }
-.sk-chip.selected { background: rgba(42,74,138,0.35); border-color: #7EB4E0; color: #C8E0F4; }
-.sk-chip.hit-chip:hover, .sk-chip.hit-chip.selected { border-color: #3A6A3A; background: rgba(40,90,40,0.2); color: #8ACA8A; }
-.sk-chip.err-chip:hover, .sk-chip.err-chip.selected { border-color: var(--sc-red); background: rgba(176,48,48,0.15); color: #E08080; }
+.sk-chip:hover { border-color: rgba(200,168,100,0.4); color: var(--sc-cream); background: rgba(255,255,255,0.06); }
+.sk-chip.selected { background: rgba(42,74,138,0.48); border-color: #7EB4E0; color: #D8E8F8; }
+.sk-chip.hit-chip:hover, .sk-chip.hit-chip.selected { border-color: #4B8750; background: rgba(40,90,40,0.28); color: #A6E0AA; }
+.sk-chip.err-chip:hover, .sk-chip.err-chip.selected { border-color: var(--sc-red); background: rgba(176,48,48,0.22); color: #F1A4A4; }
 
 .sk-code-input {
   background: rgba(255,255,255,0.04);
@@ -671,10 +695,10 @@ body {
 .sk-count-input::placeholder { color: rgba(200,168,100,0.2); }
 
 .sk-log-btn {
-  background: rgba(42,74,138,0.6);
-  border: 1px solid rgba(100,150,220,0.3);
+  background: rgba(200,48,42,0.82);
+  border: 1px solid rgba(241,164,164,0.28);
   border-radius: 4px;
-  color: #C8E0F4;
+  color: #FCEAE8;
   font-family: var(--f-score);
   font-size: 13px;
   padding: 8px 18px;
@@ -684,7 +708,7 @@ body {
   white-space: nowrap;
   align-self: flex-end;
 }
-.sk-log-btn:hover { background: rgba(42,74,138,0.85); border-color: rgba(100,150,220,0.5); }
+.sk-log-btn:hover { background: rgba(212,59,49,0.92); border-color: rgba(241,164,164,0.44); }
 
 /* ─── iPad layout overrides ─────────────── */
 [data-layout="ipad"] .sk-notes-panel {
@@ -742,8 +766,9 @@ body {
   <div class="sk-nav-actions">
     <button class="sk-btn" id="btn-setup">Setup</button>
     <button class="sk-btn" id="btn-notes-toggle">Notes</button>
-    <button class="sk-btn" id="btn-undo">⌘Z Undo</button>
-    <button class="sk-btn sk-btn-red" id="btn-export">Export</button>
+    <button class="sk-btn sk-btn-amber" id="btn-undo">⌘Z Undo</button>
+    <button class="sk-btn sk-btn-green" id="btn-export">Export</button>
+    <button class="sk-btn sk-btn-red" id="btn-finish">Finish game</button>
   </div>
 </nav>
 
@@ -1343,6 +1368,70 @@ function exportSession() {
   URL.revokeObjectURL(url);
 }
 
+function buildFinalScoreLine() {
+  return `Final: ${meta.awayName || 'Away'} ${ls.away.r}, ${meta.homeName || 'Home'} ${ls.home.r}`;
+}
+
+function buildVisitNotes() {
+  const lines = [buildFinalScoreLine()];
+  if (meta.venue) lines.push(`Venue: ${meta.venue}`);
+  notes.forEach((entry) => {
+    const label = entry && entry.label ? `[${entry.label}] ` : '';
+    const text = entry && entry.text ? entry.text.trim() : '';
+    if (text) lines.push(`${label}${text}`);
+  });
+  return lines.join('\n');
+}
+
+function deriveBestFeature() {
+  const standout = notes.find((entry) => entry && entry.tone === 'gold' && entry.text && entry.text.trim());
+  if (standout) return standout.text.trim();
+  const firstNote = notes.find((entry) => entry && entry.text && entry.text.trim());
+  if (firstNote) return firstNote.text.trim();
+  return buildFinalScoreLine();
+}
+
+function finalizeGame() {
+  if (!app || !app.markVisited || !app.updateActiveTrip) return;
+  if (!meta.parkId) {
+    window.alert('Pick a park before you finish this game.');
+    return;
+  }
+
+  const confirmation = window.confirm(
+    `Finish this game?\n\n${buildFinalScoreLine()}\n${meta.venue ? `${meta.venue}\n` : ''}This saves it to your visited history.`
+  );
+  if (!confirmation) return;
+
+  pushUndo();
+
+  app.markVisited(meta.parkId, {
+    visitDate: new Date().toISOString().slice(0, 10),
+    bestFeature: deriveBestFeature(),
+    notes: buildVisitNotes()
+  });
+
+  app.updateActiveTrip((currentTrip) => {
+    currentTrip.legs = (currentTrip.legs || []).map((leg) => {
+      if (leg.toParkId !== meta.parkId) return leg;
+      return {
+        ...leg,
+        status: 'completed',
+        updatedAt: new Date().toISOString()
+      };
+    });
+    return currentTrip;
+  });
+
+  if (window.BPQ && window.BPQ.storage && window.BPQ.storage.flush) {
+    window.BPQ.storage.flush();
+  }
+
+  localStorage.removeItem(SESSION_KEY);
+  if (app.clearScorekeeperContext) app.clearScorekeeperContext();
+  window.location.href = 'index.html';
+}
+
 function undoLastAction() {
   const snapshot = undoStack.pop();
   if (!snapshot) return;
@@ -1396,6 +1485,7 @@ document.getElementById('note-input').addEventListener('keydown', (event) => {
 
 document.getElementById('btn-undo').addEventListener('click', undoLastAction);
 document.getElementById('btn-export').addEventListener('click', exportSession);
+document.getElementById('btn-finish').addEventListener('click', finalizeGame);
 document.getElementById('btn-setup').addEventListener('click', runSetup);
 document.getElementById('view-away-btn').addEventListener('click', () => setViewSide('away'));
 document.getElementById('view-home-btn').addEventListener('click', () => setViewSide('home'));

@@ -80,16 +80,6 @@
   letter-spacing: -0.01em;
 }
 
-.hero-desc {
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 300;
-  color: var(--text-secondary);
-  max-width: 480px;
-  line-height: 1.65;
-  margin-bottom: 32px;
-}
-
 .hero-cta-row {
   display: flex;
   gap: 10px;
@@ -233,7 +223,7 @@
   font-family: var(--font-data);
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
@@ -242,7 +232,7 @@
   font-size: 13px;
   font-style: italic;
   font-weight: 300;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   line-height: 1.5;
   border-left: 2px solid var(--border-cream);
   padding-left: 10px;
@@ -258,7 +248,7 @@
 .visited-date {
   font-family: var(--font-data);
   font-size: 10px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   letter-spacing: 0.06em;
 }
 
@@ -303,6 +293,60 @@
   color: var(--cream);
   margin-bottom: 20px;
   line-height: 1.2;
+}
+
+.sidebar-map {
+  margin-bottom: 18px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.sidebar-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.sidebar-map-base {
+  fill: rgba(245,237,216,0.04);
+  stroke: rgba(245,237,216,0.08);
+  stroke-width: 1.2;
+}
+
+.sidebar-map-line {
+  fill: none;
+  stroke: rgba(245,237,216,0.22);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar-map-label {
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  fill: rgba(245,237,216,0.8);
+}
+
+.visited-empty {
+  padding: 22px;
+}
+
+.visited-empty-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.visited-empty-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 14px;
 }
 
 .sidebar-park-item {
@@ -401,16 +445,10 @@
     </div>
 
     <h1 class="hero-headline">
-      Thirty<br>
-      <em>ballparks.</em><br>
-      One quest.
+      Track the run.
     </h1>
 
-    <p class="hero-sub">The pilgrimage, properly tracked.</p>
-
-    <p class="hero-desc">
-      Plan the route, record the visit, score the game. One static page per tool. No app stack. No account. Yours entirely.
-    </p>
+    <p class="hero-sub">See what is done, what is next, and where the trip is bending.</p>
 
     <div class="hero-cta-row">
       <a href="parks.html"       class="btn btn-primary">Browse all 30 parks</a>
@@ -432,8 +470,8 @@
         <div class="hero-stat-lbl">S &amp; A tier targets</div>
       </div>
       <div>
-        <div class="hero-stat-num">0</div>
-        <div class="hero-stat-lbl">Dependencies</div>
+        <div class="hero-stat-num" id="heroRouteCount">0</div>
+        <div class="hero-stat-lbl">Stops in play</div>
       </div>
     </div>
   </section>
@@ -456,7 +494,7 @@
     <div>
       <div class="section-label fade-up fade-up-2">Visited parks</div>
       <h2 class="section-title fade-up fade-up-2" style="font-size:28px; margin-bottom:20px;">
-        What the best parks<br>already earned.
+        Visited proof.
       </h2>
 
       <div class="visited-grid" id="visitedGrid"></div>
@@ -467,6 +505,7 @@
       <div class="sidebar-card fade-up fade-up-3">
         <div class="sidebar-title">Next on the road</div>
         <div class="sidebar-heading" id="sidebarHeading">The shortlist.</div>
+        <div class="sidebar-map" id="sidebarMap"></div>
         <div id="sidebarTargets"></div>
         <div class="sidebar-cta">
           <a href="route.html" class="btn btn-red" style="width:100%; justify-content:center;">
@@ -507,32 +546,22 @@
     const total = app.getParks().length;
     const remaining = Math.max(0, total - visitedCount);
     const priority = app.getParks().filter((park) => !app.isVisited(park.id) && (park.tier === 'S' || park.tier === 'A')).length;
+    const routeCount = app.getRouteParks().length;
 
     document.getElementById('heroVisitedCount').textContent = String(visitedCount);
     document.getElementById('heroRemainingCount').textContent = String(remaining);
     document.getElementById('heroPriorityCount').textContent = String(priority);
+    document.getElementById('heroRouteCount').textContent = String(routeCount);
     document.getElementById('progressCount').textContent = `${visitedCount} / ${total}`;
-    document.getElementById('progressFill').style.width = `${(visitedCount / total) * 100}%`;
+    document.getElementById('progressFill').style.width = `${total ? (visitedCount / total) * 100 : 0}%`;
 
     if (!visited.length) {
       visitedGrid.innerHTML = `
-        <div class="visited-card fade-up fade-up-2">
+        <div class="visited-card visited-empty fade-up fade-up-2">
           <div class="visited-card-stripe" style="background:var(--gold);"></div>
-          <div class="visited-card-body">
-            <div class="visited-card-header">
-              <div>
-                <div class="visited-park-name">Start the collection.</div>
-                <div class="visited-team">No parks marked visited yet</div>
-              </div>
-            </div>
-            <div class="visited-note">
-              Open the park directory, mark the next stop, and this proof wall starts building itself.
-            </div>
-            <div class="visited-meta">
-              <span class="visited-date">Static-first</span>
-              <span class="visited-standout">Local-only</span>
-            </div>
-          </div>
+          <div class="visited-empty-title">No visits logged yet.</div>
+          <div class="visited-empty-text">Mark the parks you have done and the proof wall starts here.</div>
+          <a href="parks.html" class="btn btn-primary">Browse all 30 parks</a>
         </div>
       `;
       return;
@@ -552,11 +581,44 @@
           <div class="visited-note">${escapeHtml(meta.notes || park.note)}</div>
           <div class="visited-meta">
             <span class="visited-date">${escapeHtml(meta.visitDate ? app.formatDate(meta.visitDate) : 'Date not set')}</span>
-            <span class="visited-standout">Standout: ${escapeHtml(meta.bestFeature || 'Ballpark memory')}</span>
+            <span class="visited-standout">Field note: ${escapeHtml(meta.bestFeature || 'Ballpark memory')}</span>
           </div>
         </div>
       </div>
     `).join('');
+  }
+
+  function projectPoint(coords, width, height) {
+    const lng = coords && typeof coords.lng === 'number' ? coords.lng : -95;
+    const lat = coords && typeof coords.lat === 'number' ? coords.lat : 39;
+    return {
+      x: 24 + ((lng + 125) / 59) * (width - 48),
+      y: 18 + (1 - ((lat - 25) / 24)) * (height - 36)
+    };
+  }
+
+  function renderSidebarMap() {
+    const width = 280;
+    const height = 180;
+    const visited = app.getVisitedParks().slice(0, 8);
+    const targets = (app.getRouteParks().length ? app.getRouteParks().slice(0, 4) : app.getNextTargets(4)).filter(Boolean);
+    const targetPoints = targets.map((park) => ({ park, point: projectPoint(park.coordinates, width, height) }));
+    const polyline = targetPoints.map((entry) => `${entry.point.x.toFixed(1)},${entry.point.y.toFixed(1)}`).join(' ');
+
+    document.getElementById('sidebarMap').innerHTML = `
+      <svg class="sidebar-map-svg" viewBox="0 0 ${width} ${height}" aria-label="Route preview map">
+        <path class="sidebar-map-base" d="M32 36 L58 28 L90 34 L118 26 L154 32 L188 44 L226 50 L244 78 L236 114 L204 140 L162 148 L118 142 L82 132 L52 108 L36 84 Z"></path>
+        ${polyline ? `<polyline class="sidebar-map-line" points="${polyline}"></polyline>` : ''}
+        ${visited.map(({ park }) => {
+          const point = projectPoint(park.coordinates, width, height);
+          return `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4.5" fill="#2E7D52" stroke="rgba(15,31,56,0.7)" stroke-width="1.4"></circle>`;
+        }).join('')}
+        ${targetPoints.map(({ park, point }) => `
+          <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6" fill="${park.color}" stroke="#F5EDD8" stroke-width="2"></circle>
+          <text class="sidebar-map-label" x="${(point.x + 8).toFixed(1)}" y="${(point.y - 8).toFixed(1)}">${escapeHtml(park.city)}</text>
+        `).join('')}
+      </svg>
+    `;
   }
 
   function renderTargets() {
@@ -564,7 +626,14 @@
     const targets = explicitRoute.length ? explicitRoute.slice(0, 3) : app.getNextTargets(3);
     const heading = document.getElementById('sidebarHeading');
     const container = document.getElementById('sidebarTargets');
-    heading.textContent = explicitRoute.length ? 'Current route.' : 'The shortlist.';
+    heading.textContent = explicitRoute.length ? 'Current route.' : 'Shortlist.';
+    if (!targets.length) {
+      container.innerHTML = `
+        <div class="sidebar-park-reason" style="color:rgba(245,237,216,0.8); margin-bottom:12px;">No route yet. Start with a park.</div>
+      `;
+      renderSidebarMap();
+      return;
+    }
     container.innerHTML = targets.map((park) => `
       <a href="route.html" class="sidebar-park-item">
         <div class="tier-stamp tier-${park.tier}">${park.tier}</div>
@@ -575,6 +644,7 @@
         </div>
       </a>
     `).join('');
+    renderSidebarMap();
   }
 
   renderVisited();

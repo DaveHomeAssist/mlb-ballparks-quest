@@ -73,7 +73,7 @@
     { id: createId("visit"), parkId: "citizens-bank-park", visitDate: "2023-08-12", rating: 5, bestFeature: "Atmosphere", notes: "Lower deck, left field side. The Phanatic showed up in the third and the park still feels made for offense.", createdAt: "2023-08-12T18:30:00Z", updatedAt: "2023-08-12T18:30:00Z" },
     { id: createId("visit"), parkId: "fenway-park", visitDate: "2021-09-18", rating: 5, bestFeature: "The Monster", notes: "Standing room near left. Tight concourses, perfect sightlines once the game starts.", createdAt: "2021-09-18T16:00:00Z", updatedAt: "2021-09-18T16:00:00Z" },
     { id: createId("visit"), parkId: "dodger-stadium", visitDate: "2022-04-10", rating: 4, bestFeature: "Views", notes: "Loge level behind home. Sunset over the hills justified the traffic after the game.", createdAt: "2022-04-10T19:15:00Z", updatedAt: "2022-04-10T19:15:00Z" },
-    { id: createId("visit"), parkId: "oakland-coliseum", visitDate: "2022-06-04", rating: 4, bestFeature: "History", notes: "Upper deck third base side. Huge foul ground and a fading place worth seeing in person.", createdAt: "2022-06-04T14:45:00Z", updatedAt: "2022-06-04T14:45:00Z" }
+    { id: createId("visit"), parkId: "sutter-health-park", visitDate: "2022-06-04", rating: 4, bestFeature: "History", notes: "Upper deck third base side. Small park feel, odd Athletics chapter, still worth seeing in person.", createdAt: "2022-06-04T14:45:00Z", updatedAt: "2022-06-04T14:45:00Z" }
   ];
 
   function createDefaultActiveTrip() {
@@ -129,7 +129,17 @@
   function initializeVisits() {
     var visits = storage.get(KEYS.visits);
     if (Array.isArray(visits)) {
-      return cloneValue(visits);
+      var normalizedVisits = visits.map(function normalizeVisit(visit) {
+        if (!visit || typeof visit !== "object") return visit;
+        if (visit.parkId === "oakland-coliseum") {
+          var nextVisit = cloneValue(visit);
+          nextVisit.parkId = "sutter-health-park";
+          return nextVisit;
+        }
+        return visit;
+      });
+      storage.set(KEYS.visits, normalizedVisits);
+      return cloneValue(normalizedVisits);
     }
 
     storage.set(KEYS.visits, SEEDED_VISITS);

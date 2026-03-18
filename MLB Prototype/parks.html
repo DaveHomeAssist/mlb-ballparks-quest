@@ -85,7 +85,7 @@
   font-family: var(--font-data);
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
@@ -127,14 +127,14 @@
   font-family: var(--font-data);
   font-size: 9px;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .park-row-city {
   font-family: var(--font-data);
   font-size: 9px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
@@ -166,8 +166,48 @@
   font-family: var(--font-data);
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: rgba(200,168,100,0.6);
+  color: rgba(245,237,216,0.8);
   margin-bottom: 16px;
+}
+
+.detail-map {
+  margin-bottom: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+
+.detail-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.detail-map-base {
+  fill: rgba(245,237,216,0.04);
+  stroke: rgba(245,237,216,0.1);
+  stroke-width: 1.2;
+}
+
+.detail-map-ring {
+  fill: none;
+  stroke: rgba(126,180,224,0.22);
+  stroke-width: 16;
+}
+
+.detail-map-line {
+  fill: none;
+  stroke: rgba(245,237,216,0.18);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.detail-map-label {
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: rgba(245,237,216,0.9);
 }
 
 .detail-grid {
@@ -190,7 +230,7 @@
   font-size: 8px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(200,168,100,0.45);
+  color: rgba(245,237,216,0.72);
   margin-bottom: 3px;
 }
 
@@ -207,7 +247,7 @@
   font-size: 13px;
   font-style: italic;
   font-weight: 300;
-  color: rgba(245,237,216,0.65);
+  color: rgba(245,237,216,0.92);
   line-height: 1.55;
   border-left: 2px solid rgba(200,168,100,0.25);
   padding-left: 10px;
@@ -232,7 +272,7 @@
   font-size: 8px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(200,168,100,0.45);
+  color: rgba(245,237,216,0.7);
   margin-bottom: 5px;
 }
 
@@ -268,7 +308,7 @@
   font-size: 8px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(200,168,100,0.45);
+  color: rgba(245,237,216,0.7);
   margin-bottom: 8px;
 }
 
@@ -334,7 +374,7 @@
   <div class="parks-main">
     <div class="parks-hero fade-up">
       <div class="section-label">Park directory</div>
-      <h1 class="parks-headline">All 30 parks.<br>Filter and find.</h1>
+      <h1 class="parks-headline">All 30 parks.<br>Compare fast.</h1>
     </div>
 
     <div class="filter-strip fade-up fade-up-1">
@@ -360,14 +400,15 @@
       <div class="detail-body">
         <div class="detail-park-name" id="d-name">Select a park</div>
         <div class="detail-team" id="d-team">Click any row to inspect</div>
+        <div class="detail-map" id="d-map"></div>
         <div class="detail-grid" id="d-grid"></div>
         <div class="detail-note" id="d-note">Park details will appear here.</div>
         <div class="detail-signals" id="d-signals"></div>
         <label class="detail-scratch-label" for="d-scratchpad">Research scratchpad</label>
         <textarea class="detail-scratchpad" id="d-scratchpad" placeholder="Keep quick scouting notes, date windows, transit warnings, or anything you want in reach while comparing parks."></textarea>
         <div class="detail-actions">
-          <button type="button" class="btn btn-ghost" style="justify-content:center;" id="d-visit-toggle">Mark as visited</button>
-          <button type="button" class="btn btn-ghost" style="justify-content:center;" id="d-route-toggle">Add to route</button>
+          <button type="button" class="btn btn-success" style="justify-content:center;" id="d-visit-toggle">Mark as visited</button>
+          <button type="button" class="btn btn-primary" style="justify-content:center;" id="d-route-toggle">Add to route</button>
           <a href="scorekeeper.html" class="btn btn-red" style="justify-content:center;" id="d-score-link">Score a game here</a>
         </div>
       </div>
@@ -385,6 +426,40 @@
   let selectedParkId = null;
   let activeFilter = 'all';
   let searchTerm = '';
+
+  function projectPoint(coords, width, height) {
+    const lng = coords && typeof coords.lng === 'number' ? coords.lng : -95;
+    const lat = coords && typeof coords.lat === 'number' ? coords.lat : 39;
+    return {
+      x: 22 + ((lng + 125) / 59) * (width - 44),
+      y: 18 + (1 - ((lat - 25) / 24)) * (height - 36)
+    };
+  }
+
+  function renderDetailMap(park, onRoute) {
+    const width = 280;
+    const height = 170;
+    const point = projectPoint(park.coordinates, width, height);
+    const routeParks = app.getRouteParks().slice(0, 4).map((item) => ({
+      park: item,
+      point: projectPoint(item.coordinates, width, height)
+    }));
+    const routeLine = routeParks.map((entry) => `${entry.point.x.toFixed(1)},${entry.point.y.toFixed(1)}`).join(' ');
+
+    document.getElementById('d-map').innerHTML = `
+      <svg class="detail-map-svg" viewBox="0 0 ${width} ${height}" aria-label="Park location context">
+        <path class="detail-map-base" d="M34 32 L60 24 L96 30 L126 24 L166 31 L205 44 L228 68 L238 100 L224 126 L188 140 L146 146 L98 138 L62 124 L38 98 L28 70 Z"></path>
+        ${routeLine ? `<polyline class="detail-map-line" points="${routeLine}"></polyline>` : ''}
+        <circle class="detail-map-ring" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="14"></circle>
+        ${routeParks.map(({ park: routePark, point: routePoint }) => `
+          <circle cx="${routePoint.x.toFixed(1)}" cy="${routePoint.y.toFixed(1)}" r="4.5" fill="${routePark.color}" stroke="#F5EDD8" stroke-width="1.4"></circle>
+        `).join('')}
+        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6.5" fill="${park.color}" stroke="#F5EDD8" stroke-width="2"></circle>
+        <text class="detail-map-label" x="${(point.x + 9).toFixed(1)}" y="${(point.y - 8).toFixed(1)}">${escapeHtml(park.city)}</text>
+        ${onRoute ? `<text class="detail-map-label" x="16" y="${height - 12}" fill="rgba(240,188,67,0.92)">On current route</text>` : ''}
+      </svg>
+    `;
+  }
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
@@ -422,6 +497,8 @@
 
     visitButton.textContent = visited ? 'Remove visited mark' : 'Mark as visited';
     routeButton.textContent = onRoute ? 'Remove from route' : 'Add to route';
+    visitButton.className = `btn ${visited ? 'btn-danger-outline' : 'btn-success'}`;
+    routeButton.className = `btn ${onRoute ? 'btn-danger-outline' : 'btn-primary'}`;
     scoreLink.href = 'scorekeeper.html';
     scoreLink.dataset.parkId = park.id;
   }
@@ -447,10 +524,12 @@
     selectedParkId = park.id;
     const visitMeta = app.getVisitedMeta(park.id);
     const parkScratchpad = app.getParkScratchpad(park.id);
+    const onRoute = app.getRouteStore().stops.includes(park.id);
     const specialEvents = Array.isArray(park.specialEvents) && park.specialEvents.length ? park.specialEvents : ['No current event signal'];
     document.getElementById('detail-stripe').style.background = park.color;
     document.getElementById('d-name').textContent = park.name;
     document.getElementById('d-team').textContent = `${park.team} · ${park.city}`;
+    renderDetailMap(park, onRoute);
     document.getElementById('d-note').textContent = visitMeta && visitMeta.notes ? visitMeta.notes : (park.note || '');
     document.getElementById('d-grid').innerHTML = `
       <div class="detail-datum"><div class="detail-datum-label">Opened</div><div class="detail-datum-value">${park.opened}</div></div>
@@ -474,6 +553,10 @@
         <div class="detail-event-list">
           ${specialEvents.map((eventName) => `<span class="detail-event-pill">${escapeHtml(eventName)}</span>`).join('')}
         </div>
+      </div>
+      <div class="detail-signal">
+        <div class="detail-signal-label">Route status</div>
+        <div class="detail-signal-text">${onRoute ? 'Already in the current run.' : 'Not on the route yet.'}</div>
       </div>
     `;
     document.getElementById('d-scratchpad').value = parkScratchpad ? parkScratchpad.text : '';
