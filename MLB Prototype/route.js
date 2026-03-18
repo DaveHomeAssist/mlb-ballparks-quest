@@ -19,6 +19,7 @@
   var escapeHtml = utils.escapeHtml;
   var safeColor = utils.safeColor;
   var safeToken = utils.safeToken;
+  var projectPoint = utils.projectPoint;
 
   function normalizeText(value) {
     return String(value == null ? "" : value).trim();
@@ -161,14 +162,6 @@
     return routeParks[0].city + " to " + routeParks[routeParks.length - 1].city + " · " + routeParks.length + " stops in play";
   }
 
-  function projectPoint(coordinates, width, height) {
-    var lng = coordinates && typeof coordinates.lng === "number" ? coordinates.lng : -95;
-    var lat = coordinates && typeof coordinates.lat === "number" ? coordinates.lat : 39;
-    var x = 48 + ((lng + 125) / 59) * (width - 96);
-    var y = 34 + (1 - ((lat - 25) / 24)) * (height - 68);
-    return { x: x, y: y };
-  }
-
   function renderMapPanel(routeParks, activeTrip) {
     var width = 760;
     var height = 260;
@@ -178,7 +171,7 @@
     var points = usableParks.map(function mapPark(park) {
       return {
         park: park,
-        point: projectPoint(park.coordinates, width, height)
+        point: projectPoint(park.coordinates, width, height, { left: 48, top: 34, horizontalInset: 96, verticalInset: 68 })
       };
     });
     var linePoints = points.map(function mapPoint(entry) {

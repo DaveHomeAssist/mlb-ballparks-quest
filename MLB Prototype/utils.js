@@ -50,6 +50,25 @@
     return hours + " hr " + remainder + " min";
   }
 
+  function projectPoint(coordinates, width, height, options) {
+    var settings = options || {};
+    var lng = coordinates && typeof coordinates.lng === "number" ? coordinates.lng : (settings.defaultLng != null ? settings.defaultLng : -95);
+    var lat = coordinates && typeof coordinates.lat === "number" ? coordinates.lat : (settings.defaultLat != null ? settings.defaultLat : 39);
+    var left = settings.left != null ? settings.left : 24;
+    var top = settings.top != null ? settings.top : 18;
+    var horizontalInset = settings.horizontalInset != null ? settings.horizontalInset : 48;
+    var verticalInset = settings.verticalInset != null ? settings.verticalInset : 36;
+    var minLng = settings.minLng != null ? settings.minLng : -125;
+    var lngSpan = settings.lngSpan != null ? settings.lngSpan : 59;
+    var minLat = settings.minLat != null ? settings.minLat : 25;
+    var latSpan = settings.latSpan != null ? settings.latSpan : 24;
+
+    return {
+      x: left + ((lng - minLng) / lngSpan) * (width - horizontalInset),
+      y: top + (1 - ((lat - minLat) / latSpan)) * (height - verticalInset)
+    };
+  }
+
   function escapeHtml(str) {
     if (str == null) return "";
     return String(str)
@@ -78,6 +97,7 @@
     distanceMiles: distanceMiles,
     formatDate: formatDate,
     minutesToReadable: minutesToReadable,
+    projectPoint: projectPoint,
     escapeHtml: escapeHtml,
     safeToken: safeToken,
     safeColor: safeColor

@@ -397,6 +397,11 @@
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 
+@media (max-width: 1200px) {
+  .index-layout { grid-template-columns: minmax(0, 1.2fr) 320px; gap: 20px; }
+  .hero { padding: 60px 0 52px; }
+}
+
 @media (max-width: 900px) {
   .index-layout { grid-template-columns: 1fr; }
   .sidebar-card { position: static; }
@@ -536,6 +541,7 @@
   const escapeHtml = utils.escapeHtml;
   const safeColor = utils.safeColor;
   const safeToken = utils.safeToken;
+  const projectPoint = utils.projectPoint;
 
   function renderVisited() {
     const visited = app.getVisitedParks();
@@ -586,21 +592,12 @@
     `).join('');
   }
 
-  function projectPoint(coords, width, height) {
-    const lng = coords && typeof coords.lng === 'number' ? coords.lng : -95;
-    const lat = coords && typeof coords.lat === 'number' ? coords.lat : 39;
-    return {
-      x: 24 + ((lng + 125) / 59) * (width - 48),
-      y: 18 + (1 - ((lat - 25) / 24)) * (height - 36)
-    };
-  }
-
   function renderSidebarMap() {
     const width = 280;
     const height = 180;
     const visited = app.getVisitedParks().slice(0, 8);
     const targets = (app.getRouteParks().length ? app.getRouteParks().slice(0, 4) : app.getNextTargets(4)).filter(Boolean);
-    const targetPoints = targets.map((park) => ({ park, point: projectPoint(park.coordinates, width, height) }));
+    const targetPoints = targets.map((park) => ({ park, point: projectPoint(park.coordinates, width, height, { left: 24, top: 18, horizontalInset: 48, verticalInset: 36 }) }));
     const polyline = targetPoints.map((entry) => `${entry.point.x.toFixed(1)},${entry.point.y.toFixed(1)}`).join(' ');
 
     document.getElementById('sidebarMap').innerHTML = `
@@ -608,7 +605,7 @@
         <path class="sidebar-map-base" d="M32 36 L58 28 L90 34 L118 26 L154 32 L188 44 L226 50 L244 78 L236 114 L204 140 L162 148 L118 142 L82 132 L52 108 L36 84 Z"></path>
         ${polyline ? `<polyline class="sidebar-map-line" points="${polyline}"></polyline>` : ''}
         ${visited.map(({ park }) => {
-          const point = projectPoint(park.coordinates, width, height);
+          const point = projectPoint(park.coordinates, width, height, { left: 24, top: 18, horizontalInset: 48, verticalInset: 36 });
           return `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4.5" fill="#2E7D52" stroke="rgba(15,31,56,0.7)" stroke-width="1.4"></circle>`;
         }).join('')}
         ${targetPoints.map(({ park, point }) => `

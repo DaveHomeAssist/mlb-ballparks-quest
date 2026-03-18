@@ -343,9 +343,20 @@
   flex-direction: column;
 }
 
+@media (max-width: 1200px) {
+  .parks-layout { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+}
+
 @media (max-width: 900px) {
   .parks-layout { grid-template-columns: 1fr; }
   .detail-panel { position: static; }
+}
+
+@media (max-width: 640px) {
+  .filter-strip { flex-direction: column; align-items: stretch; }
+  .filter-search { width: 100%; }
+  .detail-actions .btn,
+  .detail-actions a { width: 100%; text-align: center; justify-content: center; }
 }
 </style>
 </head>
@@ -429,27 +440,19 @@
   const escapeHtml = utils.escapeHtml;
   const safeColor = utils.safeColor;
   const safeToken = utils.safeToken;
+  const projectPoint = utils.projectPoint;
 
   let selectedParkId = null;
   let activeFilter = 'all';
   let searchTerm = '';
 
-  function projectPoint(coords, width, height) {
-    const lng = coords && typeof coords.lng === 'number' ? coords.lng : -95;
-    const lat = coords && typeof coords.lat === 'number' ? coords.lat : 39;
-    return {
-      x: 22 + ((lng + 125) / 59) * (width - 44),
-      y: 18 + (1 - ((lat - 25) / 24)) * (height - 36)
-    };
-  }
-
   function renderDetailMap(park, onRoute) {
     const width = 280;
     const height = 170;
-    const point = projectPoint(park.coordinates, width, height);
+    const point = projectPoint(park.coordinates, width, height, { left: 22, top: 18, horizontalInset: 44, verticalInset: 36 });
     const routeParks = app.getRouteParks().slice(0, 4).map((item) => ({
       park: item,
-      point: projectPoint(item.coordinates, width, height)
+      point: projectPoint(item.coordinates, width, height, { left: 22, top: 18, horizontalInset: 44, verticalInset: 36 })
     }));
     const routeLine = routeParks.map((entry) => `${entry.point.x.toFixed(1)},${entry.point.y.toFixed(1)}`).join(' ');
 

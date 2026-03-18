@@ -806,6 +806,16 @@ body {
 [data-layout="mobile"] .sk-chip-row { flex-wrap: wrap; }
 
 /* ─── Responsive fallbacks (CSS-only) ─── */
+@media (max-width: 1200px) {
+  :root { --cell-size: 84px; --lineup-w: 160px; --totals-w: 54px; }
+  .sk-notes-panel { width: 204px; }
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+  :root { --cell-size: 72px; --lineup-w: 140px; --totals-w: 48px; }
+  .sk-notes-panel { width: 240px; }
+}
+
 @media (max-width: 640px) {
   :root { --cell-size: 56px; --lineup-w: 110px; --totals-w: 42px; }
   body { overflow: auto; }
@@ -814,12 +824,8 @@ body {
   .sk-input-bar { flex-direction: column; gap: 6px; padding: 8px; }
   .sk-chip-row { flex-wrap: wrap; }
   .sk-nav { padding: 0 8px; gap: 6px; }
-  .sk-nav-actions { gap: 4px; }
-  .sk-btn { font-size: 9px; padding: 4px 8px; }
-}
-@media (max-width: 900px) and (min-width: 641px) {
-  :root { --cell-size: 72px; --lineup-w: 140px; }
-  .sk-notes-panel { width: 240px; }
+  .sk-nav-actions { gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .sk-btn { font-size: 8px; padding: 4px 7px; }
 }
 
 /* ─── Pencil canvas overlay ─────────────── */

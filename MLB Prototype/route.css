@@ -814,6 +814,16 @@
   color: rgba(245,237,216,0.35);
 }
 
+@media (max-width: 1200px) {
+  .route-planning-grid {
+    grid-template-columns: minmax(0, 1.15fr) 320px;
+  }
+
+  .route-map-frame {
+    min-height: 220px;
+  }
+}
+
 @media (max-width: 900px) {
   .route-planning-grid {
     grid-template-columns: 1fr;
