@@ -239,11 +239,11 @@
 <body>
 
 <h1>2026 MLB Home Schedules</h1>
-<div class="subtitle">ESPN → Anthropic API → Notion · All 30 Teams · One Row Per Game</div>
+<div class="subtitle">Web Search → Gemini 2.5 Flash → Notion · All 30 Teams · One Row Per Game</div>
 
 <div class="api-key-row">
-  <label>Anthropic API Key</label>
-  <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+  <label>Gemini API Key</label>
+  <input type="text" id="api-key-input" value="AIzaSyAqWty3qdBFrvXPMvygPTVMYootpJQ-g-w" autocomplete="off">
 </div>
 
 <div class="stats-row">
@@ -362,7 +362,7 @@ function updateProgress() {
 
 async function fetchTeamSchedule(team) {
   const apiKey = getApiKey();
-  const prompt = `Search ESPN for the 2026 MLB regular season home schedule for the ${team.name}.
+  const prompt = `Search for the 2026 MLB regular season home schedule for the ${team.name}.
 
 Return a JSON array of HOME games only. Each object must have:
 - date: "YYYY-MM-DD"
@@ -371,106 +371,57 @@ Return a JSON array of HOME games only. Each object must have:
 - time: Eastern time like "7:05 PM" or "TBD"
 
 Only home games. The regular season runs late March through late September.
-Return ONLY the raw JSON array, no markdown, no explanation.`;
+Return ONLY the raw JSON array, no markdown, no explanation, no code fences.`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
-      messages: [{ role: 'user', content: prompt }]
+      contents: [{ parts: [{ text: prompt }] }],
+      tools: [{ google_search: {} }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 16000,
+        responseMimeType: 'text/plain'
+      }
     })
   });
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`API ${response.status}: ${err.slice(0, 200)}`);
+    throw new Error(`Gemini ${response.status}: ${err.slice(0, 200)}`);
   }
 
   const data = await response.json();
+
+  // Extract text from Gemini response
   let text = '';
-  for (const block of data.content || []) {
-    if (block.type === 'text') text += block.text;
+  const candidates = data.candidates || [];
+  for (const candidate of candidates) {
+    const parts = candidate.content && candidate.content.parts ? candidate.content.parts : [];
+    for (const part of parts) {
+      if (part.text) text += part.text;
+    }
   }
 
+  if (!text.trim()) throw new Error('Empty response from Gemini');
+
+  // Strip markdown code fences if present
+  text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
+
   const match = text.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error('No JSON array in response');
+  if (!match) throw new Error('No JSON array found in response');
   return JSON.parse(match[0]);
 }
 
-async function writeGamesToNotion(team, games) {
-  const apiKey = getApiKey();
-  const batches = [];
-  for (let i = 0; i < games.length; i += 50) {
-    batches.push(games.slice(i, i + 50));
-  }
-
-  let written = 0;
-  for (const batch of batches) {
-    if (stopFlag) break;
-
-    const pages = batch.map(g => {
-      const special = SPECIAL[g.date] || '';
-      return {
-        properties: {
-          'Game': `${team.abbr.toUpperCase()} vs ${g.opponent}`,
-          'Team': `${team.emoji} ${team.name}`,
-          'Division': team.div,
-          'date:Date:start': g.date,
-          'date:Date:is_datetime': 0,
-          'Day of Week': g.day,
-          'Opponent': g.opponent,
-          'Time (ET)': g.time || 'TBD',
-          'Special Event': special,
-          'Doubleheader': '__NO__',
-        }
-      };
-    });
-
-    // Use Claude to call the Notion MCP to create pages
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages: [{
-          role: 'user',
-          content: `You have access to Notion. Create these ${pages.length} pages in the data source "${NOTION_DS_ID}". Use the notion-create-pages tool. Here are the pages:\n\n${JSON.stringify(pages, null, 0)}\n\nConfirm how many were created.`
-        }]
-      })
-    });
-
-    if (!response.ok) {
-      log(`  ⚠ Notion batch write returned ${response.status}`, 'warn');
-      continue;
-    }
-
-    written += batch.length;
-    totalGames += batch.length;
-    updateProgress();
-    await new Promise(r => setTimeout(r, 1000));
-  }
-
-  return written;
-}
+// Games are collected in allFetchedGames during fetch.
+// Notion write removed — use "Export schedules.json" button to get the data,
+// then import to Notion via Claude Code MCP tools or the Notion API directly.
 
 async function runImport() {
   const apiKey = getApiKey();
   if (!apiKey) {
-    log('Enter your Anthropic API key first.', 'err');
+    log('Enter your Gemini API key first.', 'err');
     return;
   }
 
@@ -522,15 +473,13 @@ async function runImport() {
         continue;
       }
 
-      log(`  Writing ${games.length} rows to Notion...`, 'dim');
-      const written = await writeGamesToNotion(team, games);
-      log(`  ✓ ${written} rows written`, 'ok');
-
+      totalGames += games.length;
       teamsDone++;
-      setTeamState(team.abbr, 'done', written);
+      setTeamState(team.abbr, 'done', games.length);
       updateProgress();
+      log(`  ✓ ${games.length} games collected (use Export button to save)`, 'ok');
 
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 1200));
 
     } catch (err) {
       log(`  ✗ ${err.message}`, 'err');
@@ -547,7 +496,10 @@ async function runImport() {
   setStatus(totalErrors > 0 ? 'DONE w/ ERR' : 'COMPLETE');
 
   log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'dim');
-  log(`${teamsDone}/30 teams · ${totalGames} games · ${totalErrors} errors`, totalErrors > 0 ? 'warn' : 'ok');
+  log(`${teamsDone}/30 teams · ${totalGames} games collected · ${totalErrors} errors`, totalErrors > 0 ? 'warn' : 'ok');
+  if (allFetchedGames.length > 0) {
+    log(`Click "Export schedules.json" to download all ${allFetchedGames.length} games.`, 'ok');
+  }
 }
 
 function stopImport() {
@@ -578,10 +530,8 @@ function exportLocalJSON() {
   log(`Exported ${allFetchedGames.length} games to schedules JSON`, 'ok');
 }
 
-log('Ready. Enter your API key and press RUN.', 'dim');
-log(`Target: ⚾ 2026 MLB Home Game Schedules`, 'dim');
-log(`DB: ${NOTION_DB_ID}`, 'dim');
-log(`DS: ${NOTION_DS_ID}`, 'dim');
+log('Ready. Press RUN to fetch all 30 teams via Gemini 2.5 Flash + Google Search.', 'dim');
+log('After fetching, click "Export schedules.json" to download the data.', 'dim');
 </script>
 </body>
 </html>
