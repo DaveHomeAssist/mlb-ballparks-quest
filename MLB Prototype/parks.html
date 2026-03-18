@@ -285,6 +285,9 @@
   line-height: 1.5;
 }
 
+.detail-schedule-list { display: flex; flex-direction: column; gap: 3px; }
+.detail-schedule-line { font-family: var(--font-data); font-size: 11px; color: rgba(245,237,216,0.82); padding: 2px 0; line-height: 1.5; }
+
 .detail-event-list {
   display: flex;
   flex-wrap: wrap;
@@ -364,6 +367,7 @@
 <script src="storage.js"></script>
 <script src="utils.js"></script>
 <script src="data.js"></script>
+<script src="schedule.js"></script>
 <script src="device.js"></script>
 <script src="app.js"></script>
 
@@ -559,6 +563,17 @@
         <div class="detail-signal-label">Route status</div>
         <div class="detail-signal-text">${onRoute ? 'Already in the current run.' : 'Not on the route yet.'}</div>
       </div>
+      ${(function() {
+        var schedule = window.BPQ && window.BPQ.schedule;
+        if (!schedule) return '';
+        var games = schedule.getUpcomingGames(park.id, 4);
+        if (!games.length) return '';
+        return '<div class="detail-signal"><div class="detail-signal-label">Upcoming home games</div><div class="detail-schedule-list">' +
+          games.map(function(g) {
+            return '<div class="detail-schedule-line">' + escapeHtml(schedule.formatGameLine(g)) +
+              (g.s ? ' <span class="detail-event-pill" style="margin-left:6px;font-size:8px;">' + escapeHtml(g.s) + '</span>' : '') + '</div>';
+          }).join('') + '</div></div>';
+      })()}
     `;
     document.getElementById('d-scratchpad').value = parkScratchpad ? parkScratchpad.text : '';
     updateDetailActions(park);

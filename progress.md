@@ -28,3 +28,21 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 [2026-03-18] [MLB] [refactor] Port paper style scorebook shell into the scorekeeper
 [2026-03-18] [MLB] [docs] Audit external scorecard reference and capture reusable layout pieces
 [2026-03-18] [MLB] [test] Validate scorebook grid render and undo flow with DOM harness
+[2026-03-18] [MLB] [docs] Write scorecard v2 contract for runner and cell lifecycle
+[2026-03-18] [MLB] [refactor] Add scorecard v2 scaffold and play ids to scorekeeper state
+[2026-03-18] [MLB] [test] Validate scorecard v2 scaffold through saved state replay
+[2026-03-18] [MLB] [refactor] Project runner lifecycle and cell state into scorecard v2
+[2026-03-18] [MLB] [refactor] Switch scorebook render to scorecard v2 cell projection
+[2026-03-18] [MLB] [test] Validate runner scoring projection with multi play jsdom harness
+[2026-03-18] [MLB Prototype] [refactor] Add shared local-first app state for visited parks, route targets, and scorekeeper park context
+[2026-03-18] [MLB Prototype] [refactor] Unify device runtime and remove scorekeeper inline device detection
+[2026-03-18] [MLB Prototype] [feat] Wire index, parks, and route pages to shared local state instead of hardcoded summary content
+[2026-03-18] [MLB Prototype] [feat] Add scorekeeper session persistence, setup/export, undo, and render_game_to_text hooks
+[2026-03-18] [MLB Prototype] [test] Run syntax validation across prototype pages and shared scripts
+[2026-03-18] [MLB Prototype] [test] Verify scorekeeper initial load with web-game client screenshot and state dump
+[2026-03-18] [MLB Prototype] [test] Verify three recorded outs flip scorekeeper from away half to home half
+[2026-03-18] [MLB Prototype] [test] Verify parks page route/scorekeeper actions pass venue context into scorekeeper
+[2026-03-18] [MLB Prototype] [feat] Add scorekeeper away/home view tabs so the visible book can diverge from the live batting side
+[2026-03-18] [MLB Prototype] [test] Verify scorekeeper side tabs render in the browser client screenshot and preserve live batting context
+[2026-03-18] [MLB Prototype] [test] Verify three outs flip to home while the away book remains inspectable, then confirm home view shows home-only logged plays
+[2026-03-18] [MLB Prototype] [todo] Optional third pass: promote the side tabs into a fuller dual-book model with separate lineup names and simultaneous away/home scorebook surfaces

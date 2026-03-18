@@ -91,10 +91,9 @@
   --sc-red:        #B03030;
   --sc-gold:       #C8920A;
 
-  /* Phillies default theme — overridden per team */
+  /* Team accent — overridden by theme switcher */
   --team-primary:  #E81828;
   --team-secondary:#002D72;
-  --team-name:     "Phillies";
 
   /* Cell */
   --cell-size:     92px;
@@ -107,6 +106,13 @@
   --f-mono:   'DM Mono', monospace;
   --f-body:   'DM Sans', sans-serif;
 }
+
+/* ─── Theme accent overrides ──────────── */
+:root[data-theme="phillies"] { --team-primary:#E81828; --team-secondary:#002D72; --sc-gold:#C8920A; }
+:root[data-theme="yankees"]  { --team-primary:#132448; --team-secondary:#C9A24B; --sc-gold:#C9A24B; --sc-pencil:#132448; }
+:root[data-theme="dodgers"]  { --team-primary:#005A9C; --team-secondary:#EF3E42; --sc-gold:#D9A64A; --sc-pencil:#005A9C; }
+:root[data-theme="cubs"]     { --team-primary:#0E3386; --team-secondary:#CC3433; --sc-gold:#D4AD55; --sc-pencil:#0E3386; }
+:root[data-theme="mets"]     { --team-primary:#002D72; --team-secondary:#FF5910; --sc-gold:#D8AB4F; --sc-pencil:#002D72; }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { height: 100%; }
@@ -840,6 +846,30 @@ body {
   pointer-events: auto;
 }
 
+/* ─── Theme switcher overrides for dark scorekeeper ── */
+.theme-switcher__trigger {
+  background: var(--bg-mid);
+  color: var(--sc-cream);
+  border-color: rgba(200,168,100,0.2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.theme-switcher__panel {
+  background: var(--bg-mid);
+  border-color: rgba(200,168,100,0.18);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+.theme-switcher__header { color: rgba(245,237,216,0.5); }
+.theme-switcher__option {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(200,168,100,0.12);
+  color: var(--sc-cream);
+}
+.theme-switcher__option[aria-pressed="true"] {
+  border-color: var(--sc-gold);
+  box-shadow: inset 0 0 0 1px rgba(200,146,10,0.25);
+}
+.theme-switcher__swatch { border-color: rgba(245,237,216,0.2); }
+
 </style>
 </head>
 <body>
@@ -1002,6 +1032,7 @@ body {
 
 </div><!-- /sk-main -->
 
+<script src="theme-switcher.js"></script>
 <script src="storage.js"></script>
 <script src="utils.js"></script>
 <script src="data.js"></script>
@@ -1609,5 +1640,6 @@ loadSession();
 updateViewSideUI();
 renderAll();
 </script>
+<script src="theme-switcher-ui.js"></script>
 </body>
 </html>

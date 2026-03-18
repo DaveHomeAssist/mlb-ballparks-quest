@@ -350,6 +350,8 @@
       var anchor = extractAnchor(noteText);
       var warningText = anchor.warning || deriveEventWarning(toPark || {});
       var ticketBadge = getTicketBadge(toPark ? toPark.ticketApproach : "");
+      var schedule = global.BPQ && global.BPQ.schedule;
+      var upcomingGames = schedule ? schedule.getUpcomingGames(toPark ? toPark.id : "", 3) : [];
 
       if (!fromPark || !toPark) return "";
 
@@ -364,6 +366,17 @@
         anchor.date ? '    <div class="leg-date-chip">' + escapeHtml(anchor.date) + '</div>' : '',
         '  </div>',
         renderAnchorBlock(anchor),
+        upcomingGames.length ? [
+          '<div class="leg-schedule-block">',
+          '  <div class="leg-schedule-label">Next home games</div>',
+          upcomingGames.map(function mapGame(game) {
+            return '<div class="leg-schedule-line' + (game.s ? ' leg-schedule-special' : '') + '">' +
+              escapeHtml(schedule.formatGameLine(game)) +
+              (game.s ? ' <span class="schedule-event-tag">' + escapeHtml(game.s) + '</span>' : '') +
+            '</div>';
+          }).join(''),
+          '</div>'
+        ].join('') : '',
         renderSignalBlock(leg, toPark, anchor, warningText),
         '  <div class="ticket-badge ' + ticketBadge.tone + '">' + escapeHtml(ticketBadge.label) + '</div>',
         '  <div class="leg-status-row">',

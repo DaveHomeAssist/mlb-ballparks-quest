@@ -92,9 +92,4 @@
   window.BPQ = window.BPQ || {};
   window.BPQ.device = detectDevice;
   window.BPQ.viewport = detectViewport;
-  window.BQDevice = {
-    detectDevice,
-    detectViewport,
-    applyDeviceAttributes
-  };
 })();

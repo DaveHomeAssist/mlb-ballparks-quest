@@ -814,6 +814,43 @@
   color: rgba(245,237,216,0.35);
 }
 
+.leg-schedule-block {
+  padding: 10px 14px;
+  border: 1px solid rgba(15,31,56,0.08);
+  border-radius: var(--r-md);
+  background: rgba(15,31,56,0.03);
+}
+.leg-schedule-label {
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(15,31,56,0.58);
+  margin-bottom: 6px;
+}
+.leg-schedule-line {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 2px 0;
+  line-height: 1.5;
+}
+.leg-schedule-special {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.schedule-event-tag {
+  display: inline-block;
+  font-size: 8px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(200,146,10,0.14);
+  color: #8A6200;
+  letter-spacing: 0.08em;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
 @media (max-width: 1200px) {
   .route-planning-grid {
     grid-template-columns: minmax(0, 1.15fr) 320px;

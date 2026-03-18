@@ -15,7 +15,7 @@
     planningNotes: "planningNotes"
   };
 
-  var VALID_NOTE_SCOPES = ["park", "leg", "trip", "visit"];
+  var VALID_NOTE_SCOPES = ["park", "leg", "trip"];
 
   function isoNow() {
     return new Date().toISOString();
@@ -82,8 +82,8 @@
       title: "Next Ballpark Run",
       parkIds: ["pnc-park", "yankee-stadium", "dodger-stadium"],
       legs: [
-        { id: createId("leg"), fromParkId: "pnc-park", toParkId: "yankee-stadium", minutes: 430 },
-        { id: createId("leg"), fromParkId: "yankee-stadium", toParkId: "dodger-stadium", minutes: 360 }
+        { id: createId("leg"), fromParkId: "pnc-park", toParkId: "yankee-stadium", travelMinutes: 430 },
+        { id: createId("leg"), fromParkId: "yankee-stadium", toParkId: "dodger-stadium", travelMinutes: 360 }
       ],
       startDate: null,
       endDate: null,
@@ -94,7 +94,7 @@
 
   function validateNoteScope(scope) {
     if (!VALID_NOTE_SCOPES.includes(scope)) {
-      throw new TypeError("Planning note scope must be park, leg, trip, or visit");
+      throw new TypeError("Planning note scope must be park, leg, or trip");
     }
   }
 
