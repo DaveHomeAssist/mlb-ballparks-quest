@@ -5,8 +5,10 @@
   if (!app) return;
 
   var tripScratchpadEl = document.getElementById("tripScratchpad");
+  var tripNotesContextEl = document.getElementById("tripNotesContext");
   var tripSummaryCardEl = document.getElementById("tripSummaryCard");
   var routeGridEl = document.getElementById("routeGrid");
+  var routeMapPanelEl = document.getElementById("routeMapPanel");
   var logisticsGridEl = document.getElementById("logisticsGrid");
 
   var DATE_RE = /\b(?:(?:Mon|Tue|Tues|Wed|Thu|Thur|Thurs|Fri|Sat|Sun)(?:day)?\.?\s+)?(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2}(?:,\s*\d{4})?\b|\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/i;
@@ -105,8 +107,93 @@
   }
 
   function getRouteSelection() {
-    var explicit = app.getRouteParks();
-    return explicit.length ? explicit : app.getNextTargets(3);
+    return app.getRouteParks();
+  }
+
+  function renderEmptyState(title, text) {
+    return [
+      '<div class="route-empty fade-up fade-up-2">',
+      '  <div class="route-empty-title">' + escapeHtml(title) + '</div>',
+      '  <div class="route-empty-text">' + escapeHtml(text) + '</div>',
+      '  <div class="route-empty-actions">',
+      '    <a href="parks.html" class="btn btn-browse">Browse all 30 parks</a>',
+      '    <a href="index.html" class="btn btn-ghost">Back to home</a>',
+      '  </div>',
+      '</div>'
+    ].join("");
+  }
+
+  function getRouteContextLine(routeParks) {
+    if (!routeParks.length) return "No stops locked yet";
+    if (routeParks.length === 1) return routeParks[0].city + " on deck";
+    return routeParks[0].city + " to " + routeParks[routeParks.length - 1].city + " · " + routeParks.length + " stops in play";
+  }
+
+  function projectPoint(coordinates, width, height) {
+    var lng = coordinates && typeof coordinates.lng === "number" ? coordinates.lng : -95;
+    var lat = coordinates && typeof coordinates.lat === "number" ? coordinates.lat : 39;
+    var x = 48 + ((lng + 125) / 59) * (width - 96);
+    var y = 34 + (1 - ((lat - 25) / 24)) * (height - 68);
+    return { x: x, y: y };
+  }
+
+  function renderMapPanel(routeParks, activeTrip) {
+    var width = 760;
+    var height = 260;
+    var usableParks = routeParks.filter(function filterPark(park) {
+      return park && park.coordinates && typeof park.coordinates.lat === "number" && typeof park.coordinates.lng === "number";
+    });
+    var points = usableParks.map(function mapPark(park) {
+      return {
+        park: park,
+        point: projectPoint(park.coordinates, width, height)
+      };
+    });
+    var linePoints = points.map(function mapPoint(entry) {
+      return entry.point.x.toFixed(1) + "," + entry.point.y.toFixed(1);
+    }).join(" ");
+    var mapTitle = activeTrip.legs.length ? "Route map" : "Route map pending";
+    var mapKicker = activeTrip.legs.length ? activeTrip.legs.length + " live legs" : "Add stops to draw the run";
+    var emptyTitle = usableParks.length ? "Add one more park to draw the route." : "Add the first park to start the route.";
+    var emptyText = usableParks.length ? "You have a stop in play. Add another park to compare the next leg." : "Start with a real park choice, then this map will show the run between cities.";
+
+    routeMapPanelEl.innerHTML = [
+      '<div class="route-map-head">',
+      '  <div>',
+      '    <div class="section-label trip-notes-label">Route map</div>',
+      '    <div class="route-map-title">' + escapeHtml(mapTitle) + '</div>',
+      '  </div>',
+      '  <div class="route-map-kicker">' + escapeHtml(mapKicker) + '</div>',
+      '</div>',
+      '<div class="route-map-frame">',
+      '  <svg class="route-map-svg" viewBox="0 0 ' + width + ' ' + height + '" aria-label="Route map preview">',
+      '    <path class="route-map-base" d="M110 58 L188 42 L258 55 L332 36 L429 45 L518 74 L601 87 L646 140 L616 188 L530 214 L400 224 L296 210 L180 196 L118 162 L96 118 Z"></path>',
+      '    <path class="route-map-grid" d="M124 84 L628 84"></path>',
+      '    <path class="route-map-grid" d="M110 144 L640 144"></path>',
+      '    <path class="route-map-grid" d="M180 54 L150 210"></path>',
+      '    <path class="route-map-grid" d="M342 42 L318 220"></path>',
+      '    <path class="route-map-grid" d="M532 66 L516 214"></path>',
+      (linePoints ? '    <polyline class="' + (points.length > 1 ? 'route-map-line' : 'route-map-line-muted') + '" points="' + escapeHtml(linePoints) + '"></polyline>' : ''),
+      points.map(function mapPoint(entry, index) {
+        var point = entry.point;
+        return [
+          '    <circle class="route-map-dot" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="' + (index === 0 ? '7' : '6') + '" fill="' + escapeHtml(entry.park.color || "#7EB4E0") + '"></circle>',
+          '    <text class="route-map-label" x="' + (point.x + 10).toFixed(1) + '" y="' + (point.y - 10).toFixed(1) + '">' + escapeHtml(entry.park.city) + '</text>'
+        ].join("");
+      }).join(""),
+      '  </svg>',
+      (!activeTrip.legs.length ? [
+        '  <div class="route-map-empty-copy">',
+        '    <div class="route-map-empty-title">' + escapeHtml(emptyTitle) + '</div>',
+        '    <div class="route-map-empty-text">' + escapeHtml(emptyText) + '</div>',
+        '    <div class="route-map-empty-actions">',
+        '      <a href="parks.html" class="btn btn-browse">Browse all 30 parks</a>',
+        '      <a href="index.html" class="btn btn-ghost">Back to home</a>',
+        '    </div>',
+        '  </div>'
+      ].join("") : ''),
+      '</div>'
+    ].join("");
   }
 
   function renderTripSummary() {
@@ -141,6 +228,7 @@
     ].join("");
 
     tripScratchpadEl.value = (app.getTripScratchpad() && app.getTripScratchpad().text) || "";
+    tripNotesContextEl.textContent = getRouteContextLine(routeParks);
   }
 
   function renderRouteCards() {
@@ -149,7 +237,7 @@
     var activeTrip = app.getActiveTrip();
 
     if (!routeParks.length) {
-      routeGridEl.innerHTML = '<div class="route-empty fade-up fade-up-2">No route stops yet. Start in the park directory, add real candidates, then come back here to compare friction and make the call.</div>';
+      routeGridEl.innerHTML = renderEmptyState("No stops yet.", "Pick the first park, then compare the route from there.");
       return;
     }
 
@@ -180,8 +268,8 @@
         '        <div class="route-meta-pair"><span class="route-meta-label">Visited</span><span class="route-meta-value">' + escapeHtml(visitMeta ? (visitMeta.visitDate || "Marked") : "Not yet") + '</span></div>',
         '      </div>',
         '      <div class="route-actions">',
-        '        <button type="button" class="btn btn-ghost route-action-btn" data-route-toggle="' + escapeHtml(park.id) + '">' + (onRoute ? "Remove stop" : "Add stop") + '</button>',
-        '        <a href="scorekeeper.html" class="route-plan-link" data-score-park="' + escapeHtml(park.id) + '">Score here →</a>',
+        '        <button type="button" class="btn ' + (onRoute ? 'btn-danger-outline' : 'btn-browse') + ' route-action-btn" data-route-toggle="' + escapeHtml(park.id) + '">' + (onRoute ? "Remove stop" : "Add stop") + '</button>',
+        '        <a href="scorekeeper.html" class="btn btn-score route-plan-link" data-score-park="' + escapeHtml(park.id) + '">Scorekeeper</a>',
         '      </div>',
         '    </div>',
         '  </div>',
@@ -234,9 +322,12 @@
 
   function renderLegs() {
     var activeTrip = app.getActiveTrip();
+    var routeParks = getRouteSelection();
+
+    renderMapPanel(routeParks, activeTrip);
 
     if (!activeTrip.legs.length) {
-      logisticsGridEl.innerHTML = '<div class="route-empty fade-up fade-up-3">Add at least two stops to start comparing drive time, event pressure, and ticket behavior between parks.</div>';
+      logisticsGridEl.innerHTML = renderEmptyState("No leg decisions yet.", "Add stops, then compare drive time, ticket pressure, and date risk here.");
       return;
     }
 
@@ -274,7 +365,7 @@
         '    <textarea class="leg-scratchpad" id="leg-note-' + escapeHtml(leg.id) + '" data-leg-note="' + escapeHtml(leg.id) + '" placeholder="Add dates, prices, seat sections, parking notes, or anything that changes the call.">' + escapeHtml(noteText) + '</textarea>',
         '  </div>',
         '  <div class="leg-actions">',
-        '    <a href="scorekeeper.html" class="btn btn-primary leg-score-btn" data-score-park="' + escapeHtml(toPark.id) + '">Score a game here</a>',
+        '    <a href="scorekeeper.html" class="btn btn-score leg-score-btn" data-score-park="' + escapeHtml(toPark.id) + '">Score a game here</a>',
         '  </div>',
         '</section>'
       ].join("");
