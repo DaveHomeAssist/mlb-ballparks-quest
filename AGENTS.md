@@ -32,3 +32,5 @@ MLB Ballparks Quest is a static local first MLB trip planning prototype. The cur
 [2026-03-18] [MLB] [feat] Add local team logos to prototype
 [2026-03-18] [MLB] [fix] Replace wrong icon pack with real MLB team marks
 [2026-03-18] [MLB] [feat] Promote prototype build to primary root app v0.8
+[2026-03-18] [MLB] [fix] Harden Phillies 2026 schedule page interactions
+[2026-03-18] [MLB] [feat] Add guided resolver engine to scorekeeper

@@ -930,6 +930,139 @@ body {
 }
 .sk-log-btn:hover { background: rgba(212,59,49,0.92); border-color: rgba(241,164,164,0.44); }
 
+.sk-chip.is-disabled,
+.sk-chip[disabled] {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sk-guided-section {
+  min-width: min(100%, 420px);
+}
+
+.sk-resolver-panel {
+  min-width: min(100%, 360px);
+  flex: 1 1 360px;
+  padding: 10px 12px;
+  border: 1px solid rgba(126,180,224,0.24);
+  border-radius: 8px;
+  background: rgba(255,252,243,0.78);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+}
+
+.sk-resolver-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sk-resolver-title {
+  font-family: var(--f-score);
+  font-size: 14px;
+  color: var(--sc-ink);
+}
+
+.sk-resolver-sub {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.72);
+}
+
+.sk-resolver-sub.is-warning {
+  color: #C85050;
+}
+
+.sk-resolver-bases-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sk-resolver-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sk-resolver-label {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(107,93,68,0.72);
+}
+
+.sk-resolver-arrow {
+  font-family: var(--f-score);
+  font-size: 16px;
+  color: rgba(107,93,68,0.7);
+}
+
+.sk-base-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sk-base-pill {
+  min-width: 42px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(200,168,100,0.18);
+  background: rgba(15,31,56,0.05);
+  color: rgba(107,93,68,0.72);
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-align: center;
+}
+
+.sk-base-pill.is-occupied {
+  background: rgba(42,74,138,0.16);
+  border-color: rgba(126,180,224,0.35);
+  color: var(--sc-ink);
+}
+
+.sk-resolver-meta {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  line-height: 1.45;
+  color: rgba(28,17,8,0.78);
+  margin-bottom: 8px;
+}
+
+.sk-resolver-moves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sk-move-chip {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(15,31,56,0.06);
+  border: 1px solid rgba(200,168,100,0.15);
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: rgba(28,17,8,0.82);
+}
+
+.sk-move-chip.is-run {
+  background: rgba(75,135,80,0.15);
+  border-color: rgba(75,135,80,0.26);
+}
+
+.sk-move-chip.is-out {
+  background: rgba(200,80,80,0.14);
+  border-color: rgba(200,80,80,0.26);
+}
+
 /* ─── iPad layout overrides ─────────────── */
 [data-layout="ipad"] .sk-notes-panel {
   position: fixed;
@@ -1255,6 +1388,44 @@ body {
     <!-- Input bar -->
     <div class="sk-input-bar">
 
+      <div class="sk-input-section sk-guided-section">
+        <span class="sk-input-label">Guided plays</span>
+        <div class="sk-chip-row">
+          <button class="sk-chip sk-guided-chip hit-chip" type="button" data-guided-code="1B">1B</button>
+          <button class="sk-chip sk-guided-chip hit-chip" type="button" data-guided-code="2B">2B</button>
+          <button class="sk-chip sk-guided-chip hit-chip" type="button" data-guided-code="3B">3B</button>
+          <button class="sk-chip sk-guided-chip hit-chip" type="button" data-guided-code="HR">HR</button>
+          <button class="sk-chip sk-guided-chip hit-chip" type="button" data-guided-code="BB">BB</button>
+          <button class="sk-chip sk-guided-chip hit-chip" type="button" data-guided-code="HBP">HBP</button>
+          <button class="sk-chip sk-guided-chip" type="button" data-guided-code="K">K</button>
+          <button class="sk-chip sk-guided-chip" type="button" data-guided-code="FO">FO</button>
+          <button class="sk-chip sk-guided-chip" type="button" data-guided-code="SF">SF</button>
+          <button class="sk-chip sk-guided-chip" type="button" data-guided-code="GO">GO</button>
+          <button class="sk-chip sk-guided-chip" type="button" data-guided-code="DP">DP</button>
+          <button class="sk-chip sk-guided-chip err-chip" type="button" data-guided-code="E">E</button>
+        </div>
+      </div>
+
+      <div class="sk-resolver-panel" id="resolver-panel">
+        <div class="sk-resolver-head">
+          <span class="sk-resolver-title">Projected result</span>
+          <span class="sk-resolver-sub" id="resolver-status">Choose a guided play</span>
+        </div>
+        <div class="sk-resolver-bases-wrap">
+          <div class="sk-resolver-block">
+            <span class="sk-resolver-label">Now</span>
+            <div class="sk-base-strip" id="resolver-bases-now"></div>
+          </div>
+          <div class="sk-resolver-arrow">→</div>
+          <div class="sk-resolver-block">
+            <span class="sk-resolver-label">After</span>
+            <div class="sk-base-strip" id="resolver-bases-next"></div>
+          </div>
+        </div>
+        <div class="sk-resolver-meta" id="resolver-meta">The app can resolve common runner movement from your current base state.</div>
+        <div class="sk-resolver-moves" id="resolver-moves"></div>
+      </div>
+
       <div class="sk-input-section">
         <span class="sk-input-label">Quick outs</span>
         <div class="sk-chip-row">
@@ -1323,6 +1494,7 @@ body {
 <script src="utils.js"></script>
 <script src="data.js"></script>
 <script src="logos.js"></script>
+<script src="resolver.js"></script>
 <script src="device.js"></script>
 <script src="schedule.js"></script>
 <script src="app.js"></script>
@@ -1335,6 +1507,7 @@ body {
 const app = window.BPQ && window.BPQ.app;
 const utils = window.BPQ && window.BPQ.utils;
 const logos = window.BPQ && window.BPQ.logos;
+const resolver = window.BPQ && window.BPQ.resolver;
 const SESSION_KEY = 'bpq_scorekeeper_session_v1';
 const INNINGS = 9;
 const BATTERS = 9;
@@ -1347,14 +1520,82 @@ const DEFAULT_NAMES = ['Stott','Schwarber','Harper','Castellanos','Realmuto','Bo
 const HIT_CODES   = new Set(['1B','2B','3B','HR']);
 const REACH_CODES = new Set(['BB','HBP','FC']);
 const OUT_RE      = /^(K|Ʞ|[FLUNG]\d|[1-9]-[1-9](-[1-9])*|DP.*)$/;
-const ERR_RE      = /^E\d/;
+const ERR_RE      = /^E(\d)?$/;
+const EXTRA_OUT_CODES = new Set(['FO','GO','SF','DP','CS']);
+const GUIDED_CODE_MAP = {
+  '1B': '1B',
+  '2B': '2B',
+  '3B': '3B',
+  'HR': 'HR',
+  'BB': 'BB',
+  'HBP': 'HBP',
+  'K': 'K',
+  'Ʞ': 'K',
+  'FO': 'FO',
+  'F7': 'FO',
+  'F8': 'FO',
+  'F9': 'FO',
+  'SF': 'SF',
+  'GO': 'GO',
+  '6-3': 'GO',
+  '5-3': 'GO',
+  '4-3': 'GO',
+  '1-3': 'GO',
+  '3-1': 'GO',
+  'DP': 'DP',
+  'DP4-6-3': 'DP',
+  'DP6-4-3': 'DP',
+  'DP5-4-3': 'DP',
+  'DP3-6-3': 'DP',
+  'E': 'E',
+  'E1': 'E',
+  'E2': 'E',
+  'E3': 'E',
+  'E4': 'E',
+  'E5': 'E',
+  'E6': 'E',
+  'E7': 'E',
+  'E8': 'E',
+  'E9': 'E'
+};
+const GUIDED_PLATE_APPEARANCE_TYPES = new Set(['1B','2B','3B','HR','BB','HBP','K','FO','SF','GO','DP','E']);
+const GUIDED_AB_TYPES = new Set(['1B','2B','3B','HR','K','FO','GO','DP','E']);
+const GUIDED_HIT_TYPES = new Set(['1B','2B','3B','HR']);
 
-function isOut(c)  { return OUT_RE.test(c) || /^\d+-\d+/.test(c) || /^F\d/.test(c); }
+function isOut(c)  { return EXTRA_OUT_CODES.has(c) || OUT_RE.test(c) || /^\d+-\d+/.test(c) || /^F\d/.test(c); }
 function isHit(c)  { return HIT_CODES.has(c); }
 function isErr(c)  { return ERR_RE.test(c); }
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function escapeHtml(value) {
   return utils && utils.escapeHtml ? utils.escapeHtml(value) : String(value == null ? '' : value);
+}
+
+function emptyBasesState() {
+  return resolver && resolver.emptyBases ? resolver.emptyBases() : { first: null, second: null, third: null };
+}
+
+function emptyGameState() {
+  return {
+    inning: 1,
+    half: 'top',
+    outs: 0,
+    battingTeam: 'away',
+    activeBatterId: 'away-b1-pa1',
+    lineupIndex: { away: 0, home: 0 },
+    bases: emptyBasesState(),
+    score: { away: 0, home: 0 },
+    contextDirty: false
+  };
+}
+
+function emptyPlayIntent() {
+  return {
+    playType: null,
+    code: '',
+    batterId: null,
+    options: {},
+    corrections: []
+  };
 }
 
 function emptyPlays() {
@@ -1404,6 +1645,10 @@ let batterIndex = { away: 0, home: 0 };
 let undoStack = [];
 let lineupNames = DEFAULT_NAMES.slice();
 let lineupPositions = DEFAULT_POSITIONS.slice();
+let gameState = emptyGameState();
+let playIntent = emptyPlayIntent();
+let resolvedPlay = null;
+let plateAppearanceSeq = 0;
 
 const ordinals = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th'];
 
@@ -1413,6 +1658,133 @@ function totalLoggedPlays() {
 
 function getCurrentBatter() {
   return batterIndex[currentSide];
+}
+
+function normalizeGuidedPlayType(code) {
+  const normalized = String(code || '').trim().toUpperCase();
+  if (!normalized) return null;
+  return GUIDED_CODE_MAP[normalized] || (resolver && resolver.normalizeScorekeeperCode ? resolver.normalizeScorekeeperCode(normalized) : null);
+}
+
+function buildBatterAppearanceId(side, batter, preview) {
+  const seq = preview ? plateAppearanceSeq + 1 : ++plateAppearanceSeq;
+  return `${side}-b${batter + 1}-pa${seq}`;
+}
+
+function buildBatterRunner(playType, preview) {
+  const batter = getCurrentBatter();
+  const side = currentSide;
+  const appearanceId = buildBatterAppearanceId(side, batter, preview);
+  return {
+    id: `r-${appearanceId}`,
+    batterId: appearanceId,
+    reachedOn: playType,
+    reachedInning: curInning + 1,
+    cellRef: { batter: batter, inning: curInning }
+  };
+}
+
+function syncGameStateFromLegacy() {
+  gameState.inning = curInning + 1;
+  gameState.half = currentSide === 'away' ? 'top' : 'bottom';
+  gameState.outs = outsThisHalf;
+  gameState.battingTeam = currentSide;
+  gameState.activeBatterId = `${currentSide}-b${getCurrentBatter() + 1}-next`;
+  gameState.lineupIndex = clone(batterIndex);
+  gameState.score = { away: ls.away.r, home: ls.home.r };
+  if (!gameState.bases) gameState.bases = emptyBasesState();
+}
+
+function getBaseOccupancyList(bases) {
+  return [
+    { key: 'first', label: '1B', runner: bases && bases.first ? bases.first : null },
+    { key: 'second', label: '2B', runner: bases && bases.second ? bases.second : null },
+    { key: 'third', label: '3B', runner: bases && bases.third ? bases.third : null }
+  ];
+}
+
+function renderBaseStrip(bases) {
+  return getBaseOccupancyList(bases).map((base) => {
+    return `<span class="sk-base-pill${base.runner ? ' is-occupied' : ''}">${base.label}</span>`;
+  }).join('');
+}
+
+function moveText(move) {
+  if (!move) return '';
+  if (move.to === 'home') return `${move.from} scored`;
+  if (move.to === 'out' || move.safe === false) return `${move.from} out`;
+  return `${move.from} to ${move.to}`;
+}
+
+function updateGuidedAvailability() {
+  document.querySelectorAll('.sk-guided-chip').forEach((chip) => {
+    const code = chip.dataset.guidedCode;
+    const disable = code === 'SF' && !(gameState.bases && gameState.bases.third);
+    chip.disabled = disable;
+    chip.classList.toggle('is-disabled', disable);
+  });
+}
+
+function updateResolverPanel() {
+  const nowEl = document.getElementById('resolver-bases-now');
+  const nextEl = document.getElementById('resolver-bases-next');
+  const metaEl = document.getElementById('resolver-meta');
+  const movesEl = document.getElementById('resolver-moves');
+  const statusEl = document.getElementById('resolver-status');
+  if (!nowEl || !nextEl || !metaEl || !movesEl || !statusEl) return;
+
+  nowEl.innerHTML = renderBaseStrip(gameState.bases || emptyBasesState());
+  nextEl.innerHTML = renderBaseStrip(resolvedPlay && resolvedPlay.bases ? resolvedPlay.bases : (gameState.bases || emptyBasesState()));
+  movesEl.innerHTML = '';
+  statusEl.classList.remove('is-warning');
+
+  if (gameState.contextDirty) {
+    statusEl.textContent = 'Manual state drift';
+    statusEl.classList.add('is-warning');
+    metaEl.textContent = 'Base state is no longer trusted after a manual unsupported code. Use guided plays or reset the inning state.';
+    return;
+  }
+
+  if (!playIntent.playType || !resolvedPlay) {
+    statusEl.textContent = 'Choose a guided play';
+    metaEl.textContent = 'The app will project runner movement, runs, and outs from the current base state.';
+    return;
+  }
+
+  statusEl.textContent = playIntent.playType;
+  if (resolvedPlay.warnings && resolvedPlay.warnings.length) {
+    statusEl.classList.add('is-warning');
+  }
+  metaEl.textContent = `Runs +${resolvedPlay.runsScored} · Outs +${resolvedPlay.outsAdded}${resolvedPlay.warnings && resolvedPlay.warnings.length ? ' · ' + resolvedPlay.warnings.join(' · ') : ''}`;
+  movesEl.innerHTML = (resolvedPlay.moves || []).length
+    ? (resolvedPlay.moves || []).map((move) => {
+        const extra = move.to === 'home' ? ' is-run' : (move.safe === false || move.to === 'out' ? ' is-out' : '');
+        return `<span class="sk-move-chip${extra}">${escapeHtml(moveText(move))}</span>`;
+      }).join('')
+    : `<span class="sk-move-chip">No runner movement</span>`;
+}
+
+function refreshGuidedPreview(code) {
+  playIntent.code = String(code || '').trim().toUpperCase();
+  playIntent.playType = normalizeGuidedPlayType(playIntent.code);
+  playIntent.batterId = playIntent.playType ? buildBatterAppearanceId(currentSide, getCurrentBatter(), true) : null;
+  resolvedPlay = null;
+
+  if (playIntent.playType && resolver && !gameState.contextDirty) {
+    try {
+      resolvedPlay = resolver.resolvePlay(
+        playIntent.playType,
+        { bases: gameState.bases || emptyBasesState() },
+        buildBatterRunner(playIntent.playType, true),
+        playIntent.options || {}
+      );
+    } catch (error) {
+      resolvedPlay = null;
+    }
+  }
+
+  updateGuidedAvailability();
+  updateResolverPanel();
 }
 
 function captureSession() {
@@ -1429,7 +1801,11 @@ function captureSession() {
     viewSide,
     curInning,
     outsThisHalf,
-    batterIndex: clone(batterIndex)
+    batterIndex: clone(batterIndex),
+    gameState: clone(gameState),
+    playIntent: clone(playIntent),
+    resolvedPlay: clone(resolvedPlay),
+    plateAppearanceSeq
   };
 }
 
@@ -1548,6 +1924,11 @@ function restoreSession(snapshot) {
   curInning = Number.isFinite(snapshot.curInning) ? snapshot.curInning : 0;
   outsThisHalf = Number.isFinite(snapshot.outsThisHalf) ? snapshot.outsThisHalf : 0;
   batterIndex = snapshot.batterIndex || { away: 0, home: 0 };
+  gameState = snapshot.gameState || emptyGameState();
+  playIntent = snapshot.playIntent || emptyPlayIntent();
+  resolvedPlay = snapshot.resolvedPlay || null;
+  plateAppearanceSeq = Number.isFinite(snapshot.plateAppearanceSeq) ? snapshot.plateAppearanceSeq : 0;
+  syncGameStateFromLegacy();
   renderAll();
 }
 
@@ -1793,16 +2174,76 @@ function renderNotes() {
 }
 
 function renderAll() {
+  syncGameStateFromLegacy();
   updateLinescore();
   renderNotes();
   updateStoryState();
   refreshActive();
+  updateGuidedAvailability();
+  updateResolverPanel();
 }
 
 function updateStoryState() {
   const storyCard = document.getElementById('sk-story-card');
   if (!storyCard) return;
   storyCard.hidden = totalLoggedPlays() > 0;
+}
+
+function commitResolvedPlay(code, count, playType, result) {
+  const side = currentSide;
+  const fieldingSide = side === 'away' ? 'home' : 'away';
+  const batter = getCurrentBatter();
+  const outsAfter = outsThisHalf + result.outsAdded;
+  const isLastOut = outsAfter >= 3;
+  const inningIndex = curInning;
+
+  if (ls[side].inn[inningIndex] === null) ls[side].inn[inningIndex] = 0;
+
+  plays[side][batter][inningIndex] = {
+    code: code,
+    count: count,
+    outNum: result.outsAdded ? Math.min(outsAfter, 3) : null,
+    isLastOut: isLastOut,
+    resolvedPlay: {
+      playType: playType,
+      runsScored: result.runsScored,
+      outsAdded: result.outsAdded,
+      runnerMoves: clone(result.moves || []),
+      warnings: clone(result.warnings || [])
+    }
+  };
+
+  if (GUIDED_AB_TYPES.has(playType)) totals[side][batter].ab++;
+  if (GUIDED_HIT_TYPES.has(playType)) {
+    totals[side][batter].h++;
+    ls[side].h++;
+  }
+  if (playType === 'E') ls[fieldingSide].e++;
+
+  if (result.runsScored) {
+    ls[side].r += result.runsScored;
+    ls[side].inn[inningIndex] += result.runsScored;
+  }
+
+  gameState.bases = clone(result.bases || emptyBasesState());
+  gameState.score = { away: ls.away.r, home: ls.home.r };
+  gameState.contextDirty = false;
+  outsThisHalf = outsAfter;
+
+  if (GUIDED_PLATE_APPEARANCE_TYPES.has(playType)) {
+    batterIndex[side] = (batter + 1) % BATTERS;
+  }
+
+  if (isLastOut) {
+    plays[side][batter][inningIndex].strandedBases = Object.keys(gameState.bases).filter((base) => gameState.bases[base]);
+    gameState.bases = emptyBasesState();
+    outsThisHalf = 0;
+    currentSide = side === 'away' ? 'home' : 'away';
+    if (currentSide === 'away') curInning = Math.min(curInning + 1, INNINGS - 1);
+  }
+
+  playIntent = emptyPlayIntent();
+  resolvedPlay = null;
 }
 
 function setupStoryMedia() {
@@ -1833,35 +2274,51 @@ function setupStoryMedia() {
 function logPlay(code, count) {
   if (!code.trim()) return;
   pushUndo();
-  const side = currentSide;
-  const batter = getCurrentBatter();
-  const out = isOut(code);
-  const hit = isHit(code);
-  const err = isErr(code);
-  const reach = REACH_CODES.has(code);
-  if (out) outsThisHalf++;
-  const isLastOut = outsThisHalf >= 3;
+  const normalizedPlayType = normalizeGuidedPlayType(code);
 
-  plays[side][batter][curInning] = { code, count, outNum: out ? outsThisHalf : null, isLastOut };
+  if (normalizedPlayType && resolver && !gameState.contextDirty) {
+    const result = resolver.resolvePlay(
+      normalizedPlayType,
+      { bases: gameState.bases || emptyBasesState() },
+      buildBatterRunner(normalizedPlayType, false),
+      playIntent.options || {}
+    );
+    commitResolvedPlay(code, count, normalizedPlayType, result);
+  } else {
+    const side = currentSide;
+    const batter = getCurrentBatter();
+    const out = isOut(code);
+    const hit = isHit(code);
+    const err = isErr(code);
+    const reach = REACH_CODES.has(code);
+    if (out) outsThisHalf++;
+    const isLastOut = outsThisHalf >= 3;
 
-  if (!(code === 'BB' || code === 'HBP')) totals[side][batter].ab++;
-  if (hit) {
-    totals[side][batter].h++;
-    ls[side].h++;
-  }
-  if (err) ls[side].e++;
-  if (code === 'HR') {
-    ls[side].r++;
-    ls[side].inn[curInning] = (ls[side].inn[curInning] || 0) + 1;
-  } else if (reach && ls[side].inn[curInning] === null) {
-    ls[side].inn[curInning] = 0;
-  }
+    plays[side][batter][curInning] = { code, count, outNum: out ? outsThisHalf : null, isLastOut };
 
-  batterIndex[side] = (batter + 1) % BATTERS;
-  if (isLastOut) {
-    outsThisHalf = 0;
-    currentSide = side === 'away' ? 'home' : 'away';
-    if (currentSide === 'away') curInning = Math.min(curInning + 1, INNINGS - 1);
+    if (!(code === 'BB' || code === 'HBP')) totals[side][batter].ab++;
+    if (hit) {
+      totals[side][batter].h++;
+      ls[side].h++;
+    }
+    if (err) ls[side === 'away' ? 'home' : 'away'].e++;
+    if (code === 'HR') {
+      ls[side].r++;
+      ls[side].inn[curInning] = (ls[side].inn[curInning] || 0) + 1;
+    } else if (reach && ls[side].inn[curInning] === null) {
+      ls[side].inn[curInning] = 0;
+    }
+
+    batterIndex[side] = (batter + 1) % BATTERS;
+    if (isLastOut) {
+      outsThisHalf = 0;
+      currentSide = side === 'away' ? 'home' : 'away';
+      if (currentSide === 'away') curInning = Math.min(curInning + 1, INNINGS - 1);
+    }
+
+    gameState.contextDirty = true;
+    playIntent = emptyPlayIntent();
+    resolvedPlay = null;
   }
 
   renderAll();
@@ -2056,8 +2513,8 @@ const VALID_PLAY_CODES = new Set([
   'L7', 'L8', 'L9', 'L3', 'L4', 'L5', 'L6',
   'DP4-6-3', 'DP6-4-3', 'DP5-4-3', 'DP3-6-3',
   '1B', '2B', '3B', 'HR', 'BB', 'HBP', 'FC',
-  'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9',
-  'SAC', 'SF'
+  'E', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'E9',
+  'SAC', 'SF', 'FO', 'GO', 'DP', 'SB', 'CS', 'WP'
 ]);
 
 function validateGameImport(obj) {
@@ -2129,10 +2586,12 @@ function submitNoteInput() {
 
 document.querySelectorAll('.sk-chip').forEach((chip) => {
   chip.addEventListener('click', () => {
-    const code = chip.dataset.code;
+    const code = chip.dataset.guidedCode || chip.dataset.code;
+    if (!code) return;
     document.getElementById('play-code').value = code;
     document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('selected'));
     chip.classList.add('selected');
+    refreshGuidedPreview(code);
   });
 });
 
@@ -2145,6 +2604,18 @@ document.getElementById('log-btn').addEventListener('click', () => {
 
 document.getElementById('play-code').addEventListener('keydown', (event) => {
   if (event.key === 'Enter') document.getElementById('log-btn').click();
+});
+
+document.getElementById('play-code').addEventListener('input', (event) => {
+  document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('selected'));
+  const normalized = String(event.target.value || '').trim().toUpperCase();
+  if (!normalized) {
+    playIntent = emptyPlayIntent();
+    resolvedPlay = null;
+    updateResolverPanel();
+    return;
+  }
+  refreshGuidedPreview(normalized);
 });
 
 document.addEventListener('keydown', (event) => {
@@ -2191,6 +2662,19 @@ window.render_game_to_text = function renderGameToText() {
     inning: curInning + 1,
     outs: outsThisHalf,
     batter: getCurrentBatter() + 1,
+    bases: {
+      first: !!(gameState.bases && gameState.bases.first),
+      second: !!(gameState.bases && gameState.bases.second),
+      third: !!(gameState.bases && gameState.bases.third)
+    },
+    guidedPlay: playIntent.playType,
+    preview: resolvedPlay ? {
+      runsScored: resolvedPlay.runsScored,
+      outsAdded: resolvedPlay.outsAdded,
+      moveCount: (resolvedPlay.moves || []).length,
+      warnings: resolvedPlay.warnings || []
+    } : null,
+    contextDirty: !!gameState.contextDirty,
     away: { name: meta.awayName, r: ls.away.r, h: ls.away.h, e: ls.away.e },
     home: { name: meta.homeName, r: ls.home.r, h: ls.home.h, e: ls.home.e },
     notes: notes.length
