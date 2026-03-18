@@ -6,9 +6,6 @@
   <title>MLB Ballparks Quest</title>
   <meta name="description" content="A low overhead MLB park tracker for route planning, visit notes, and next stadium priorities.">
   <meta name="theme-color" content="#111111">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="theme-tokens.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23f8f5ef'/%3E%3Cpath d='M18 20c5 3 9 8 11 14M46 20c-5 3-9 8-11 14M18 44c5-3 9-8 11-14M46 44c-5-3-9-8-11-14' stroke='%23ba3a2a' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
@@ -30,7 +27,6 @@
     img,svg{display:block;max-width:100%}
     a{color:inherit}
     button,input,select{font:inherit}
-    .display-serif{font-family:"Special Elite","Courier New",Georgia,serif}
 
     .shell{width:min(100% - 28px,var(--maxw));margin:0 auto}
     .skip-link{
@@ -139,10 +135,7 @@
     .route-card,
     .milestone,
     .highlight-card{
-      background-image:var(--theme-texture), var(--theme-panel-overlay);
-      background-size:180px 180px, auto;
-      background-position:center, center;
-      background-repeat:repeat, no-repeat;
+      background:var(--theme-panel-overlay);
     }
 
     .hero-copy{padding:30px}
@@ -169,13 +162,6 @@
       line-height:.95;
       letter-spacing:-.04em;
       max-width:10ch;
-    }
-    .hero h1,
-    .section-kicker,
-    .panel-header h2,
-    .section-head h2,
-    .route-card h3{
-      font-family:"Special Elite","Courier New",Georgia,serif;
     }
 
     .hero-copy p{
@@ -293,30 +279,6 @@
     .highlight-card{padding:18px;display:grid;gap:10px}
     .highlight-card blockquote{
       margin:0;color:var(--muted);font-size:.94rem
-    }
-    .empty-with-icon{
-      text-align:center;
-      justify-items:center;
-      padding:32px;
-    }
-    .empty-with-icon h3{margin-top:10px}
-    .empty-with-icon p{max-width:28ch}
-    .atelier-icon-badge{
-      width:52px;height:52px;
-      display:grid;place-items:center;
-      border-radius:16px;
-      background:color-mix(in srgb, var(--panel) 72%, white 28%);
-      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-      color:var(--accent);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
-    }
-    .atelier-icon{
-      width:28px;height:28px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.8;
-      stroke-linecap:round;
-      stroke-linejoin:round;
     }
 
     .directory-layout{
@@ -487,7 +449,6 @@
     }
 
     :focus-visible{
-      outline:3px solid var(--accent);
       outline:3px solid color-mix(in srgb, var(--accent) 72%, white 8%);
       outline-offset:3px;
     }
@@ -629,8 +590,8 @@
           </article>
           <article class="section-card">
             <div class="section-kicker">Action</div>
-            <h3>Plan the next road swing without guesswork</h3>
-            <p>The next-target board and park detail panel keep the travel case clear. This page favors momentum over overbuilt tooling.</p>
+            <h3>Route planning stays practical</h3>
+            <p>The next target board and park detail panel keep travel decisions clear. The page favors momentum over overbuilt tooling.</p>
           </article>
         </div>
       </div>
@@ -676,7 +637,7 @@
             <form class="filters" id="filterForm">
               <label>
                 Search
-                <input id="searchInput" name="search" type="search" placeholder="Search parks, teams, or cities (/)">
+                <input id="searchInput" name="search" type="search" placeholder="Team, stadium, or city (/)">
               </label>
               <label>
                 Visit state
@@ -745,7 +706,7 @@
 
   <footer class="footer">
     <div class="shell footer-bar">
-      <div>Built for the road. No account needed.</div>
+      <div>MLB Ballparks Quest is a static first planning artifact. It works by opening the file directly or dropping it onto static hosting.</div>
       <div><a href="#top">Back to top</a></div>
     </div>
   </footer>
@@ -792,9 +753,8 @@
       { id: 30, team: "Washington Nationals", stadium: "Nationals Park", city: "Washington, DC", capacity: 41313, roof: "Open", surface: "Grass", opened: 2008, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" }
     ];
 
+    const NEXT_TARGETS = [22, 19, 14];
     const SCOREKEEPER_IMPORT_KEY = "mlb_ballparks_scorekeeper_import_v1";
-    const VISITED_KEY = "mlb_visited_parks_v1";
-    const RETURN_KEY = "mlb_scorekeeper_return_v1";
 
     const MILESTONES = [
       { title: "Database backbone complete", done: "All 30 parks populated for mapping.", target: "March 2026", status: "in-progress" },
@@ -808,7 +768,7 @@
       visit: "all",
       roof: "all",
       sort: "priority",
-      activeParkId: null
+      activeParkId: NEXT_TARGETS[0]
     };
 
     const els = {
@@ -841,20 +801,6 @@
     let activeToast = null;
     let activeToastTimer = null;
     let trackerStatusTimer = null;
-
-    function iconSprite(kind, title = "") {
-      const label = title ? `<title>${escapeHtml(title)}</title>` : "";
-      if (kind === "ticket") {
-        return `<svg class="atelier-icon" viewBox="0 0 24 24" aria-hidden="${title ? "false" : "true"}">${label}<path d="M5 8.5V6h14v2.5a2 2 0 0 0 0 7V18H5v-2.5a2 2 0 0 0 0-7Z"/><path d="M12 6v12"/><path d="M9 9.5h.01"/><path d="M9 14.5h.01"/><path d="M15 9.5h.01"/><path d="M15 14.5h.01"/></svg>`;
-      }
-      if (kind === "pennant") {
-        return `<svg class="atelier-icon" viewBox="0 0 24 24" aria-hidden="${title ? "false" : "true"}">${label}<path d="M6 4v16"/><path d="M7 5h11l-4 4 4 4H7"/></svg>`;
-      }
-      if (kind === "diamond") {
-        return `<svg class="atelier-icon" viewBox="0 0 24 24" aria-hidden="${title ? "false" : "true"}">${label}<path d="M12 3 21 12 12 21 3 12 12 3Z"/><path d="M12 7v10"/><path d="M7 12h10"/></svg>`;
-      }
-      return `<svg class="atelier-icon" viewBox="0 0 24 24" aria-hidden="${title ? "false" : "true"}">${label}<circle cx="12" cy="12" r="8.5"/><path d="M8 6.5c1.6 1.1 2.8 2.8 3.4 4.9"/><path d="M16 6.5c-1.6 1.1-2.8 2.8-3.4 4.9"/><path d="M8 17.5c1.6-1.1 2.8-2.8 3.4-4.9"/><path d="M16 17.5c-1.6-1.1-2.8-2.8-3.4-4.9"/></svg>`;
-    }
 
     function clearToast() {
       if (activeToastTimer) {
@@ -903,6 +849,7 @@
       let score = park.visited ? -100 : 0;
       if (park.tier === "S") score += 30;
       if (park.tier === "A") score += 20;
+      if (NEXT_TARGETS.includes(park.id)) score += 40;
       score += Math.max(0, 2026 - park.opened) * 0.05;
       return score;
     }
@@ -918,91 +865,6 @@
 
     function formatNumber(value) {
       return new Intl.NumberFormat("en-US").format(value);
-    }
-
-    function getVisitedStore() {
-      try {
-        const raw = localStorage.getItem(VISITED_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.version === 1 && parsed.parks) return parsed;
-        }
-      } catch (e) {}
-      const seed = { version: 1, parks: {} };
-      for (const park of PARKS) {
-        if (park.visited) {
-          seed.parks[String(park.id)] = {
-            visitDate: park.visitDate || null,
-            rating: park.rating || null,
-            notes: park.notes || "",
-            bestFeature: park.bestFeature || "",
-            markedAt: new Date().toISOString()
-          };
-        }
-      }
-      saveVisitedStore(seed);
-      return seed;
-    }
-
-    function saveVisitedStore(store) {
-      try {
-        localStorage.setItem(VISITED_KEY, JSON.stringify(store));
-      } catch (e) {
-        showToast("Save failed — storage may be full. Export your data.", "error", 0);
-      }
-    }
-
-    function isVisited(parkId) {
-      const store = getVisitedStore();
-      return Boolean(store.parks[String(parkId)]);
-    }
-
-    function getVisitData(parkId) {
-      const store = getVisitedStore();
-      return store.parks[String(parkId)] || null;
-    }
-
-    function toggleVisited(parkId) {
-      const store = getVisitedStore();
-      const key = String(parkId);
-      if (store.parks[key]) {
-        delete store.parks[key];
-      } else {
-        store.parks[key] = {
-          visitDate: new Date().toISOString().slice(0, 10),
-          rating: null,
-          notes: "",
-          bestFeature: "",
-          markedAt: new Date().toISOString()
-        };
-      }
-      saveVisitedStore(store);
-    }
-
-    function syncParksFromVisitedStore() {
-      const store = getVisitedStore();
-      for (const park of PARKS) {
-        const data = store.parks[String(park.id)];
-        if (data) {
-          park.visited = true;
-          park.visitDate = data.visitDate || park.visitDate;
-          park.rating = data.rating != null ? data.rating : park.rating;
-          park.notes = data.notes || park.notes;
-          park.bestFeature = data.bestFeature || park.bestFeature;
-        } else {
-          park.visited = false;
-          park.visitDate = null;
-          park.rating = null;
-        }
-      }
-    }
-
-    function getNextTargets(count) {
-      return PARKS
-        .filter(function(park) { return !isVisited(park.id); })
-        .sort(function(a, b) { return priorityScore(b) - priorityScore(a); })
-        .slice(0, count)
-        .map(function(park) { return park.id; });
     }
 
     function writeScorekeeperImport(park) {
@@ -1070,52 +932,39 @@
     }
 
     function renderRoutePreview() {
-      const targets = getNextTargets(3);
-      const rows = targets
-        .map(function(id) { return PARKS.find(function(park) { return park.id === id; }); })
+      const rows = NEXT_TARGETS
+        .map((id, index) => PARKS.find((park) => park.id === id))
         .filter(Boolean)
-        .map(function(park, index) { return `
+        .map((park, index) => `
           <div class="route-row">
             <div>
-              <strong>${index + 1}. ${escapeHtml(park.stadium)}</strong>
-              <span>${escapeHtml(park.team)} · ${escapeHtml(park.city)}</span>
+              <strong>${index + 1}. ${park.stadium}</strong>
+              <span>${park.team} · ${park.city}</span>
             </div>
             ${getTierPill(park)}
           </div>
-        `; })
+        `)
         .join("");
-      els.routePreview.innerHTML = rows || `<div class="route-row"><div><strong>All 30 parks visited!</strong><span>Quest complete.</span></div></div>`;
+      els.routePreview.innerHTML = rows;
     }
 
     function renderRouteCards() {
-      const targets = getNextTargets(3);
-      if (!targets.length) {
-        els.routeGrid.innerHTML = `
-          <article class="route-card empty-with-icon">
-            <div class="atelier-icon-badge">${iconSprite("pennant", "Quest complete")}</div>
-            <div class="section-kicker">Quest complete</div>
-            <h3>All 30 parks visited</h3>
-            <p>You have visited every MLB ballpark. The route section now serves as your achievement record.</p>
-          </article>
-        `;
-        return;
-      }
-      els.routeGrid.innerHTML = targets
-        .map(function(id) { return PARKS.find(function(park) { return park.id === id; }); })
+      els.routeGrid.innerHTML = NEXT_TARGETS
+        .map((id, index) => PARKS.find((park) => park.id === id))
         .filter(Boolean)
-        .map(function(park, index) { return `
+        .map((park, index) => `
           <article class="route-card">
             <div class="route-rank">${index + 1}</div>
-            <div class="section-kicker">${escapeHtml(park.team)}</div>
-            <h3>${escapeHtml(park.stadium)}</h3>
-            <p>${escapeHtml(park.city)}. ${park.tier ? `${escapeHtml(park.tier)} tier draw.` : "Strong open target."} ${park.bestFeature ? `Known for ${escapeHtml(park.bestFeature.toLowerCase())}.` : "Needs a first visit note."}</p>
+            <div class="section-kicker">${park.team}</div>
+            <h3>${park.stadium}</h3>
+            <p>${park.city}. ${park.tier ? `${park.tier} tier draw.` : "Strong open target."} ${park.bestFeature ? `Known for ${park.bestFeature.toLowerCase()}.` : "Needs a first visit note."}</p>
             <div class="meta-row">
-              <span class="pill">${escapeHtml(park.roof)}</span>
-              <span class="pill">${escapeHtml(park.surface)}</span>
+              <span class="pill">${park.roof}</span>
+              <span class="pill">${park.surface}</span>
               <span class="pill">Opened ${park.opened}</span>
             </div>
           </article>
-        `; })
+        `)
         .join("");
     }
 
@@ -1123,8 +972,8 @@
       const visited = PARKS.filter((park) => park.visited).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
       if (!visited.length) {
         els.highlightGrid.innerHTML = `
-          <article class="section-card empty-with-icon">
-            <div class="atelier-icon-badge">${iconSprite("ticket", "No parks visited yet")}</div>
+          <article class="section-card">
+            <div class="section-kicker">Highlights</div>
             <h3>No parks visited yet</h3>
             <p>Score your first game to start building your ballpark collection.</p>
           </article>
@@ -1148,7 +997,7 @@
 
     function renderParks() {
       const parks = getFilteredParks();
-      els.resultsCount.textContent = `${parks.length} park${parks.length === 1 ? "" : "s"} in view`;
+      els.resultsCount.textContent = `${parks.length} park${parks.length === 1 ? "" : "s"} shown`;
       if (state.activeParkId !== null && !parks.some((park) => park.id === state.activeParkId)) {
         state.activeParkId = parks.length ? parks[0].id : null;
       }
@@ -1183,7 +1032,7 @@
         els.detailSubtitle.textContent = "Choose a park card to inspect the full snapshot";
         els.detailMeta.innerHTML = `<span class="pill">Use search or filters</span>`;
         els.detailMetrics.innerHTML = "";
-        els.detailCopy.textContent = "Pick a park card to pull up the venue snapshot, the travel case, and the scorekeeper handoff.";
+        els.detailCopy.textContent = "The detail panel will update with route notes, venue context, and the scorekeeper handoff action once a park is selected.";
         if (els.detailScorekeeperLink) {
           els.detailScorekeeperLink.setAttribute("href", "#parks");
           els.detailScorekeeperLink.textContent = "Select a park to use scorekeeper";
@@ -1219,20 +1068,9 @@
           <strong>${park.visitDate || "Open target"}</strong>
         </div>
       `;
-      const visitData = getVisitData(park.id);
-      const visitedLabel = visitData
-        ? `Visited ✓ ${visitData.visitDate || ""}`
-        : "Not visited";
-      els.detailCopy.innerHTML = `
-        <p>${escapeHtml(park.notes || `${park.stadium} is still open in the quest. Use this slot to capture seat notes, route logic, and what would make the trip worth locking.`)}</p>
-        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-          ${visitData
-            ? `<span class="pill" style="background:color-mix(in srgb, var(--field) 12%, white 88%);border-color:color-mix(in srgb, var(--field) 24%, transparent);color:var(--field)">${escapeHtml(visitedLabel)}</span>
-               <button class="btn btn-secondary" type="button" data-unvisit="${park.id}" style="min-height:34px;padding:0 12px;font-size:.88rem">Remove visited</button>`
-            : `<button class="btn btn-primary" type="button" data-mark-visited="${park.id}" style="min-height:34px;padding:0 12px;font-size:.88rem">Mark as Visited</button>`
-          }
-        </div>
-      `;
+      els.detailCopy.textContent = park.notes
+        ? park.notes
+        : `${park.stadium} is still open in the quest. Use this slot to capture seat notes, route logic, and what would make the trip worth locking.`;
       if (els.detailScorekeeperLink) {
         els.detailScorekeeperLink.setAttribute("href", "scorekeeper.html");
         els.detailScorekeeperLink.textContent = "Open scorekeeper with this park";
@@ -1297,27 +1135,6 @@
         renderParks();
       });
 
-      document.addEventListener("click", (event) => {
-        const markBtn = event.target.closest("[data-mark-visited]");
-        const unvisitBtn = event.target.closest("[data-unvisit]");
-        if (markBtn) {
-          const parkId = Number(markBtn.getAttribute("data-mark-visited"));
-          toggleVisited(parkId);
-          syncParksFromVisitedStore();
-          renderAll();
-          showToast("Park marked as visited", "success", 2600);
-          return;
-        }
-        if (unvisitBtn) {
-          const parkId = Number(unvisitBtn.getAttribute("data-unvisit"));
-          toggleVisited(parkId);
-          syncParksFromVisitedStore();
-          renderAll();
-          showToast("Visited status removed", "info", 2600);
-          return;
-        }
-      });
-
       document.addEventListener("keydown", (event) => {
         const tag = event.target && event.target.tagName ? event.target.tagName : "";
         const inField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
@@ -1345,78 +1162,14 @@
       });
     }
 
-    function renderAll() {
-      syncParksFromVisitedStore();
+    function init() {
       renderTopStats();
       renderRoutePreview();
       renderRouteCards();
       renderHighlights();
-      renderParks();
-    }
-
-    function readReturnPayload() {
-      try {
-        const raw = localStorage.getItem(RETURN_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || parsed.version !== 1 || !parsed.parkId) return null;
-        if (Date.now() - new Date(parsed.exportedAt).getTime() > 86400000) {
-          localStorage.removeItem(RETURN_KEY);
-          return null;
-        }
-        return parsed;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function clearReturnPayload() {
-      try { localStorage.removeItem(RETURN_KEY); } catch (e) {}
-    }
-
-    function handleReturnHandoff() {
-      const payload = readReturnPayload();
-      if (!payload) return;
-      const park = PARKS.find(function(p) { return p.id === payload.parkId; });
-      if (!park) { clearReturnPayload(); return; }
-      if (isVisited(park.id)) {
-        showToast(`${escapeHtml(park.stadium)} is already visited`, "info", 3200);
-        clearReturnPayload();
-        return;
-      }
-      const banner = document.createElement("div");
-      banner.className = "toast is-undo";
-      banner.setAttribute("role", "status");
-      banner.setAttribute("aria-live", "polite");
-      banner.innerHTML = `
-        <div class="toast-copy">You finished a game at <strong>${escapeHtml(park.stadium)}</strong>. Mark it as visited?</div>
-        <div class="toast-actions">
-          <button class="toast-action" type="button" data-return-mark="${park.id}">Mark Visited</button>
-          <button class="toast-close" type="button">Not now</button>
-        </div>
-      `;
-      banner.querySelector("[data-return-mark]").addEventListener("click", function() {
-        toggleVisited(park.id);
-        syncParksFromVisitedStore();
-        clearReturnPayload();
-        banner.remove();
-        renderAll();
-        showToast(`${escapeHtml(park.stadium)} marked as visited`, "success", 3200);
-      });
-      banner.querySelector(".toast-close").addEventListener("click", function() {
-        banner.remove();
-      });
-      document.body.appendChild(banner);
-    }
-
-    function init() {
-      syncParksFromVisitedStore();
-      var targets = getNextTargets(3);
-      if (targets.length) state.activeParkId = targets[0];
-      renderAll();
       renderMilestones();
+      renderParks();
       bindEvents();
-      handleReturnHandoff();
     }
 
     init();

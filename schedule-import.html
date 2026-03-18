@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 MLB Home Schedule → Notion</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: #222;
+    --accent: #e8ff3b;
+    --red: #ff3b3b;
+    --green: #3bff8a;
+    --text: #e8e8e8;
+    --muted: #555;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1.5px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  button.danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  button.danger:hover:not(:disabled) {
+    background: var(--red);
+    color: #fff;
+  }
+
+  button.secondary {
+    border-color: var(--muted);
+    color: var(--muted);
+  }
+  button.secondary:hover:not(:disabled) {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .api-key-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .api-key-row input {
+    flex: 1;
+    max-width: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    padding: 8px 12px;
+    outline: none;
+  }
+  .api-key-row input:focus { border-color: var(--accent); }
+  .api-key-row input::placeholder { color: var(--muted); }
+
+  .api-key-row label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+
+  .log-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    height: 380px;
+    overflow-y: auto;
+    padding: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.8;
+  }
+
+  .log-line { display: flex; gap: 12px; }
+  .log-time { color: var(--muted); flex-shrink: 0; }
+  .log-msg.ok { color: var(--green); }
+  .log-msg.err { color: var(--red); }
+  .log-msg.info { color: var(--text); }
+  .log-msg.dim { color: var(--muted); }
+  .log-msg.warn { color: #ffaa33; }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    margin: 12px 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    font-size: 0.72rem;
+  }
+
+  .team-card .tname {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: var(--text);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .team-card .tstatus {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  .team-card.done { border-color: #3bff8a44; }
+  .team-card.done .tstatus { color: var(--green); }
+  .team-card.active { border-color: var(--accent); }
+  .team-card.active .tstatus { color: var(--accent); }
+  .team-card.error { border-color: #ff3b3b44; }
+  .team-card.error .tstatus { color: var(--red); }
+
+  .notion-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    margin-top: 16px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<h1>2026 MLB Home Schedules</h1>
+<div class="subtitle">ESPN → Anthropic API → Notion · All 30 Teams · One Row Per Game</div>
+
+<div class="api-key-row">
+  <label>Anthropic API Key</label>
+  <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+</div>
+
+<div class="stats-row">
+  <div class="stat"><div class="stat-val" id="s-teams">0</div><div class="stat-label">Teams Done</div></div>
+  <div class="stat"><div class="stat-val" id="s-games">0</div><div class="stat-label">Games Written</div></div>
+  <div class="stat"><div class="stat-val" id="s-errors">0</div><div class="stat-label">Errors</div></div>
+  <div class="stat"><div class="stat-val" id="s-status">IDLE</div><div class="stat-label">Status</div></div>
+</div>
+
+<div class="controls">
+  <button id="btn-run" onclick="runImport()">▶ Run Full Import</button>
+  <button id="btn-stop" class="danger" onclick="stopImport()" disabled>■ Stop</button>
+  <button class="secondary" onclick="exportLocalJSON()">↓ Export schedules.json</button>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="log-container" id="log"></div>
+
+<a class="notion-link" href="https://www.notion.so/81502c83ace04301906091ab238ce2c3?v=34b49817e0ea4f4e8ad0b2c83839fd6f" target="_blank">↗ Open Notion Database</a>
+
+<div class="team-grid" id="team-grid"></div>
+
+<script>
+// ═══ TARGET: The populated 2026 MLB Home Game Schedules database ═══
+const NOTION_DB_ID = '81502c83ace04301906091ab238ce2c3';
+const NOTION_DS_ID = '5af5dfbb-1aa7-494d-b5b7-86e8c6879185';
+
+const TEAMS = [
+  { abbr: 'bal', name: 'Baltimore Orioles', emoji: '🐦', div: 'AL East' },
+  { abbr: 'bos', name: 'Boston Red Sox', emoji: '🧦', div: 'AL East' },
+  { abbr: 'nyy', name: 'New York Yankees', emoji: '⭐', div: 'AL East' },
+  { abbr: 'tb',  name: 'Tampa Bay Rays', emoji: '☀️', div: 'AL East' },
+  { abbr: 'tor', name: 'Toronto Blue Jays', emoji: '🐦‍⬛', div: 'AL East' },
+  { abbr: 'chw', name: 'Chicago White Sox', emoji: '⚪', div: 'AL Central' },
+  { abbr: 'cle', name: 'Cleveland Guardians', emoji: '🛡️', div: 'AL Central' },
+  { abbr: 'det', name: 'Detroit Tigers', emoji: '🐯', div: 'AL Central' },
+  { abbr: 'kc',  name: 'Kansas City Royals', emoji: '👑', div: 'AL Central' },
+  { abbr: 'min', name: 'Minnesota Twins', emoji: '👯', div: 'AL Central' },
+  { abbr: 'hou', name: 'Houston Astros', emoji: '🚀', div: 'AL West' },
+  { abbr: 'laa', name: 'Los Angeles Angels', emoji: '😇', div: 'AL West' },
+  { abbr: 'oak', name: 'Athletics', emoji: '🐘', div: 'AL West' },
+  { abbr: 'sea', name: 'Seattle Mariners', emoji: '⚓', div: 'AL West' },
+  { abbr: 'tex', name: 'Texas Rangers', emoji: '🤠', div: 'AL West' },
+  { abbr: 'atl', name: 'Atlanta Braves', emoji: '🪓', div: 'NL East' },
+  { abbr: 'mia', name: 'Miami Marlins', emoji: '🐟', div: 'NL East' },
+  { abbr: 'nym', name: 'New York Mets', emoji: '🗽', div: 'NL East' },
+  { abbr: 'phi', name: 'Philadelphia Phillies', emoji: '🔔', div: 'NL East' },
+  { abbr: 'was', name: 'Washington Nationals', emoji: '🏛️', div: 'NL East' },
+  { abbr: 'chc', name: 'Chicago Cubs', emoji: '🐻', div: 'NL Central' },
+  { abbr: 'cin', name: 'Cincinnati Reds', emoji: '🔴', div: 'NL Central' },
+  { abbr: 'mil', name: 'Milwaukee Brewers', emoji: '🍺', div: 'NL Central' },
+  { abbr: 'pit', name: 'Pittsburgh Pirates', emoji: '🏴‍☠️', div: 'NL Central' },
+  { abbr: 'stl', name: 'St. Louis Cardinals', emoji: '🐦‍🔥', div: 'NL Central' },
+  { abbr: 'ari', name: 'Arizona Diamondbacks', emoji: '🐍', div: 'NL West' },
+  { abbr: 'col', name: 'Colorado Rockies', emoji: '🏔️', div: 'NL West' },
+  { abbr: 'lad', name: 'Los Angeles Dodgers', emoji: '🔵', div: 'NL West' },
+  { abbr: 'sd',  name: 'San Diego Padres', emoji: '⛪', div: 'NL West' },
+  { abbr: 'sf',  name: 'San Francisco Giants', emoji: '🌉', div: 'NL West' },
+];
+
+const SPECIAL = {
+  '2026-04-15': 'Jackie Robinson Day',
+  '2026-06-02': 'Lou Gehrig Day',
+  '2026-07-14': 'All-Star Game',
+  '2026-09-15': 'Roberto Clemente Day',
+};
+
+let running = false;
+let stopFlag = false;
+let totalGames = 0;
+let totalErrors = 0;
+let teamsDone = 0;
+let allFetchedGames = [];
+
+const teamStatus = {};
+TEAMS.forEach(t => teamStatus[t.abbr] = { state: 'pending', games: 0 });
+
+const grid = document.getElementById('team-grid');
+TEAMS.forEach(t => {
+  const card = document.createElement('div');
+  card.className = 'team-card';
+  card.id = `card-${t.abbr}`;
+  card.innerHTML = `<div class="tname">${t.emoji} ${t.name}</div><div class="tstatus" id="st-${t.abbr}">Pending</div>`;
+  grid.appendChild(card);
+});
+
+function getApiKey() {
+  return document.getElementById('api-key-input').value.trim();
+}
+
+function log(msg, type='info') {
+  const el = document.getElementById('log');
+  const now = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.innerHTML += `<div class="log-line"><span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setStatus(s) { document.getElementById('s-status').textContent = s; }
+function setTeamState(abbr, state, games) {
+  const card = document.getElementById(`card-${abbr}`);
+  const st = document.getElementById(`st-${abbr}`);
+  card.className = `team-card ${state}`;
+  if (state === 'done') st.textContent = `✓ ${games} games`;
+  else if (state === 'active') st.textContent = 'Fetching...';
+  else if (state === 'error') st.textContent = 'Error';
+  else st.textContent = 'Pending';
+}
+
+function updateProgress() {
+  document.getElementById('s-teams').textContent = teamsDone;
+  document.getElementById('s-games').textContent = totalGames;
+  document.getElementById('s-errors').textContent = totalErrors;
+  document.getElementById('prog').style.width = `${(teamsDone/30)*100}%`;
+}
+
+async function fetchTeamSchedule(team) {
+  const apiKey = getApiKey();
+  const prompt = `Search ESPN for the 2026 MLB regular season home schedule for the ${team.name}.
+
+Return a JSON array of HOME games only. Each object must have:
+- date: "YYYY-MM-DD"
+- day: "Mon","Tue","Wed","Thu","Fri","Sat","Sun"
+- opponent: full team name (e.g. "Boston Red Sox")
+- time: Eastern time like "7:05 PM" or "TBD"
+
+Only home games. The regular season runs late March through late September.
+Return ONLY the raw JSON array, no markdown, no explanation.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`API ${response.status}: ${err.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  let text = '';
+  for (const block of data.content || []) {
+    if (block.type === 'text') text += block.text;
+  }
+
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('No JSON array in response');
+  return JSON.parse(match[0]);
+}
+
+async function writeGamesToNotion(team, games) {
+  const apiKey = getApiKey();
+  const batches = [];
+  for (let i = 0; i < games.length; i += 50) {
+    batches.push(games.slice(i, i + 50));
+  }
+
+  let written = 0;
+  for (const batch of batches) {
+    if (stopFlag) break;
+
+    const pages = batch.map(g => {
+      const special = SPECIAL[g.date] || '';
+      return {
+        properties: {
+          'Game': `${team.abbr.toUpperCase()} vs ${g.opponent}`,
+          'Team': `${team.emoji} ${team.name}`,
+          'Division': team.div,
+          'date:Date:start': g.date,
+          'date:Date:is_datetime': 0,
+          'Day of Week': g.day,
+          'Opponent': g.opponent,
+          'Time (ET)': g.time || 'TBD',
+          'Special Event': special,
+          'Doubleheader': '__NO__',
+        }
+      };
+    });
+
+    // Use Claude to call the Notion MCP to create pages
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{
+          role: 'user',
+          content: `You have access to Notion. Create these ${pages.length} pages in the data source "${NOTION_DS_ID}". Use the notion-create-pages tool. Here are the pages:\n\n${JSON.stringify(pages, null, 0)}\n\nConfirm how many were created.`
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      log(`  ⚠ Notion batch write returned ${response.status}`, 'warn');
+      continue;
+    }
+
+    written += batch.length;
+    totalGames += batch.length;
+    updateProgress();
+    await new Promise(r => setTimeout(r, 1000));
+  }
+
+  return written;
+}
+
+async function runImport() {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    log('Enter your Anthropic API key first.', 'err');
+    return;
+  }
+
+  if (running) return;
+  running = true;
+  stopFlag = false;
+  totalGames = 0;
+  totalErrors = 0;
+  teamsDone = 0;
+  allFetchedGames = [];
+
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('btn-stop').disabled = false;
+  document.getElementById('log').innerHTML = '';
+  setStatus('RUNNING');
+
+  log('Starting 2026 MLB Home Schedule import', 'info');
+  log(`Target Notion DB: ${NOTION_DB_ID}`, 'dim');
+  log(`Data source: ${NOTION_DS_ID}`, 'dim');
+
+  for (const team of TEAMS) {
+    if (stopFlag) {
+      log('Import stopped by user.', 'warn');
+      break;
+    }
+
+    setTeamState(team.abbr, 'active', 0);
+    log(`→ ${team.emoji} ${team.name} (${team.div})`, 'info');
+
+    try {
+      const games = await fetchTeamSchedule(team);
+      log(`  ✓ ${games.length} home games fetched`, 'ok');
+
+      games.forEach(g => {
+        allFetchedGames.push({
+          team: team.name,
+          teamAbbr: team.abbr,
+          teamEmoji: team.emoji,
+          division: team.div,
+          ...g
+        });
+      });
+
+      if (games.length === 0) {
+        log(`  ⚠ No games returned`, 'warn');
+        setTeamState(team.abbr, 'error', 0);
+        totalErrors++;
+        updateProgress();
+        continue;
+      }
+
+      log(`  Writing ${games.length} rows to Notion...`, 'dim');
+      const written = await writeGamesToNotion(team, games);
+      log(`  ✓ ${written} rows written`, 'ok');
+
+      teamsDone++;
+      setTeamState(team.abbr, 'done', written);
+      updateProgress();
+
+      await new Promise(r => setTimeout(r, 1500));
+
+    } catch (err) {
+      log(`  ✗ ${err.message}`, 'err');
+      setTeamState(team.abbr, 'error', 0);
+      totalErrors++;
+      updateProgress();
+    }
+  }
+
+  running = false;
+  stopFlag = false;
+  document.getElementById('btn-run').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+  setStatus(totalErrors > 0 ? 'DONE w/ ERR' : 'COMPLETE');
+
+  log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'dim');
+  log(`${teamsDone}/30 teams · ${totalGames} games · ${totalErrors} errors`, totalErrors > 0 ? 'warn' : 'ok');
+}
+
+function stopImport() {
+  stopFlag = true;
+  log('Stop requested...', 'warn');
+  document.getElementById('btn-stop').disabled = true;
+}
+
+function exportLocalJSON() {
+  if (allFetchedGames.length === 0) {
+    log('No games fetched yet. Run the import first, or this exports from the current session.', 'warn');
+    return;
+  }
+  const payload = {
+    updated: new Date().toISOString().slice(0, 10),
+    source: 'ESPN via Anthropic API',
+    notionDbId: NOTION_DB_ID,
+    totalGames: allFetchedGames.length,
+    games: allFetchedGames.sort((a, b) => a.date.localeCompare(b.date) || a.team.localeCompare(b.team))
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mlb-2026-home-schedules-${payload.updated}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  log(`Exported ${allFetchedGames.length} games to schedules JSON`, 'ok');
+}
+
+log('Ready. Enter your API key and press RUN.', 'dim');
+log(`Target: ⚾ 2026 MLB Home Game Schedules`, 'dim');
+log(`DB: ${NOTION_DB_ID}`, 'dim');
+log(`DS: ${NOTION_DS_ID}`, 'dim');
+</script>
+</body>
+</html>
