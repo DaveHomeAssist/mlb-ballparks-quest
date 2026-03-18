@@ -5,21 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MLB Ballparks Quest</title>
   <meta name="description" content="A low overhead MLB park tracker for route planning, visit notes, and next stadium priorities.">
-  <meta name="theme-color" content="#0a2342">
+  <meta name="theme-color" content="#111111">
+  <link rel="stylesheet" href="theme-tokens.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23f8f5ef'/%3E%3Cpath d='M18 20c5 3 9 8 11 14M46 20c-5 3-9 8-11 14M18 44c5-3 9-8 11-14M46 44c-5-3-9-8-11-14' stroke='%23ba3a2a' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
     :root{
-      --bg:#f7f0e4;
-      --panel:#fffaf4;
-      --panel-strong:#fffdf9;
-      --ink:#0a2342;
-      --muted:#5f6f83;
-      --line:#d8cab9;
-      --accent:#c41e3a;
-      --accent-strong:#9f172d;
-      --field:#0a2342;
-      --sun:#d9b15f;
-      --shadow:0 18px 40px rgba(10,35,66,.08);
       --radius:18px;
       --maxw:1180px;
     }
@@ -30,11 +20,7 @@
       margin:0;
       font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:var(--ink);
-      background:
-        linear-gradient(90deg, rgba(196,30,58,.06) 0 2px, transparent 2px 18px),
-        linear-gradient(90deg, rgba(10,35,66,.045) 0 1px, transparent 1px 12px),
-        radial-gradient(circle at top, rgba(255,255,255,.96), rgba(247,240,228,.78) 45%, rgba(236,226,212,.92)),
-        linear-gradient(180deg, #faf3e8 0%, #f1e6d7 100%);
+      background:var(--theme-stripes), var(--theme-wash);
       line-height:1.5;
     }
 
@@ -51,8 +37,8 @@
 
     .site-header{
       position:sticky;top:0;z-index:10;
-      background:rgba(247,240,228,.92);
-      border-bottom:1px solid rgba(10,35,66,.1);
+      background:color-mix(in srgb, var(--bg) 92%, transparent);
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
       backdrop-filter:blur(8px);
     }
 
@@ -69,7 +55,7 @@
       width:42px;height:42px;border-radius:14px;border:1px solid rgba(20,36,51,.12);
       background:
         radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), rgba(255,255,255,.65) 45%, rgba(255,255,255,.2) 46%),
-        linear-gradient(140deg, #0a2342, #c41e3a);
+        linear-gradient(140deg, var(--field), var(--accent));
       box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
       position:relative;
     }
@@ -80,7 +66,7 @@
       position:absolute;
       inset:9px;
       border-radius:50%;
-      border:2px solid rgba(161,44,33,.9);
+      border:2px solid color-mix(in srgb, var(--accent) 88%, transparent);
       clip-path:inset(0 42% 0 42%);
     }
 
@@ -137,7 +123,7 @@
     .milestone,
     .highlight-card{
       background:linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.94));
-      border:1px solid rgba(10,35,66,.08);
+      border:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
     }
@@ -149,9 +135,7 @@
     .route-card,
     .milestone,
     .highlight-card{
-      background-image:
-        linear-gradient(90deg, rgba(196,30,58,.035) 0 2px, transparent 2px 20px),
-        linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.95));
+      background:var(--theme-panel-overlay);
     }
 
     .hero-copy{padding:30px}
@@ -215,8 +199,9 @@
     }
 
     .hero-note{
-      padding:12px 14px;border-radius:16px;background:rgba(10,35,66,.05);
-      border:1px solid rgba(10,35,66,.1);
+      padding:12px 14px;border-radius:16px;
+      background:color-mix(in srgb, var(--field) 6%, white);
+      border:1px solid color-mix(in srgb, var(--field) 14%, transparent);
     }
 
     .hero-note strong{display:block;font-size:1.1rem}
@@ -680,6 +665,8 @@
       <div><a href="#top">Back to top</a></div>
     </div>
   </footer>
+  <script src="theme-switcher.js" defer></script>
+  <script src="theme-switcher-ui.js" defer></script>
 
   <noscript>
     <div style="padding:14px 18px;background:#fff4dd;border-top:1px solid #e2c78d;color:#5a4421;text-align:center">

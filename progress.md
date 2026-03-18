@@ -9,3 +9,6 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 
 [2026-03-18] [MLB] [feat] Add standalone theme token sheet for additional club palettes
 [2026-03-18] [MLB] [docs] Write project handoff with development details
+[2026-03-18] [MLB] [feat] Add runtime theme loader and floating theme picker
+[2026-03-18] [MLB] [refactor] Move tracker and scorekeeper colors to shared theme tokens
+[2026-03-18] [MLB] [test] Verify theme switching and keyboard access across both pages
