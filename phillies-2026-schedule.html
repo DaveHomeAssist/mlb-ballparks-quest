@@ -803,7 +803,7 @@
 
   <div class="stats-bar">
     <div class="stat">
-      <span class="stat-num" id="stat-total">16</span>
+      <span class="stat-num" id="stat-total">17</span>
       <span class="stat-label">Total Games</span>
     </div>
     <div class="stat">
@@ -873,7 +873,7 @@
     <h3>📅 Export to Calendar</h3>
     <p>Download an .ics file to import into Apple Calendar, Google Calendar, or Outlook</p>
     <div class="export-btns">
-      <button class="btn-export btn-export-all" onclick="exportICS('all')">⬇ All 16 Games</button>
+      <button class="btn-export btn-export-all" id="export-all-btn" onclick="exportICS('all')">⬇ All 17 Games</button>
       <button class="btn-export btn-export-upcoming" onclick="exportICS('upcoming')">⬇ Upcoming Only</button>
     </div>
   </div>
@@ -884,6 +884,18 @@
 
 <script>
 const GAMES = [
+  {
+    id: 17,
+    matchup: "Nationals at Phillies",
+    opponent: "Washington Nationals",
+    date: "Tue, Mar 31, 2026",
+    time: "6:40 PM",
+    isoStart: "20260331T184000",
+    isoEnd:   "20260331T220000",
+    tags: ["division"],
+    opponentInfo: "Opening-week division game against Washington. Good early chance to settle into the ballpark rhythm before the heavier summer set.",
+    mustGo: "Real opener energy. Good first checkpoint if you want the season board started on time.",
+  },
   {
     id: 1,
     matchup: "Cubs at Phillies",
@@ -1200,9 +1212,11 @@ function updateStats() {
   const attended = Object.values(state.attended).filter(Boolean).length;
   const total = GAMES.length;
   const noted = Object.values(state.notes).filter(n => n && n.trim()).length;
+  document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-attended').textContent = attended;
   document.getElementById('stat-remaining').textContent = total - attended;
   document.getElementById('stat-noted').textContent = noted;
+  document.getElementById('export-all-btn').textContent = `⬇ All ${total} Games`;
   const pct = Math.round((attended / total) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-pct').textContent = pct + '% attended';
@@ -1268,7 +1282,7 @@ function buildCards() {
 
     card.innerHTML = `
       <button type="button" class="game-summary" onclick="toggleCard(${g.id})" aria-expanded="${isOpen ? 'true' : 'false'}" aria-controls="game-detail-${g.id}">
-        <div class="game-num">${g.id}</div>
+        <div class="game-num">${GAMES.findIndex(game => game.id === g.id) + 1}</div>
         <div class="game-main">
           <div class="game-matchup">${matchup}</div>
           <div class="game-details">${date} &nbsp;·&nbsp; ${time} &nbsp;·&nbsp; Citizens Bank Park</div>
