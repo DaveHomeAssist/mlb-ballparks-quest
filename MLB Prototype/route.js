@@ -114,12 +114,47 @@
     return [
       '<div class="route-empty fade-up fade-up-2">',
       '  <div class="route-empty-title">' + escapeHtml(title) + '</div>',
-      '  <div class="route-empty-text">' + escapeHtml(text) + '</div>',
+      text ? '  <div class="route-empty-text">' + escapeHtml(text) + '</div>' : '',
       '  <div class="route-empty-actions">',
       '    <a href="parks.html" class="btn btn-browse">Browse all 30 parks</a>',
       '    <a href="index.html" class="btn btn-ghost">Back to home</a>',
       '  </div>',
       '</div>'
+    ].join("");
+  }
+
+  function renderDemoLegCard() {
+    return [
+      '<section class="leg-card leg-card-demo fade-up fade-up-3">',
+      '  <div class="leg-warning">Friday fireworks · avoid</div>',
+      '  <div class="leg-header">',
+      '    <div>',
+      '      <div class="leg-title">PNC Park</div>',
+      '      <div class="leg-subtitle">Good weekend trip</div>',
+      '    </div>',
+      '    <div class="leg-date-chip">Sat May 16</div>',
+      '  </div>',
+      '  <div class="anchor-block">',
+      '    <div class="anchor-label">Key call</div>',
+      '    <div class="anchor-line">Sat May 16</div>',
+      '    <div class="anchor-line">$57 first base side</div>',
+      '  </div>',
+      '  <div class="signal-block">',
+      '    <div class="signal-strip">',
+      '      <span class="signal-pill">5h 15m drive</span>',
+      '      <span class="signal-pill">Walkable from downtown</span>',
+      '    </div>',
+      '  </div>',
+      '  <div class="ticket-badge safe">Walk up safe</div>',
+      '  <div class="leg-scratch-shell">',
+      '    <label class="leg-scratch-label">Notes</label>',
+      '    <div class="leg-note-list">',
+      '      <div>Friday drive out</div>',
+      '      <div>Saturday game</div>',
+      '      <div>Sunday home</div>',
+      '    </div>',
+      '  </div>',
+      '</section>'
     ].join("");
   }
 
@@ -152,10 +187,8 @@
     var linePoints = points.map(function mapPoint(entry) {
       return entry.point.x.toFixed(1) + "," + entry.point.y.toFixed(1);
     }).join(" ");
-    var mapTitle = activeTrip.legs.length ? "Route map" : "Route map pending";
-    var mapKicker = activeTrip.legs.length ? activeTrip.legs.length + " live legs" : "Add stops to draw the run";
-    var emptyTitle = usableParks.length ? "Add one more park to draw the route." : "Add the first park to start the route.";
-    var emptyText = usableParks.length ? "You have a stop in play. Add another park to compare the next leg." : "Start with a real park choice, then this map will show the run between cities.";
+    var mapTitle = activeTrip.legs.length ? "Route map" : "Route map";
+    var mapKicker = activeTrip.legs.length ? activeTrip.legs.length + " live legs" : "Waiting on the first stop";
 
     routeMapPanelEl.innerHTML = [
       '<div class="route-map-head">',
@@ -184,12 +217,7 @@
       '  </svg>',
       (!activeTrip.legs.length ? [
         '  <div class="route-map-empty-copy">',
-        '    <div class="route-map-empty-title">' + escapeHtml(emptyTitle) + '</div>',
-        '    <div class="route-map-empty-text">' + escapeHtml(emptyText) + '</div>',
-        '    <div class="route-map-empty-actions">',
-        '      <a href="parks.html" class="btn btn-browse">Browse all 30 parks</a>',
-        '      <a href="index.html" class="btn btn-ghost">Back to home</a>',
-        '    </div>',
+        '    <div class="route-map-empty-title">Add your first park to start the route</div>',
         '  </div>'
       ].join("") : ''),
       '</div>'
@@ -237,13 +265,14 @@
     var activeTrip = app.getActiveTrip();
 
     if (!routeParks.length) {
-      routeGridEl.innerHTML = renderEmptyState("No stops yet.", "Pick the first park, then compare the route from there.");
+      routeGridEl.innerHTML = renderEmptyState("No stops yet. Start with a park.", "");
       return;
     }
 
     routeGridEl.innerHTML = routeParks.map(function mapPark(park, index) {
       var onRoute = routeStopIds.includes(park.id);
       var visitMeta = app.getVisitedMeta(park.id);
+      var visited = Boolean(visitMeta);
       var stopIndex = routeStopIds.indexOf(park.id);
       var priorLeg = stopIndex > 0 ? activeTrip.legs.find(function findLeg(leg) {
         return leg.toParkId === park.id;
@@ -268,6 +297,7 @@
         '        <div class="route-meta-pair"><span class="route-meta-label">Visited</span><span class="route-meta-value">' + escapeHtml(visitMeta ? (visitMeta.visitDate || "Marked") : "Not yet") + '</span></div>',
         '      </div>',
         '      <div class="route-actions">',
+        '        <button type="button" class="btn btn-success route-visit-btn" data-visit-toggle="' + escapeHtml(park.id) + '">' + (visited ? "Visited" : "Mark visited") + '</button>',
         '        <button type="button" class="btn ' + (onRoute ? 'btn-danger-outline' : 'btn-browse') + ' route-action-btn" data-route-toggle="' + escapeHtml(park.id) + '">' + (onRoute ? "Remove stop" : "Add stop") + '</button>',
         '        <a href="scorekeeper.html" class="btn btn-score route-plan-link" data-score-park="' + escapeHtml(park.id) + '">Scorekeeper</a>',
         '      </div>',
@@ -298,24 +328,12 @@
   }
 
   function renderSignalBlock(leg, park, anchor, warningText) {
-    var rows = [
-      { label: "Drive", value: leg.distanceMiles + " mi · " + app.minutesToReadable(leg.travelMinutes) },
-      { label: "Transit", value: park.transitNote },
-      { label: "Ticket", value: park.ticketApproach }
-    ];
-
-    if (warningText) {
-      rows.push({ label: "Event", value: warningText });
-    }
-    if (anchor.price) {
-      rows.push({ label: "Price", value: anchor.price });
-    }
-
     return [
       '<div class="signal-block">',
-      rows.map(function mapRow(row) {
-        return '<div class="signal-row"><div class="signal-label">' + escapeHtml(row.label) + '</div><div class="signal-value">' + escapeHtml(row.value) + '</div></div>';
-      }).join(""),
+      '  <div class="signal-strip">',
+      '    <span class="signal-pill">' + escapeHtml(app.minutesToReadable(leg.travelMinutes)) + ' drive</span>',
+      '    <span class="signal-pill">' + escapeHtml(park.transitNote) + '</span>',
+      '  </div>',
       '</div>'
     ].join("");
   }
@@ -327,7 +345,10 @@
     renderMapPanel(routeParks, activeTrip);
 
     if (!activeTrip.legs.length) {
-      logisticsGridEl.innerHTML = renderEmptyState("No leg decisions yet.", "Add stops, then compare drive time, ticket pressure, and date risk here.");
+      logisticsGridEl.innerHTML = [
+        renderEmptyState("No stops yet. Start with a park.", ""),
+        renderDemoLegCard()
+      ].join("");
       return;
     }
 
@@ -385,6 +406,13 @@
       return;
     }
 
+    var visitToggle = event.target.closest("[data-visit-toggle]");
+    if (visitToggle) {
+      app.toggleVisited(visitToggle.dataset.visitToggle, {});
+      renderAll();
+      return;
+    }
+
     var routeToggle = event.target.closest("[data-route-toggle]");
     if (routeToggle) {
       var parkId = routeToggle.dataset.routeToggle;
@@ -392,6 +420,7 @@
       if (onRoute) app.removeRouteStop(parkId);
       else app.addRouteStop(parkId);
       renderAll();
+      return;
     }
 
     var statusChip = event.target.closest("[data-leg-status]");
