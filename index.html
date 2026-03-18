@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MLB Ballparks Quest</title>
   <meta name="description" content="A low overhead MLB park tracker for route planning, visit notes, and next stadium priorities.">
-  <meta name="theme-color" content="#0b1c2d">
+  <meta name="theme-color" content="#0a2342">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23f8f5ef'/%3E%3Cpath d='M18 20c5 3 9 8 11 14M46 20c-5 3-9 8-11 14M18 44c5-3 9-8 11-14M46 44c-5-3-9-8-11-14' stroke='%23ba3a2a' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
     :root{
-      --bg:#f4efe5;
-      --panel:#fffaf3;
+      --bg:#f7f0e4;
+      --panel:#fffaf4;
       --panel-strong:#fffdf9;
-      --ink:#142433;
-      --muted:#56697b;
-      --line:#d7c9b3;
-      --accent:#a12c21;
-      --accent-strong:#7f2118;
-      --field:#24553f;
-      --sun:#d4a93f;
-      --shadow:0 18px 40px rgba(20,36,51,.08);
+      --ink:#0a2342;
+      --muted:#5f6f83;
+      --line:#d8cab9;
+      --accent:#c41e3a;
+      --accent-strong:#9f172d;
+      --field:#0a2342;
+      --sun:#d9b15f;
+      --shadow:0 18px 40px rgba(10,35,66,.08);
       --radius:18px;
       --maxw:1180px;
     }
@@ -31,8 +31,10 @@
       font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:var(--ink);
       background:
-        radial-gradient(circle at top, rgba(255,255,255,.95), rgba(244,239,229,.78) 45%, rgba(233,223,208,.92)),
-        linear-gradient(180deg, #f6f0e4 0%, #efe5d4 100%);
+        linear-gradient(90deg, rgba(196,30,58,.06) 0 2px, transparent 2px 18px),
+        linear-gradient(90deg, rgba(10,35,66,.045) 0 1px, transparent 1px 12px),
+        radial-gradient(circle at top, rgba(255,255,255,.96), rgba(247,240,228,.78) 45%, rgba(236,226,212,.92)),
+        linear-gradient(180deg, #faf3e8 0%, #f1e6d7 100%);
       line-height:1.5;
     }
 
@@ -49,8 +51,8 @@
 
     .site-header{
       position:sticky;top:0;z-index:10;
-      background:rgba(244,239,229,.9);
-      border-bottom:1px solid rgba(86,105,123,.12);
+      background:rgba(247,240,228,.92);
+      border-bottom:1px solid rgba(10,35,66,.1);
       backdrop-filter:blur(8px);
     }
 
@@ -67,7 +69,7 @@
       width:42px;height:42px;border-radius:14px;border:1px solid rgba(20,36,51,.12);
       background:
         radial-gradient(circle at 50% 40%, rgba(255,255,255,.95), rgba(255,255,255,.65) 45%, rgba(255,255,255,.2) 46%),
-        linear-gradient(140deg, #17452f, #2f6b4f);
+        linear-gradient(140deg, #0a2342, #c41e3a);
       box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);
       position:relative;
     }
@@ -135,9 +137,21 @@
     .milestone,
     .highlight-card{
       background:linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.94));
-      border:1px solid rgba(20,36,51,.08);
+      border:1px solid rgba(10,35,66,.08);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
+    }
+
+    .hero-copy,
+    .hero-panel,
+    .section-card,
+    .detail-panel,
+    .route-card,
+    .milestone,
+    .highlight-card{
+      background-image:
+        linear-gradient(90deg, rgba(196,30,58,.035) 0 2px, transparent 2px 20px),
+        linear-gradient(180deg, rgba(255,253,249,.98), rgba(255,250,243,.95));
     }
 
     .hero-copy{padding:30px}
@@ -201,8 +215,8 @@
     }
 
     .hero-note{
-      padding:12px 14px;border-radius:16px;background:rgba(36,85,63,.06);
-      border:1px solid rgba(36,85,63,.12);
+      padding:12px 14px;border-radius:16px;background:rgba(10,35,66,.05);
+      border:1px solid rgba(10,35,66,.1);
     }
 
     .hero-note strong{display:block;font-size:1.1rem}
@@ -231,7 +245,7 @@
     .progress{
       margin-top:6px;height:8px;border-radius:999px;overflow:hidden;background:#eadfce;
     }
-    .progress > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--field),#3a7b59)}
+    .progress > span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--field),var(--accent))}
 
     .route-preview{
       margin-top:16px;padding-top:16px;border-top:1px solid rgba(20,36,51,.08);
