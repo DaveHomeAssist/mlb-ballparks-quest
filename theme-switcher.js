@@ -4,10 +4,10 @@
 
   const THEME_REGISTRY = [
     { key: "phillies", label: "Phillies", swatch: "#E81828" },
-    { key: "eagles", label: "Eagles", swatch: "#004C54" },
-    { key: "flyers", label: "Flyers", swatch: "#F74902" },
-    { key: "sixers", label: "Sixers", swatch: "#006BB6" },
-    { key: "union", label: "Union", swatch: "#032F5E" }
+    { key: "yankees", label: "Yankees", swatch: "#132448" },
+    { key: "dodgers", label: "Dodgers", swatch: "#005A9C" },
+    { key: "cubs", label: "Cubs", swatch: "#0E3386" },
+    { key: "mets", label: "Mets", swatch: "#002D72" }
   ];
 
   const themeKeys = new Set(THEME_REGISTRY.map((theme) => theme.key));

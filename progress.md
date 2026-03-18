@@ -23,3 +23,8 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 [2026-03-18] [MLB] [feat] Add tracker empty state and keyboard shortcuts across both pages
 [2026-03-18] [MLB] [test] Validate tracker handoff shortcuts and scorekeeper undo flows with DOM harness
 [2026-03-18] [MLB] [refactor] Push team theme tokens to stronger stripe wash and panel treatments
+[2026-03-18] [MLB] [refactor] Replace non MLB live themes with Yankees Dodgers Cubs and Mets
+[2026-03-18] [MLB] [docs] Archive non MLB theme tokens for future multi sport reuse
+[2026-03-18] [MLB] [refactor] Port paper style scorebook shell into the scorekeeper
+[2026-03-18] [MLB] [docs] Audit external scorecard reference and capture reusable layout pieces
+[2026-03-18] [MLB] [test] Validate scorebook grid render and undo flow with DOM harness

@@ -415,6 +415,323 @@
     }
     .score-table tr:last-child td{border-bottom:none}
 
+    .scorebook-shell{
+      display:grid;
+      gap:18px;
+      padding:20px;
+      border-radius:20px;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--panel) 78%, white 22%), color-mix(in srgb, var(--panel-strong) 86%, white 14%));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+    }
+
+    .scorebook-header{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+    }
+
+    .scorebook-header h3{
+      margin-top:4px;
+      font-size:1.4rem;
+      line-height:1.05;
+    }
+
+    .scorebook-meta{
+      display:grid;
+      gap:6px;
+      justify-items:end;
+      color:var(--muted);
+      font-size:.84rem;
+      text-align:right;
+    }
+
+    .scorebook-outs-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:16px;
+      background:color-mix(in srgb, var(--panel) 72%, white 28%);
+      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+    }
+
+    .scorebook-outs-label{
+      font-size:.72rem;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .scorebook-out-pip{
+      width:14px;
+      height:14px;
+      border-radius:999px;
+      border:1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+      background:color-mix(in srgb, var(--panel) 70%, white 30%);
+      box-shadow:inset 0 1px 1px rgba(255,255,255,.5);
+    }
+
+    .scorebook-out-pip.is-on{
+      background:var(--accent);
+      border-color:color-mix(in srgb, var(--accent) 60%, black 10%);
+      box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+    }
+
+    .scorebook-run-state{
+      display:inline-flex;
+      align-items:center;
+      min-height:34px;
+      padding:0 12px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      color:var(--ink);
+      font-size:.86rem;
+      font-weight:700;
+    }
+
+    .scorebook-grid-area{
+      display:grid;
+      grid-template-columns:220px minmax(0,1fr) 110px;
+      gap:0;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      border-radius:18px;
+      overflow:hidden;
+      background:#fff;
+    }
+
+    .scorebook-lineup-col,
+    .scorebook-totals-col{
+      background:color-mix(in srgb, var(--panel) 82%, white 18%);
+    }
+
+    .scorebook-grid-head,
+    .scorebook-inning-head{
+      min-height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      font-size:.72rem;
+      letter-spacing:.11em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:700;
+      background:color-mix(in srgb, var(--panel) 76%, white 24%);
+    }
+
+    .scorebook-lineup-row,
+    .scorebook-totals-row{
+      min-height:56px;
+      display:grid;
+      align-items:center;
+      padding:10px 12px;
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+    }
+
+    .scorebook-lineup-row:last-child,
+    .scorebook-totals-row:last-child{
+      border-bottom:none;
+    }
+
+    .scorebook-lineup-row{
+      grid-template-columns:32px minmax(0,1fr);
+      gap:12px;
+    }
+
+    .scorebook-lineup-row.is-active,
+    .scorebook-totals-row.is-active{
+      background:color-mix(in srgb, var(--accent) 8%, white 92%);
+    }
+
+    .scorebook-slot{
+      width:32px;
+      height:32px;
+      display:grid;
+      place-items:center;
+      border-radius:10px;
+      background:#fff;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      color:var(--muted);
+      font-size:.8rem;
+      font-weight:800;
+    }
+
+    .scorebook-batter-name{
+      display:grid;
+      gap:3px;
+    }
+
+    .scorebook-batter-name strong{
+      font-size:.92rem;
+      line-height:1.15;
+    }
+
+    .scorebook-batter-name span{
+      font-size:.74rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .scorebook-innings-area{
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:minmax(64px,1fr);
+      overflow-x:auto;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.96)),
+        linear-gradient(180deg, color-mix(in srgb, var(--field) 8%, transparent), transparent 35%);
+    }
+
+    .scorebook-inning-col{
+      display:grid;
+      grid-template-rows:44px repeat(9, 56px);
+      min-width:64px;
+      border-right:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+    }
+
+    .scorebook-inning-col.is-live .scorebook-inning-head{
+      background:color-mix(in srgb, var(--accent) 10%, white 90%);
+      color:var(--accent-strong);
+    }
+
+    .scorebook-inning-col:last-child{
+      border-right:none;
+    }
+
+    .scorebook-cell{
+      position:relative;
+      display:grid;
+      place-items:center;
+      min-height:56px;
+      border-bottom:1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(250,247,241,.92));
+    }
+
+    .scorebook-cell.is-active{
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, white 92%), color-mix(in srgb, var(--accent) 4%, white 96%));
+    }
+
+    .scorebook-cell:last-child{
+      border-bottom:none;
+    }
+
+    .scorebook-mark{
+      position:relative;
+      width:34px;
+      height:34px;
+      display:grid;
+      place-items:center;
+    }
+
+    .scorebook-mark::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      transform:rotate(45deg);
+      border-radius:8px;
+      border:1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+      background:color-mix(in srgb, var(--panel) 64%, white 36%);
+    }
+
+    .scorebook-mark.is-hit::before{
+      background:color-mix(in srgb, var(--field) 18%, white 82%);
+      border-color:color-mix(in srgb, var(--field) 34%, transparent);
+    }
+
+    .scorebook-mark.is-out::before{
+      background:color-mix(in srgb, var(--danger) 12%, white 88%);
+      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
+    }
+
+    .scorebook-mark.is-error::before{
+      background:color-mix(in srgb, var(--sun) 24%, white 76%);
+      border-color:color-mix(in srgb, var(--sun) 34%, transparent);
+    }
+
+    .scorebook-cell-stack{
+      position:relative;
+      z-index:1;
+      display:grid;
+      justify-items:center;
+      gap:2px;
+    }
+
+    .scorebook-cell-code{
+      font-size:.7rem;
+      font-weight:800;
+      letter-spacing:.03em;
+      color:var(--ink);
+    }
+
+    .scorebook-cell-note{
+      font-size:.62rem;
+      color:var(--muted);
+      font-weight:700;
+      min-height:1em;
+    }
+
+    .scorebook-empty{
+      width:22px;
+      height:22px;
+      border-radius:6px;
+      border:1px dashed color-mix(in srgb, var(--ink) 12%, transparent);
+      background:color-mix(in srgb, var(--panel) 70%, white 30%);
+    }
+
+    .scorebook-totals-row{
+      gap:2px;
+      justify-items:center;
+      text-align:center;
+    }
+
+    .scorebook-totals-row strong{
+      font-size:.92rem;
+    }
+
+    .scorebook-totals-row span{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .scorebook-footer{
+      display:grid;
+      grid-template-columns:220px minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+
+    .scorebook-diamond-wrap{
+      padding:16px;
+      border-radius:18px;
+      background:color-mix(in srgb, var(--panel) 74%, white 26%);
+      border:1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      display:grid;
+      justify-items:center;
+      gap:14px;
+    }
+
+    .scorebook-diamond{
+      width:190px;
+      height:190px;
+      position:relative;
+      transform:rotate(45deg);
+      background:linear-gradient(135deg, color-mix(in srgb, var(--field) 18%, white 82%), color-mix(in srgb, var(--field) 6%, white 94%));
+      border:1px solid color-mix(in srgb, var(--field) 28%, transparent);
+      border-radius:24px;
+    }
+
     .status-row{
       display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px;
     }
@@ -581,6 +898,12 @@
       .hero-metrics,
       .status-row{grid-template-columns:repeat(2,minmax(0,1fr))}
       .event-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .scorebook-grid-area,
+      .scorebook-footer{grid-template-columns:1fr}
+      .scorebook-lineup-col,
+      .scorebook-totals-col{
+        display:none;
+      }
     }
 
     @media (max-width: 720px){
@@ -601,6 +924,15 @@
       .log-card,
       .import-card{padding:18px}
       h1{max-width:12ch}
+      .scorebook-shell{padding:16px}
+      .scorebook-header{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .scorebook-meta{
+        justify-items:start;
+        text-align:left;
+      }
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -760,10 +1092,79 @@
             </div>
           </section>
 
-          <section class="panel" id="lineup">
+          <section class="panel scorebook-panel" id="lineup">
             <div class="panel-head">
               <div>
-                <div class="section-kicker">Lineup</div>
+                <div class="section-kicker">Scorebook view</div>
+                <h2>A paper style scoring surface with your current game state underneath it.</h2>
+              </div>
+              <p>The line score, active batter card, runner state, and inning flow stay live as you log plays.</p>
+            </div>
+            <div class="scorebook-shell">
+              <div class="scorebook-header">
+                <div>
+                  <div class="section-kicker">Official score sheet</div>
+                  <h3 id="scoreboardTitle">Away at Home</h3>
+                </div>
+                <div class="scorebook-meta">
+                  <span id="scorebookDateMeta">Date pending</span>
+                  <span id="scorebookVenueMeta">Venue pending</span>
+                  <span id="scorebookStatusMeta">In progress</span>
+                </div>
+              </div>
+              <div class="score-table-scroll">
+                <table class="score-table" aria-label="Scoreboard" id="scoreTable"></table>
+              </div>
+              <div class="scorebook-outs-row">
+                <span class="scorebook-outs-label">Outs</span>
+                <span class="scorebook-out-pip" id="scoreOut1" aria-hidden="true"></span>
+                <span class="scorebook-out-pip" id="scoreOut2" aria-hidden="true"></span>
+                <span class="scorebook-out-pip" id="scoreOut3" aria-hidden="true"></span>
+                <span class="scorebook-run-state" id="scorebookBatterDisplay">Away batter 1</span>
+                <span class="scorebook-run-state" id="scorebookInningDisplay">Top 1</span>
+                <span class="scorebook-run-state" id="scorebookSideChip">Away card</span>
+                <span class="mini-chip" id="phaseChip">Top 1</span>
+              </div>
+              <div class="scorebook-grid-area">
+                <div class="scorebook-lineup-col">
+                  <div class="scorebook-grid-head"># Batter</div>
+                  <div id="scorebookLineup"></div>
+                </div>
+                <div class="scorebook-innings-area" id="scorebookInnings"></div>
+                <div class="scorebook-totals-col">
+                  <div class="scorebook-grid-head">AB · H</div>
+                  <div id="scorebookTotals"></div>
+                </div>
+              </div>
+              <div class="scorebook-footer">
+                <div class="scorebook-diamond-wrap">
+                  <div class="scorebook-diamond" aria-hidden="true">
+                    <div class="base first" id="baseFirst">1B</div>
+                    <div class="base second" id="baseSecond">2B</div>
+                    <div class="base third" id="baseThird">3B</div>
+                    <div class="base home">HP</div>
+                  </div>
+                  <div class="diamond-label" id="diamondSummary">Bases empty</div>
+                </div>
+                <div class="status-row">
+                  <div class="status-box">
+                    <div class="meta-label">Outs</div>
+                    <strong id="outsValue">0</strong>
+                  </div>
+                  <div class="status-box">
+                    <div class="meta-label">Current batter side</div>
+                    <strong id="battingSideValue">Away</strong>
+                  </div>
+                  <div class="status-box">
+                    <div class="meta-label">Plays logged</div>
+                    <strong id="playsValue">0</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-head" style="margin-top:18px">
+              <div>
+                <div class="section-kicker">Lineup editor</div>
                 <h2>Lineups are optional. Empty slots appear as numbered placeholders.</h2>
               </div>
               <p>Each plate appearance advances the current side automatically.</p>
@@ -781,63 +1182,9 @@
               </section>
             </div>
           </section>
-
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Score grid</div>
-                <h2>Runs by inning update from the play log</h2>
-              </div>
-              <p>The table derives totals from every logged plate appearance.</p>
-            </div>
-            <div class="score-panel">
-              <div class="panel-head">
-                <div>
-                  <div class="section-kicker">Scoreboard</div>
-                  <h2 id="scoreboardTitle">Away at Home</h2>
-                </div>
-                <div class="mini-chip" id="phaseChip">Top 1</div>
-              </div>
-              <div class="score-table-scroll">
-                <table class="score-table" aria-label="Scoreboard" id="scoreTable"></table>
-              </div>
-              <div class="status-row">
-                <div class="status-box">
-                  <div class="meta-label">Outs</div>
-                  <strong id="outsValue">0</strong>
-                </div>
-                <div class="status-box">
-                  <div class="meta-label">Current batter side</div>
-                  <strong id="battingSideValue">Away</strong>
-                </div>
-                <div class="status-box">
-                  <div class="meta-label">Plays logged</div>
-                  <strong id="playsValue">0</strong>
-                </div>
-              </div>
-            </div>
-          </section>
         </div>
 
         <div class="stack">
-          <section class="diamond-card">
-            <div class="panel-head">
-              <div>
-                <div class="section-kicker">Base state</div>
-                <h2>Current runners</h2>
-              </div>
-            </div>
-            <div class="diamond-wrap">
-              <div class="diamond" aria-hidden="true">
-                <div class="base first" id="baseFirst">1B</div>
-                <div class="base second" id="baseSecond">2B</div>
-                <div class="base third" id="baseThird">3B</div>
-                <div class="base home">HP</div>
-              </div>
-              <div class="diamond-label" id="diamondSummary">Bases empty</div>
-            </div>
-          </section>
-
           <section class="controls-card" id="controls">
             <div class="panel-head">
               <div>
@@ -984,6 +1331,18 @@
       heroVenueName: document.getElementById("heroVenueName"),
       heroPlayCount: document.getElementById("heroPlayCount"),
       scoreboardTitle: document.getElementById("scoreboardTitle"),
+      scorebookDateMeta: document.getElementById("scorebookDateMeta"),
+      scorebookVenueMeta: document.getElementById("scorebookVenueMeta"),
+      scorebookStatusMeta: document.getElementById("scorebookStatusMeta"),
+      scoreOut1: document.getElementById("scoreOut1"),
+      scoreOut2: document.getElementById("scoreOut2"),
+      scoreOut3: document.getElementById("scoreOut3"),
+      scorebookBatterDisplay: document.getElementById("scorebookBatterDisplay"),
+      scorebookInningDisplay: document.getElementById("scorebookInningDisplay"),
+      scorebookSideChip: document.getElementById("scorebookSideChip"),
+      scorebookLineup: document.getElementById("scorebookLineup"),
+      scorebookInnings: document.getElementById("scorebookInnings"),
+      scorebookTotals: document.getElementById("scorebookTotals"),
       phaseChip: document.getElementById("phaseChip"),
       scoreTable: document.getElementById("scoreTable"),
       outsValue: document.getElementById("outsValue"),
@@ -1562,6 +1921,115 @@
       `;
     }
 
+    function getScorebookSides() {
+      const game = state.game;
+      const activeSide = game.state.half === "top" ? "away" : "home";
+      const inactiveSide = activeSide === "away" ? "home" : "away";
+      return { activeSide, inactiveSide };
+    }
+
+    function getScorebookInningCount(game) {
+      return Math.max(Number(game.innings) || 9, game.state.inning, 9);
+    }
+
+    function classifyScorebookEvent(eventKey) {
+      if (["1B", "2B", "3B", "HR", "BB", "HBP"].includes(eventKey)) return "is-hit";
+      if (eventKey === "E") return "is-error";
+      if (["K", "OUT", "FO", "FC", "DP", "SAC"].includes(eventKey)) return "is-out";
+      return "";
+    }
+
+    function getScorebookCellMap(game, side, inningCount) {
+      const map = new Map();
+      for (const play of game.plays) {
+        if (play.battingSide !== side) continue;
+        const inning = Math.min(Math.max(1, Number(play.inning) || 1), inningCount);
+        const slot = Math.min(8, Math.max(0, Number(play.batterSlot) || 0));
+        const key = `${slot}:${inning}`;
+        if (!map.has(key)) {
+          map.set(key, []);
+        }
+        map.get(key).push(play);
+      }
+      return map;
+    }
+
+    function getScorebookTotals(game, side) {
+      const rows = Array.from({ length: 9 }, () => ({ ab: 0, h: 0 }));
+      for (const play of game.plays) {
+        if (play.battingSide !== side) continue;
+        const slot = Math.min(8, Math.max(0, Number(play.batterSlot) || 0));
+        if (["1B", "2B", "3B", "HR", "K", "OUT", "FO", "FC", "DP", "E"].includes(play.event)) {
+          rows[slot].ab += 1;
+        }
+        if (["1B", "2B", "3B", "HR"].includes(play.event)) {
+          rows[slot].h += 1;
+        }
+      }
+      return rows;
+    }
+
+    function renderScorebook() {
+      const game = state.game;
+      const { activeSide } = getScorebookSides();
+      const inningCount = getScorebookInningCount(game);
+      const currentSlot = Number(game.state.batterIndex && game.state.batterIndex[activeSide]) || 0;
+      const cellMap = getScorebookCellMap(game, activeSide, inningCount);
+      const totals = getScorebookTotals(game, activeSide);
+      const sideLabel = activeSide === "away" ? (game.awayName || "Away") : (game.homeName || "Home");
+
+      els.scorebookLineup.innerHTML = Array.from({ length: 9 }, (_, slot) => `
+        <div class="scorebook-lineup-row ${slot === currentSlot ? "is-active" : ""}">
+          <div class="scorebook-slot">${slot + 1}</div>
+          <div class="scorebook-batter-name">
+            <strong>${escapeHtml(getLineupName(game, activeSide, slot))}</strong>
+            <span>${escapeHtml(sideLabel)} card</span>
+          </div>
+        </div>
+      `).join("");
+
+      els.scorebookInnings.innerHTML = Array.from({ length: inningCount }, (_, index) => {
+        const inning = index + 1;
+        const isLiveInning = inning === game.state.inning;
+        const cells = Array.from({ length: 9 }, (_, slot) => {
+          const plays = cellMap.get(`${slot}:${inning}`) || [];
+          const latest = plays[plays.length - 1];
+          const isActive = isLiveInning && slot === currentSlot;
+          if (!latest) {
+            return `
+              <div class="scorebook-cell ${isActive ? "is-active" : ""}">
+                <div class="scorebook-empty" aria-hidden="true"></div>
+              </div>
+            `;
+          }
+          const badge = plays.length > 1 ? `${plays.length}x` : (latest.runsScored ? `${latest.runsScored}R` : "");
+          return `
+            <div class="scorebook-cell ${isActive ? "is-active" : ""}">
+              <div class="scorebook-mark ${classifyScorebookEvent(latest.event)}" aria-label="${escapeHtml(EVENTS[latest.event].label)}">
+                <div class="scorebook-cell-stack">
+                  <span class="scorebook-cell-code">${escapeHtml(latest.event)}</span>
+                  <span class="scorebook-cell-note">${escapeHtml(badge)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+        return `
+          <div class="scorebook-inning-col ${isLiveInning ? "is-live" : ""}">
+            <div class="scorebook-inning-head">${inning}</div>
+            ${cells}
+          </div>
+        `;
+      }).join("");
+
+      els.scorebookTotals.innerHTML = totals.map((row, slot) => `
+        <div class="scorebook-totals-row ${slot === currentSlot ? "is-active" : ""}">
+          <strong>${row.ab} · ${row.h}</strong>
+          <span>AB · H</span>
+        </div>
+      `).join("");
+    }
+
     function renderStatus() {
       const game = state.game;
       const halfLabel = game.state.half === "top" ? "Away" : "Home";
@@ -1583,6 +2051,15 @@
       els.venueChip.textContent = game.venueName || "No venue assigned";
       els.activeBatterChip.textContent = `Up next · ${getLineupName(game, battingSide, currentSlot)}`;
       els.onDeckChip.textContent = `On deck · ${getLineupName(game, battingSide, onDeckSlot)}`;
+      els.scorebookDateMeta.textContent = new Date(game.createdAt || Date.now()).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      els.scorebookVenueMeta.textContent = game.venueName || "Venue pending";
+      els.scorebookStatusMeta.textContent = game.status === "final" ? "Final score filed" : `${game.plays.length} plays logged`;
+      els.scorebookBatterDisplay.textContent = getLineupName(game, battingSide, currentSlot);
+      els.scorebookInningDisplay.textContent = `${game.state.half === "top" ? "Top" : "Bottom"} ${game.state.inning}`;
+      els.scorebookSideChip.textContent = `${halfLabel} card`;
+      [els.scoreOut1, els.scoreOut2, els.scoreOut3].forEach((el, index) => {
+        el.classList.toggle("is-on", index < game.state.outs);
+      });
 
       els.baseFirst.classList.toggle("is-hot", !!game.state.bases.first);
       els.baseSecond.classList.toggle("is-hot", !!game.state.bases.second);
@@ -1712,6 +2189,7 @@
       renderGamesList();
       renderLineups();
       renderScoreboard();
+      renderScorebook();
       renderStatus();
       renderSaveStatus();
       renderEditState();
@@ -1920,6 +2398,7 @@
         state.game.lineups[side][slot] = input.value;
         saveGame();
         renderStatus();
+        renderScorebook();
         renderPlayLog();
       };
 
