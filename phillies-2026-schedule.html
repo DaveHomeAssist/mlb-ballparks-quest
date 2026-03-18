@@ -60,7 +60,7 @@
   .wrapper {
     position: relative;
     z-index: 1;
-    max-width: 900px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 0 16px 80px;
   }
@@ -130,9 +130,10 @@
     justify-content: center;
     gap: 32px;
     flex-wrap: wrap;
-    background: rgba(0,0,0,0.3);
+    background: linear-gradient(180deg, rgba(0,0,0,0.34), rgba(8,18,44,0.52));
     border: 1px solid rgba(196,164,74,0.3);
-    border-radius: 4px;
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.22);
     padding: 14px 24px;
     margin-bottom: 32px;
   }
@@ -163,6 +164,11 @@
     flex-wrap: wrap;
     margin-bottom: 24px;
     justify-content: center;
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    padding: 10px 0 2px;
+    backdrop-filter: blur(10px);
   }
   .filter-btn {
     font-family: 'Oswald', sans-serif;
@@ -174,7 +180,7 @@
     border: 1px solid rgba(255,255,255,0.2);
     background: rgba(255,255,255,0.05);
     color: var(--cream);
-    border-radius: 2px;
+    border-radius: 999px;
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -188,22 +194,48 @@
   .games-list {
     display: flex;
     flex-direction: column;
+    gap: 24px;
+  }
+
+  .month-group {
+    display: grid;
     gap: 12px;
+  }
+  .month-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 0 4px;
+  }
+  .month-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 26px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+  .month-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(245,240,232,0.62);
   }
 
   .game-card {
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.1);
     border-left: 4px solid var(--navy-light);
-    border-radius: 4px;
+    border-radius: 14px;
     transition: all 0.25s;
     overflow: hidden;
     position: relative;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    scroll-margin-top: 96px;
   }
   .game-card:hover {
     background: rgba(255,255,255,0.07);
     border-left-color: var(--red);
-    transform: translateX(2px);
+    transform: translateY(-1px);
   }
   .game-card.attended {
     border-left-color: var(--gold) !important;
@@ -228,9 +260,19 @@
     grid-template-columns: 48px 1fr auto;
     align-items: center;
     gap: 16px;
-    padding: 16px 20px;
+    padding: 18px 20px;
     cursor: pointer;
     user-select: none;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+  }
+  .game-summary:focus-visible {
+    outline: 2px solid var(--gold-light);
+    outline-offset: -2px;
   }
 
   .game-num {
@@ -240,6 +282,7 @@
     color: var(--gold);
     text-align: center;
     line-height: 1;
+    align-self: start;
   }
 
   .game-main {}
@@ -253,9 +296,36 @@
   .game-details {
     font-size: 13px;
     color: var(--gray-mid);
-    margin-top: 2px;
+    margin-top: 4px;
     font-weight: 300;
     font-style: italic;
+  }
+  .game-status-line {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .micro-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,240,232,0.84);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .micro-pill.attended {
+    color: var(--navy);
+    background: rgba(196,164,74,0.9);
+    border-color: rgba(232,201,106,0.8);
+  }
+  .micro-pill.noted {
+    background: rgba(26,79,160,0.25);
+    color: #BED2FF;
   }
 
   .game-meta {
@@ -309,6 +379,7 @@
     padding: 0 20px 20px;
     border-top: 1px solid rgba(255,255,255,0.08);
     animation: fadeIn 0.2s ease;
+    background: linear-gradient(180deg, rgba(0,0,0,0.16), rgba(255,255,255,0.02));
   }
   .game-card.open .game-detail {
     display: block;
@@ -349,7 +420,7 @@
     width: 100%;
     background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 3px;
+    border-radius: 10px;
     color: var(--cream);
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
@@ -380,7 +451,7 @@
     letter-spacing: 1.5px;
     text-transform: uppercase;
     padding: 8px 16px;
-    border-radius: 2px;
+    border-radius: 10px;
     cursor: pointer;
     border: none;
     transition: all 0.2s;
@@ -410,7 +481,7 @@
     margin-top: 40px;
     background: rgba(0,0,0,0.3);
     border: 1px solid rgba(196,164,74,0.3);
-    border-radius: 4px;
+    border-radius: 16px;
     padding: 24px;
     text-align: center;
   }
@@ -442,7 +513,7 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     padding: 12px 24px;
-    border-radius: 3px;
+    border-radius: 10px;
     cursor: pointer;
     border: none;
     transition: all 0.2s;
@@ -496,7 +567,7 @@
     font-size: 14px;
     letter-spacing: 1px;
     padding: 12px 24px;
-    border-radius: 3px;
+    border-radius: 10px;
     transition: transform 0.3s ease;
     z-index: 999;
     white-space: nowrap;
@@ -532,6 +603,141 @@
     transition: width 0.5s ease;
   }
 
+  .command-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 18px;
+    margin-bottom: 24px;
+    padding: 22px 24px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)),
+      radial-gradient(circle at top right, rgba(196,164,74,0.16), transparent 32%),
+      rgba(0,0,0,0.28);
+    border: 1px solid rgba(196,164,74,0.22);
+    border-radius: 16px;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.22);
+  }
+  .command-kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2.6px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 10px;
+  }
+  .command-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(24px, 4vw, 36px);
+    line-height: 1.02;
+    letter-spacing: 0.5px;
+    color: var(--white);
+    margin-bottom: 10px;
+  }
+  .command-copy {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(245,240,232,0.82);
+    max-width: 54ch;
+  }
+  .command-actions {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .search-shell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.05);
+  }
+  .search-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    flex-shrink: 0;
+  }
+  .search-input {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .search-input::placeholder {
+    color: rgba(245,240,232,0.45);
+  }
+  .quick-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .ghost-btn {
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.04);
+    color: var(--cream);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  .ghost-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(196,164,74,0.34);
+    transform: translateY(-1px);
+  }
+  .spotlight {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) auto;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 18px 22px;
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at top left, rgba(232,24,40,0.18), transparent 24%),
+      linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)),
+      rgba(6,18,48,0.52);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .spotlight[hidden] { display: none; }
+  .spotlight-kicker {
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2.2px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+  }
+  .spotlight-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(22px, 3vw, 30px);
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .spotlight-copy {
+    color: rgba(245,240,232,0.78);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .spotlight-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   /* OPPONENT INFO */
   .opp-info {
     font-size: 13px;
@@ -545,6 +751,39 @@
   ::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 3px; }
 
   .hidden { display: none !important; }
+  .empty-state {
+    padding: 32px 28px;
+    border-radius: 16px;
+    border: 1px dashed rgba(196,164,74,0.4);
+    background: rgba(255,255,255,0.04);
+    text-align: center;
+  }
+  .empty-state h3 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 24px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .empty-state p {
+    color: rgba(245,240,232,0.74);
+    line-height: 1.6;
+    max-width: 44ch;
+    margin: 0 auto;
+  }
+  @media(max-width: 780px) {
+    .command-panel,
+    .spotlight {
+      grid-template-columns: 1fr;
+    }
+    .spotlight-actions {
+      justify-content: flex-start;
+    }
+    .filters {
+      justify-content: flex-start;
+    }
+  }
 </style>
 </head>
 <body>
@@ -591,13 +830,33 @@
     </div>
   </div>
 
+  <section class="command-panel" aria-label="Schedule planning controls">
+    <div>
+      <div class="command-kicker">Plan D Board</div>
+      <div class="command-title">Pick the nights that deserve the trip, not just the dates that exist.</div>
+      <p class="command-copy">Scan the 16-game set, mark what you actually made, keep seat and logistics notes, and export the games worth protecting on your calendar.</p>
+    </div>
+    <div class="command-actions">
+      <label class="search-shell" for="search-input">
+        <span class="search-label">Search</span>
+        <input class="search-input" id="search-input" type="search" placeholder="Opponent, month, or rivalry" autocomplete="off">
+      </label>
+      <div class="quick-actions">
+        <button class="ghost-btn" type="button" id="jump-next-btn">Jump to next upcoming</button>
+        <button class="ghost-btn" type="button" id="clear-search-btn">Clear search</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="spotlight" id="spotlight" hidden></section>
+
   <div class="filters">
-    <button class="filter-btn active" onclick="filterGames('all', this)">All (16)</button>
-    <button class="filter-btn" onclick="filterGames('upcoming', this)">Upcoming</button>
-    <button class="filter-btn" onclick="filterGames('attended', this)">Attended</button>
-    <button class="filter-btn" onclick="filterGames('rivalry', this)">Big Matchups</button>
-    <button class="filter-btn" onclick="filterGames('weekend', this)">Weekends</button>
-    <button class="filter-btn" onclick="filterGames('day', this)">Day Games</button>
+    <button class="filter-btn active" type="button" data-filter="all">All</button>
+    <button class="filter-btn" type="button" data-filter="upcoming">Upcoming</button>
+    <button class="filter-btn" type="button" data-filter="attended">Attended</button>
+    <button class="filter-btn" type="button" data-filter="rivalry">Big Matchups</button>
+    <button class="filter-btn" type="button" data-filter="weekend">Weekends</button>
+    <button class="filter-btn" type="button" data-filter="day">Day Games</button>
   </div>
 
   <div class="legend">
@@ -823,9 +1082,118 @@ let state = JSON.parse(localStorage.getItem('phillies2026') || '{}');
 // state shape: { attended: {1:true,...}, notes: {1:"..."} }
 if (!state.attended) state.attended = {};
 if (!state.notes) state.notes = {};
+if (!state.view) state.view = { filter: 'all', search: '' };
+
+function escapeHTML(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function gameDateLocal(g) {
+  return new Date(
+    Number(g.isoStart.slice(0, 4)),
+    Number(g.isoStart.slice(4, 6)) - 1,
+    Number(g.isoStart.slice(6, 8))
+  );
+}
+
+function startOfToday() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function isUpcomingGame(g) {
+  return gameDateLocal(g) >= startOfToday() && !state.attended[g.id];
+}
 
 function saveState() {
   localStorage.setItem('phillies2026', JSON.stringify(state));
+}
+
+function monthLabel(game) {
+  return new Date(
+    Number(game.isoStart.slice(0, 4)),
+    Number(game.isoStart.slice(4, 6)) - 1,
+    Number(game.isoStart.slice(6, 8))
+  ).toLocaleDateString('en-US', { month: 'long' });
+}
+
+function getFilteredGames() {
+  const filter = state.view.filter || 'all';
+  const query = (state.view.search || '').trim().toLowerCase();
+  return GAMES.filter(g => {
+    let show = true;
+    if (filter === 'upcoming') show = isUpcomingGame(g);
+    else if (filter === 'attended') show = !!state.attended[g.id];
+    else if (filter === 'rivalry') show = g.tags.includes('rivalry');
+    else if (filter === 'weekend') show = g.tags.includes('weekend');
+    else if (filter === 'day') show = g.tags.includes('day');
+
+    if (!show) return false;
+    if (!query) return true;
+
+    const haystack = [
+      g.matchup,
+      g.opponent,
+      g.date,
+      g.time,
+      monthLabel(g),
+      g.tags.join(' ')
+    ].join(' ').toLowerCase();
+    return haystack.includes(query);
+  });
+}
+
+function updateFilterLabels() {
+  const counts = {
+    all: GAMES.length,
+    upcoming: GAMES.filter(isUpcomingGame).length,
+    attended: GAMES.filter(g => !!state.attended[g.id]).length,
+    rivalry: GAMES.filter(g => g.tags.includes('rivalry')).length,
+    weekend: GAMES.filter(g => g.tags.includes('weekend')).length,
+    day: GAMES.filter(g => g.tags.includes('day')).length
+  };
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    const filter = btn.dataset.filter;
+    const label = {
+      all: 'All',
+      upcoming: 'Upcoming',
+      attended: 'Attended',
+      rivalry: 'Big Matchups',
+      weekend: 'Weekends',
+      day: 'Day Games'
+    }[filter];
+    btn.textContent = `${label} (${counts[filter] || 0})`;
+    btn.classList.toggle('active', filter === (state.view.filter || 'all'));
+  });
+}
+
+function renderSpotlight(games) {
+  const spotlight = document.getElementById('spotlight');
+  const candidate = games.find(isUpcomingGame) || games[0];
+  if (!candidate) {
+    spotlight.hidden = true;
+    spotlight.innerHTML = '';
+    return;
+  }
+
+  spotlight.hidden = false;
+  spotlight.innerHTML = `
+    <div>
+      <div class="spotlight-kicker">On deck</div>
+      <div class="spotlight-title">${escapeHTML(candidate.matchup)}</div>
+      <div class="spotlight-copy">${escapeHTML(candidate.date)} · ${escapeHTML(candidate.time)} · ${escapeHTML(candidate.mustGo)}</div>
+    </div>
+    <div class="spotlight-actions">
+      <button class="ghost-btn" type="button" onclick="jumpToGame(${candidate.id})">Open card</button>
+      <button class="ghost-btn" type="button" onclick="exportSingle(${candidate.id}, event)">Export game</button>
+    </div>
+  `;
 }
 
 function updateStats() {
@@ -838,12 +1206,45 @@ function updateStats() {
   const pct = Math.round((attended / total) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-pct').textContent = pct + '% attended';
+  updateFilterLabels();
 }
 
 function buildCards() {
   const list = document.getElementById('games-list');
   list.innerHTML = '';
-  GAMES.forEach(g => {
+  const filteredGames = getFilteredGames();
+
+  renderSpotlight(filteredGames);
+
+  if (!filteredGames.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <h3>No games match this cut</h3>
+        <p>Try a broader filter or clear the search. The full board is still here, just not in this view.</p>
+      </div>
+    `;
+    updateStats();
+    return;
+  }
+
+  let currentMonth = '';
+  let group = null;
+  filteredGames.forEach(g => {
+    const month = monthLabel(g);
+    if (month !== currentMonth) {
+      currentMonth = month;
+      const monthGames = filteredGames.filter(game => monthLabel(game) === month);
+      group = document.createElement('section');
+      group.className = 'month-group';
+      group.innerHTML = `
+        <div class="month-heading">
+          <div class="month-title">${escapeHTML(month)}</div>
+          <div class="month-count">${monthGames.length} game${monthGames.length === 1 ? '' : 's'}</div>
+        </div>
+      `;
+      list.appendChild(group);
+    }
+
     const card = document.createElement('div');
     card.className = 'game-card' + (state.attended[g.id] ? ' attended' : '');
     card.dataset.id = g.id;
@@ -856,13 +1257,25 @@ function buildCards() {
     if (g.tags.includes('weekend') && !g.tags.includes('day')) badges += `<span class="badge badge-weekend">Weekend</span>`;
     if (g.tags.includes('interleague')) badges += `<span class="badge badge-interleague">Interleague</span>`;
     if (g.tags.includes('division')) badges += `<span class="badge badge-division">Division</span>`;
+    const notes = escapeHTML(state.notes[g.id] || '');
+    const matchup = escapeHTML(g.matchup);
+    const date = escapeHTML(g.date);
+    const time = escapeHTML(g.time);
+    const opponentInfo = escapeHTML(g.opponentInfo);
+    const mustGo = escapeHTML(g.mustGo);
+    const isOpen = false;
+    const noteCount = (state.notes[g.id] || '').trim().length;
 
     card.innerHTML = `
-      <div class="game-summary" onclick="toggleCard(${g.id})">
+      <button type="button" class="game-summary" onclick="toggleCard(${g.id})" aria-expanded="${isOpen ? 'true' : 'false'}" aria-controls="game-detail-${g.id}">
         <div class="game-num">${g.id}</div>
         <div class="game-main">
-          <div class="game-matchup">${g.matchup}</div>
-          <div class="game-details">${g.date} &nbsp;·&nbsp; ${g.time} &nbsp;·&nbsp; Citizens Bank Park</div>
+          <div class="game-matchup">${matchup}</div>
+          <div class="game-details">${date} &nbsp;·&nbsp; ${time} &nbsp;·&nbsp; Citizens Bank Park</div>
+          <div class="game-status-line">
+            ${state.attended[g.id] ? '<span class="micro-pill attended">Attended</span>' : ''}
+            ${noteCount ? `<span class="micro-pill noted">${noteCount} note char${noteCount === 1 ? '' : 's'}</span>` : ''}
+          </div>
         </div>
         <div class="game-meta">
           ${badges}
@@ -871,16 +1284,16 @@ function buildCards() {
             <div class="expand-icon">▼</div>
           </div>
         </div>
-      </div>
-      <div class="game-detail">
+      </button>
+      <div class="game-detail" id="game-detail-${g.id}">
         <div class="detail-grid">
           <div class="detail-block">
             <label>Opponent Info</label>
-            <p class="opp-info">${g.opponentInfo}</p>
+            <p class="opp-info">${opponentInfo}</p>
           </div>
           <div class="detail-block">
             <label>Verdict</label>
-            <p>${g.mustGo}</p>
+            <p>${mustGo}</p>
           </div>
           <div class="detail-block" style="grid-column:1/-1">
             <label>Your Notes</label>
@@ -888,7 +1301,7 @@ function buildCards() {
               class="notes-area"
               placeholder="Seats, who you're going with, food plans, anything..."
               oninput="saveNote(${g.id}, this.value)"
-            >${state.notes[g.id] || ''}</textarea>
+            >${notes}</textarea>
           </div>
         </div>
         <div class="detail-actions">
@@ -900,7 +1313,7 @@ function buildCards() {
         </div>
       </div>
     `;
-    list.appendChild(card);
+    group.appendChild(card);
   });
   updateStats();
 }
@@ -908,8 +1321,16 @@ function buildCards() {
 function toggleCard(id) {
   const card = document.querySelector(`.game-card[data-id="${id}"]`);
   const isOpen = card.classList.contains('open');
-  document.querySelectorAll('.game-card.open').forEach(c => c.classList.remove('open'));
-  if (!isOpen) card.classList.add('open');
+  document.querySelectorAll('.game-card.open').forEach(c => {
+    c.classList.remove('open');
+    const summary = c.querySelector('.game-summary');
+    if (summary) summary.setAttribute('aria-expanded', 'false');
+  });
+  if (!isOpen) {
+    card.classList.add('open');
+    const summary = card.querySelector('.game-summary');
+    if (summary) summary.setAttribute('aria-expanded', 'true');
+  }
 }
 
 function toggleAttended(id, e) {
@@ -930,26 +1351,10 @@ function saveNote(id, val) {
   updateStats();
 }
 
-function filterGames(type, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  const today = new Date();
-  document.querySelectorAll('.game-card').forEach(card => {
-    const id = parseInt(card.dataset.id);
-    const g = GAMES.find(x => x.id === id);
-    const tags = (card.dataset.tags || '').split(' ');
-    const gameDate = new Date(g.isoStart.slice(0,4)+'-'+g.isoStart.slice(4,6)+'-'+g.isoStart.slice(6,8));
-
-    let show = true;
-    if (type === 'upcoming') show = gameDate >= today && !state.attended[id];
-    else if (type === 'attended') show = !!state.attended[id];
-    else if (type === 'rivalry') show = tags.includes('rivalry');
-    else if (type === 'weekend') show = tags.includes('weekend');
-    else if (type === 'day') show = tags.includes('day');
-
-    card.classList.toggle('hidden', !show);
-  });
+function filterGames(type) {
+  state.view.filter = type;
+  saveState();
+  buildCards();
 }
 
 function makeICS(games) {
@@ -991,13 +1396,9 @@ function downloadICS(content, filename) {
 }
 
 function exportICS(type) {
-  const today = new Date();
   let games = GAMES;
   if (type === 'upcoming') {
-    games = GAMES.filter(g => {
-      const d = new Date(g.isoStart.slice(0,4)+'-'+g.isoStart.slice(4,6)+'-'+g.isoStart.slice(6,8));
-      return d >= today;
-    });
+    games = GAMES.filter(g => isUpcomingGame(g));
   }
   downloadICS(makeICS(games), `phillies-2026-${type}.ics`);
   showToast(`📅 Downloaded ${games.length} games!`);
@@ -1016,6 +1417,39 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+function jumpToGame(id) {
+  const card = document.querySelector(`.game-card[data-id="${id}"]`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.classList.add('highlighted');
+  toggleCard(id);
+  setTimeout(() => card.classList.remove('highlighted'), 1600);
+}
+
+document.getElementById('search-input').value = state.view.search || '';
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => filterGames(btn.dataset.filter));
+});
+document.getElementById('search-input').addEventListener('input', (event) => {
+  state.view.search = event.target.value;
+  saveState();
+  buildCards();
+});
+document.getElementById('clear-search-btn').addEventListener('click', () => {
+  state.view.search = '';
+  document.getElementById('search-input').value = '';
+  saveState();
+  buildCards();
+});
+document.getElementById('jump-next-btn').addEventListener('click', () => {
+  const nextGame = GAMES.find(isUpcomingGame);
+  if (!nextGame) {
+    showToast('No upcoming games left on this board.');
+    return;
+  }
+  jumpToGame(nextGame.id);
+});
 
 buildCards();
 </script>
