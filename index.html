@@ -360,6 +360,30 @@
     .tier{
       min-width:32px;justify-content:center;font-weight:800;
     }
+    .tier-pill[data-tier="S"]{color:var(--tier-s-ink);background:var(--tier-s-bg)}
+    .tier-pill[data-tier="A"]{color:var(--tier-a-ink);background:var(--tier-a-bg)}
+    .tier-pill[data-tier="B"]{color:var(--tier-b-ink);background:var(--tier-b-bg)}
+    .tier-pill[data-tier="C"]{color:var(--tier-c-ink);background:var(--tier-c-bg)}
+
+    .status-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      min-height:32px;padding:0 12px;border-radius:999px;
+      border:1px solid rgba(20,36,51,.08);
+      background:#fff;color:var(--muted);
+      font-size:.78rem;font-weight:700;letter-spacing:.04em;
+    }
+    .status-chip.is-success{
+      border-color:color-mix(in srgb, var(--field) 24%, transparent);
+      color:var(--field);
+    }
+    .status-chip.is-error{
+      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
+      color:var(--danger);
+    }
+    .panel-status-row{
+      margin-top:14px;
+      display:flex;justify-content:flex-start;
+    }
 
     .detail-panel{
       position:sticky;top:90px;
@@ -396,6 +420,24 @@
     .milestone-status[data-state="in-progress"]{color:var(--field)}
     .milestone-status[data-state="not-started"]{color:var(--accent)}
 
+    .toast{
+      position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+      width:min(calc(100% - 28px), 520px);
+      display:flex;justify-content:space-between;align-items:center;gap:14px;
+      padding:14px 16px;border-radius:16px;background:var(--panel-strong);
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      box-shadow:var(--shadow);z-index:300;
+    }
+    .toast.is-success{border-color:color-mix(in srgb, var(--field) 24%, transparent)}
+    .toast.is-error{border-color:color-mix(in srgb, var(--danger) 28%, transparent)}
+    .toast-copy{color:var(--ink);font-size:.94rem}
+    .toast-actions{display:flex;align-items:center;gap:10px}
+    .toast-action,
+    .toast-close{
+      min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(20,36,51,.08);
+      background:#fff;color:var(--ink);cursor:pointer;font:inherit;font-weight:700;
+    }
+
     .footer{
       padding:24px 0 40px;color:var(--muted);font-size:.92rem;
     }
@@ -407,7 +449,7 @@
     }
 
     :focus-visible{
-      outline:3px solid rgba(161,44,33,.32);
+      outline:3px solid color-mix(in srgb, var(--accent) 72%, white 8%);
       outline-offset:3px;
     }
 
@@ -519,6 +561,9 @@
             </div>
           </div>
           <div class="route-preview" id="routePreview" aria-label="Next route targets"></div>
+          <div class="panel-status-row">
+            <span class="status-chip" id="trackerStatusChip" aria-live="polite">Tracker ready</span>
+          </div>
         </aside>
       </div>
     </section>
@@ -592,7 +637,7 @@
             <form class="filters" id="filterForm">
               <label>
                 Search
-                <input id="searchInput" name="search" type="search" placeholder="Team, stadium, or city">
+                <input id="searchInput" name="search" type="search" placeholder="Team, stadium, or city (/)">
               </label>
               <label>
                 Visit state
@@ -708,13 +753,6 @@
       { id: 30, team: "Washington Nationals", stadium: "Nationals Park", city: "Washington, DC", capacity: 41313, roof: "Open", surface: "Grass", opened: 2008, tier: null, visited: false, visitDate: null, rating: null, notes: "", bestFeature: "" }
     ];
 
-    const TIERS = {
-      S: { color: "#c58d1a", bg: "rgba(212,169,63,.16)" },
-      A: { color: "#24553f", bg: "rgba(36,85,63,.12)" },
-      B: { color: "#1f5b9a", bg: "rgba(31,91,154,.1)" },
-      C: { color: "#7046a8", bg: "rgba(112,70,168,.1)" }
-    };
-
     const NEXT_TARGETS = [22, 19, 14];
     const SCOREKEEPER_IMPORT_KEY = "mlb_ballparks_scorekeeper_import_v1";
 
@@ -756,8 +794,56 @@
       searchInput: document.getElementById("searchInput"),
       visitFilter: document.getElementById("visitFilter"),
       roofFilter: document.getElementById("roofFilter"),
-      sortSelect: document.getElementById("sortSelect")
+      sortSelect: document.getElementById("sortSelect"),
+      trackerStatusChip: document.getElementById("trackerStatusChip")
     };
+
+    let activeToast = null;
+    let activeToastTimer = null;
+    let trackerStatusTimer = null;
+
+    function clearToast() {
+      if (activeToastTimer) {
+        clearTimeout(activeToastTimer);
+        activeToastTimer = null;
+      }
+      if (!activeToast) return;
+      activeToast.remove();
+      activeToast = null;
+    }
+
+    function showToast(message, tone = "info", duration = 3200) {
+      clearToast();
+      const toast = document.createElement("section");
+      toast.className = `toast is-${tone}`;
+      toast.setAttribute("role", tone === "error" ? "alert" : "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.innerHTML = `
+        <div class="toast-copy">${escapeHtml(message)}</div>
+        <div class="toast-actions">
+          <button class="toast-close" type="button" aria-label="Dismiss notification">Dismiss</button>
+        </div>
+      `;
+      toast.querySelector(".toast-close").addEventListener("click", clearToast);
+      document.body.appendChild(toast);
+      activeToast = toast;
+      if (duration > 0) {
+        activeToastTimer = setTimeout(clearToast, duration);
+      }
+    }
+
+    function setTrackerStatus(message, tone = "info", duration = 2200) {
+      if (!els.trackerStatusChip) return;
+      els.trackerStatusChip.textContent = message;
+      els.trackerStatusChip.className = `status-chip${tone === "success" ? " is-success" : tone === "error" ? " is-error" : ""}`;
+      if (trackerStatusTimer) clearTimeout(trackerStatusTimer);
+      if (duration > 0) {
+        trackerStatusTimer = setTimeout(() => {
+          els.trackerStatusChip.textContent = "Tracker ready";
+          els.trackerStatusChip.className = "status-chip";
+        }, duration);
+      }
+    }
 
     function priorityScore(park) {
       let score = park.visited ? -100 : 0;
@@ -766,6 +852,15 @@
       if (NEXT_TARGETS.includes(park.id)) score += 40;
       score += Math.max(0, 2026 - park.opened) * 0.05;
       return score;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     }
 
     function formatNumber(value) {
@@ -789,15 +884,17 @@
       };
       try {
         localStorage.setItem(SCOREKEEPER_IMPORT_KEY, JSON.stringify(payload));
+        setTrackerStatus("Handoff ready", "success");
       } catch (error) {
         console.error("Failed to write scorekeeper import payload", error);
+        setTrackerStatus("Save failed", "error", 8000);
+        showToast("Could not prepare scorekeeper handoff", "error", 6000);
       }
     }
 
     function getTierPill(park) {
-      if (!park.tier || !TIERS[park.tier]) return "";
-      const tier = TIERS[park.tier];
-      return `<span class="pill tier" style="color:${tier.color};background:${tier.bg}">${park.tier}</span>`;
+      if (!park.tier) return "";
+      return `<span class="pill tier tier-pill" data-tier="${escapeHtml(park.tier)}">${escapeHtml(park.tier)}</span>`;
     }
 
     function getFilteredParks() {
@@ -873,6 +970,16 @@
 
     function renderHighlights() {
       const visited = PARKS.filter((park) => park.visited).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 4);
+      if (!visited.length) {
+        els.highlightGrid.innerHTML = `
+          <article class="section-card">
+            <div class="section-kicker">Highlights</div>
+            <h3>No parks visited yet</h3>
+            <p>Score your first game to start building your ballpark collection.</p>
+          </article>
+        `;
+        return;
+      }
       els.highlightGrid.innerHTML = visited
         .map((park) => `
           <article class="highlight-card">
@@ -891,7 +998,7 @@
     function renderParks() {
       const parks = getFilteredParks();
       els.resultsCount.textContent = `${parks.length} park${parks.length === 1 ? "" : "s"} shown`;
-      if (!parks.some((park) => park.id === state.activeParkId)) {
+      if (state.activeParkId !== null && !parks.some((park) => park.id === state.activeParkId)) {
         state.activeParkId = parks.length ? parks[0].id : null;
       }
       els.parkList.innerHTML = parks.length
@@ -920,9 +1027,21 @@
     }
 
     function renderDetail() {
+      if (state.activeParkId == null) {
+        els.detailTitle.textContent = "No park selected";
+        els.detailSubtitle.textContent = "Choose a park card to inspect the full snapshot";
+        els.detailMeta.innerHTML = `<span class="pill">Use search or filters</span>`;
+        els.detailMetrics.innerHTML = "";
+        els.detailCopy.textContent = "The detail panel will update with route notes, venue context, and the scorekeeper handoff action once a park is selected.";
+        if (els.detailScorekeeperLink) {
+          els.detailScorekeeperLink.setAttribute("href", "#parks");
+          els.detailScorekeeperLink.textContent = "Select a park to use scorekeeper";
+          els.detailScorekeeperLink.removeAttribute("aria-label");
+        }
+        return;
+      }
       const park = PARKS.find((entry) => entry.id === state.activeParkId) || PARKS[0];
       if (!park) return;
-      writeScorekeeperImport(park);
       els.detailTitle.textContent = park.stadium;
       els.detailSubtitle.textContent = `${park.team} · ${park.city}`;
       els.detailMeta.innerHTML = [
@@ -953,6 +1072,8 @@
         ? park.notes
         : `${park.stadium} is still open in the quest. Use this slot to capture seat notes, route logic, and what would make the trip worth locking.`;
       if (els.detailScorekeeperLink) {
+        els.detailScorekeeperLink.setAttribute("href", "scorekeeper.html");
+        els.detailScorekeeperLink.textContent = "Open scorekeeper with this park";
         els.detailScorekeeperLink.setAttribute("aria-label", `Open scorekeeper with ${park.stadium}`);
       }
     }
@@ -1012,6 +1133,32 @@
         if (!button) return;
         state.activeParkId = Number(button.getAttribute("data-park-id"));
         renderParks();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const tag = event.target && event.target.tagName ? event.target.tagName : "";
+        const inField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+        if (!inField && event.key === "/") {
+          event.preventDefault();
+          els.searchInput.focus();
+          els.searchInput.select();
+          return;
+        }
+        if (event.key === "Escape") {
+          if (inField && event.target === els.searchInput && !els.searchInput.value.trim()) {
+            els.searchInput.blur();
+          } else if (inField) {
+            return;
+          }
+          if (activeToast) {
+            clearToast();
+            return;
+          }
+          if (state.activeParkId !== null) {
+            state.activeParkId = null;
+            renderParks();
+          }
+        }
       });
     }
 

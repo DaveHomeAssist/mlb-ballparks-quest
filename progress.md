@@ -12,3 +12,14 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 [2026-03-18] [MLB] [feat] Add runtime theme loader and floating theme picker
 [2026-03-18] [MLB] [refactor] Move tracker and scorekeeper colors to shared theme tokens
 [2026-03-18] [MLB] [test] Verify theme switching and keyboard access across both pages
+[2026-03-18] [MLB] [feat] Harden scorekeeper venue import with expiry and fresh game auto apply
+[2026-03-18] [MLB] [feat] Add scorekeeper play log edit mode with replay based recalculation
+[2026-03-18] [MLB] [refactor] Wrap score table for touch scroll with shared theme tokens
+[2026-03-18] [MLB] [test] Validate import expiry auto apply and play edit score recalculation
+[2026-03-18] [MLB] [docs] Extend implementation contracts for feedback safety and accessibility work
+[2026-03-18] [MLB] [feat] Add tracker and scorekeeper toast feedback with save status chips
+[2026-03-18] [MLB] [feat] Add scorekeeper game title library controls and undo recovery flows
+[2026-03-18] [MLB] [refactor] Move tracker tier pills to shared theme token classes
+[2026-03-18] [MLB] [feat] Add tracker empty state and keyboard shortcuts across both pages
+[2026-03-18] [MLB] [test] Validate tracker handoff shortcuts and scorekeeper undo flows with DOM harness
+[2026-03-18] [MLB] [refactor] Push team theme tokens to stronger stripe wash and panel treatments

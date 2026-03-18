@@ -186,6 +186,20 @@
       border:1px solid rgba(19,38,58,.08);
       letter-spacing:.08em;
     }
+    .status-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      min-height:34px;padding:0 12px;border-radius:999px;
+      background:#fff;border:1px solid rgba(19,38,58,.08);
+      color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.04em;
+    }
+    .status-chip.is-success{
+      border-color:color-mix(in srgb, var(--field) 24%, transparent);
+      color:var(--field);
+    }
+    .status-chip.is-error{
+      border-color:color-mix(in srgb, var(--danger) 28%, transparent);
+      color:var(--danger);
+    }
 
     .layout{
       display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.9fr);gap:18px;
@@ -233,6 +247,19 @@
     .lineup-list{
       display:grid;
       gap:10px;
+    }
+
+    .library-controls{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 220px;
+      gap:12px;
+      margin:14px 0 10px;
+    }
+
+    .library-results{
+      margin-bottom:10px;
+      color:var(--muted);
+      font-size:.9rem;
     }
 
     .game-item{
@@ -357,13 +384,21 @@
       border-bottom:none;
     }
 
+    .score-table-scroll{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      border-radius:16px;
+      margin-bottom:14px;
+      background:var(--panel-strong);
+    }
+
     .score-table{
       width:100%;
+      min-width:650px;
       border-collapse:collapse;
       font-variant-numeric:tabular-nums;
-      overflow:hidden;
-      border-radius:16px;
-      border:1px solid rgba(19,38,58,.08);
       background:#fff;
     }
 
@@ -452,6 +487,17 @@
     .event-btn.is-out{background:#f4ebe7}
     .event-btn.is-special{background:#eef6f1}
 
+    .event-toolbar{
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .mini-chip.is-live{
+      border-color:color-mix(in srgb, var(--accent) 24%, transparent);
+      box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+      color:var(--accent-strong);
+    }
+
     .log-list{
       display:grid;gap:10px;max-height:560px;overflow:auto;padding-right:4px;
     }
@@ -461,6 +507,25 @@
     }
     .play-top{
       display:flex;justify-content:space-between;gap:12px;align-items:start;
+    }
+    .play-actions{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    }
+    .play-edit-btn{
+      min-height:34px;
+      padding:0 10px;
+      border-radius:999px;
+      border:1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+      background:#fff;
+      color:var(--ink);
+      cursor:pointer;
+      font:inherit;
+      font-size:.82rem;
+      font-weight:700;
+    }
+    .play-edit-btn.is-active{
+      border-color:color-mix(in srgb, var(--accent) 28%, transparent);
+      color:var(--accent-strong);
     }
     .play-top strong{font-size:1rem}
     .play-row p{color:var(--muted);font-size:.92rem}
@@ -479,8 +544,34 @@
       display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
     }
 
+    .toast{
+      position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+      width:min(calc(100% - 28px), 560px);
+      display:flex;justify-content:space-between;align-items:center;gap:14px;
+      padding:14px 16px;border-radius:16px;background:var(--panel-strong);
+      border:1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      box-shadow:var(--shadow);z-index:300;
+    }
+    .toast.is-success{border-color:color-mix(in srgb, var(--field) 24%, transparent)}
+    .toast.is-error{border-color:color-mix(in srgb, var(--danger) 28%, transparent)}
+    .toast.is-undo{border-color:color-mix(in srgb, var(--accent) 24%, transparent)}
+    .toast-copy{color:var(--ink);font-size:.94rem}
+    .toast-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .toast-action,
+    .toast-close{
+      min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(19,38,58,.08);
+      background:#fff;color:var(--ink);cursor:pointer;font:inherit;font-weight:700;
+    }
+
+    kbd{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:1.45em;height:1.45em;padding:0 .34em;
+      border-radius:8px;border:1px solid rgba(19,38,58,.12);
+      background:#fff;font-size:.74em;font-weight:700;
+    }
+
     :focus-visible{
-      outline:3px solid rgba(161,44,33,.32);
+      outline:3px solid color-mix(in srgb, var(--accent) 72%, white 8%);
       outline-offset:3px;
     }
 
@@ -500,7 +591,8 @@
       .status-row,
       .setup-grid,
       .lineup-grid,
-      .event-grid{grid-template-columns:1fr}
+      .event-grid,
+      .library-controls{grid-template-columns:1fr}
       .panel,
       .hero-card,
       .score-panel,
@@ -598,6 +690,22 @@
             <div class="setup-actions">
               <button class="btn btn-primary" type="button" id="addGameBtn">Create tracked game</button>
             </div>
+            <div class="library-controls">
+              <label>
+                Search games
+                <input id="gameSearch" type="search" placeholder="Search games">
+              </label>
+              <label>
+                Sort
+                <select id="gameSort">
+                  <option value="recent">Recent first</option>
+                  <option value="oldest">Oldest first</option>
+                  <option value="alphabetical">A to Z</option>
+                  <option value="status">In progress first</option>
+                </select>
+              </label>
+            </div>
+            <div class="library-results" id="gameResultsCount">1 game</div>
             <div class="games-list" id="gamesList"></div>
           </section>
 
@@ -623,6 +731,10 @@
                 <input id="venueInput" type="text" value="">
               </label>
               <label>
+                Game title
+                <input id="gameTitleInput" type="text" value="" placeholder="Opening Day 2026">
+              </label>
+              <label>
                 Scheduled innings
                 <select id="inningsSelect">
                   <option value="7">7</option>
@@ -637,12 +749,13 @@
             </label>
             <div class="setup-actions">
               <button class="btn btn-secondary" type="button" id="newGameBtn">New game</button>
-              <button class="btn btn-secondary" type="button" id="undoBtn">Undo last play</button>
+              <button class="btn btn-secondary" type="button" id="undoBtn">Undo last play <kbd>⌘Z</kbd></button>
               <button class="btn btn-secondary" type="button" id="finalizeBtn">Toggle final</button>
               <button class="btn btn-secondary" type="button" id="exportBtn">Export game JSON</button>
               <button class="btn btn-secondary" type="button" id="exportNotesBtn">Export game notes</button>
               <button class="btn btn-secondary" type="button" id="importBtn">Import game JSON</button>
               <button class="btn btn-danger" type="button" id="resetBtn">Reset everything</button>
+              <span class="status-chip" id="saveStatusChip" aria-live="polite">Ready</span>
               <input id="importFile" type="file" accept="application/json" hidden>
             </div>
           </section>
@@ -651,7 +764,7 @@
             <div class="panel-head">
               <div>
                 <div class="section-kicker">Lineup</div>
-                <h2>Set both batting orders before first pitch</h2>
+                <h2>Lineups are optional. Empty slots appear as numbered placeholders.</h2>
               </div>
               <p>Each plate appearance advances the current side automatically.</p>
             </div>
@@ -685,7 +798,9 @@
                 </div>
                 <div class="mini-chip" id="phaseChip">Top 1</div>
               </div>
-              <table class="score-table" aria-label="Scoreboard" id="scoreTable"></table>
+              <div class="score-table-scroll">
+                <table class="score-table" aria-label="Scoreboard" id="scoreTable"></table>
+              </div>
               <div class="status-row">
                 <div class="status-box">
                   <div class="meta-label">Outs</div>
@@ -732,6 +847,10 @@
               <p>One row per plate appearance. Quick mode works best for strikeouts and outs in play.</p>
             </div>
             <div class="event-grid" id="eventGrid"></div>
+            <div class="toolbar event-toolbar">
+              <div class="mini-chip" id="editModeChip">Append mode</div>
+              <button class="btn btn-secondary" type="button" id="cancelEditBtn" hidden>Cancel edit</button>
+            </div>
             <div class="toolbar">
               <div class="mini-chip" id="gameStatusChip">in progress</div>
               <div class="mini-chip" id="venueChip">No venue assigned</div>
@@ -803,6 +922,7 @@
   <script>
     const IMPORT_KEY = "mlb_ballparks_scorekeeper_import_v1";
     const SAVE_KEY = "mlb_ballparks_scorekeeper_state_v1";
+    const LINEUP_TIP_KEY = "mlb_scorekeeper_lineup_tip_v1";
 
     const EVENTS = {
       "1B": { label: "Single", outs: 0, style: "" },
@@ -825,7 +945,13 @@
     const state = {
       importPayload: null,
       library: null,
-      game: null
+      game: null,
+      editingPlayIndex: null
+    };
+
+    const libraryState = {
+      search: "",
+      sort: "recent"
     };
 
     const els = {
@@ -834,6 +960,7 @@
       awayInput: document.getElementById("awayInput"),
       homeInput: document.getElementById("homeInput"),
       venueInput: document.getElementById("venueInput"),
+      gameTitleInput: document.getElementById("gameTitleInput"),
       inningsSelect: document.getElementById("inningsSelect"),
       notesInput: document.getElementById("notesInput"),
       newGameBtn: document.getElementById("newGameBtn"),
@@ -871,8 +998,22 @@
       gameStatusChip: document.getElementById("gameStatusChip"),
       venueChip: document.getElementById("venueChip"),
       activeBatterChip: document.getElementById("activeBatterChip"),
-      onDeckChip: document.getElementById("onDeckChip")
+      onDeckChip: document.getElementById("onDeckChip"),
+      editModeChip: document.getElementById("editModeChip"),
+      cancelEditBtn: document.getElementById("cancelEditBtn")
+      ,
+      gameSearch: document.getElementById("gameSearch"),
+      gameSort: document.getElementById("gameSort"),
+      gameResultsCount: document.getElementById("gameResultsCount"),
+      saveStatusChip: document.getElementById("saveStatusChip")
     };
+
+    let activeToast = null;
+    let activeToastTimer = null;
+    let activeToastAction = null;
+    let saveStatus = "idle";
+    let saveStatusTimer = null;
+    let lastRenderedPlayCount = 0;
 
     function makeId(prefix) {
       return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -926,7 +1067,130 @@
     }
 
     function getGameLabel(game) {
-      return `${game.awayName || "Away"} at ${game.homeName || "Home"}`;
+      const title = game && typeof game.title === "string" ? game.title.trim() : "";
+      return title || `${game.awayName || "Away"} at ${game.homeName || "Home"}`;
+    }
+
+    function clearToast() {
+      activeToastAction = null;
+      if (activeToastTimer) {
+        clearTimeout(activeToastTimer);
+        activeToastTimer = null;
+      }
+      if (!activeToast) return;
+      activeToast.remove();
+      activeToast = null;
+    }
+
+    function showToast(message, tone = "info", duration = 3200, actionLabel = "", onAction = null) {
+      clearToast();
+      const toast = document.createElement("section");
+      toast.className = `toast is-${tone}`;
+      toast.setAttribute("role", tone === "error" ? "alert" : "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.innerHTML = `
+        <div class="toast-copy">${escapeHtml(message)}</div>
+        <div class="toast-actions">
+          ${actionLabel ? `<button class="toast-action" type="button">${escapeHtml(actionLabel)}</button>` : ""}
+          <button class="toast-close" type="button" aria-label="Dismiss notification">Dismiss</button>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      activeToast = toast;
+      activeToastAction = typeof onAction === "function" ? onAction : null;
+      const actionButton = toast.querySelector(".toast-action");
+      if (actionButton && activeToastAction) {
+        actionButton.addEventListener("click", () => {
+          const action = activeToastAction;
+          clearToast();
+          action();
+        });
+      }
+      toast.querySelector(".toast-close").addEventListener("click", clearToast);
+      if (duration > 0) {
+        activeToastTimer = setTimeout(clearToast, duration);
+      }
+    }
+
+    function setSaveStatus(nextStatus) {
+      saveStatus = nextStatus;
+      if (saveStatusTimer) {
+        clearTimeout(saveStatusTimer);
+        saveStatusTimer = null;
+      }
+      renderSaveStatus();
+      if (nextStatus === "saved") {
+        saveStatusTimer = setTimeout(() => {
+          saveStatus = "idle";
+          renderSaveStatus();
+        }, 2000);
+      }
+    }
+
+    function renderSaveStatus() {
+      if (!els.saveStatusChip) return;
+      if (saveStatus === "saved") {
+        els.saveStatusChip.textContent = "Saved";
+        els.saveStatusChip.className = "status-chip is-success";
+        return;
+      }
+      if (saveStatus === "failed") {
+        els.saveStatusChip.textContent = "Save failed";
+        els.saveStatusChip.className = "status-chip is-error";
+        return;
+      }
+      els.saveStatusChip.textContent = saveStatus === "saving" ? "Saving" : "Ready";
+      els.saveStatusChip.className = "status-chip";
+    }
+
+    function validateGameImport(obj) {
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) {
+        return { ok: false, reason: "File is not a valid game object" };
+      }
+      if (typeof obj.awayName !== "string" || !obj.awayName.trim()) {
+        return { ok: false, reason: "Missing away team name" };
+      }
+      if (typeof obj.homeName !== "string" || !obj.homeName.trim()) {
+        return { ok: false, reason: "Missing home team name" };
+      }
+      if (!Array.isArray(obj.plays)) {
+        return { ok: false, reason: "Missing plays array" };
+      }
+      if (!obj.state || typeof obj.state !== "object") {
+        return { ok: false, reason: "Missing game state" };
+      }
+      if (!["top", "bottom"].includes(obj.state.half)) {
+        return { ok: false, reason: "Invalid half inning value" };
+      }
+      if (typeof obj.state.inning !== "number") {
+        return { ok: false, reason: "Missing inning number" };
+      }
+      if (obj.lineups) {
+        if (!Array.isArray(obj.lineups.away) || !Array.isArray(obj.lineups.home)) {
+          return { ok: false, reason: "Lineups are not valid arrays" };
+        }
+      }
+      for (const play of obj.plays) {
+        if (!play || typeof play !== "object" || !EVENTS[play.event]) {
+          return { ok: false, reason: `Unknown event in play log: ${play && play.event ? play.event : "missing"}` };
+        }
+      }
+      return { ok: true };
+    }
+
+    function areLineupsEmpty(game) {
+      return ["away", "home"].every((side) => (game.lineups[side] || []).every((name) => !String(name || "").trim()));
+    }
+
+    function maybeShowLineupTip() {
+      if (!areLineupsEmpty(state.game)) return;
+      if (localStorage.getItem(LINEUP_TIP_KEY) === "shown") return;
+      try {
+        localStorage.setItem(LINEUP_TIP_KEY, "shown");
+      } catch (error) {
+        console.error("Failed to persist lineup tip flag", error);
+      }
+      showToast("Tip: Fill in lineups for better play by play detail", "info", 4200);
     }
 
     function getLineupName(game, side, slot) {
@@ -1113,10 +1377,36 @@
     function readImportPayload() {
       try {
         const raw = localStorage.getItem(IMPORT_KEY);
-        return raw ? JSON.parse(raw) : null;
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.venue || !parsed.exportedAt) {
+          localStorage.removeItem(IMPORT_KEY);
+          return null;
+        }
+        if (Date.now() - new Date(parsed.exportedAt).getTime() > 3600000) {
+          localStorage.removeItem(IMPORT_KEY);
+          return null;
+        }
+        return parsed;
       } catch (error) {
         return null;
       }
+    }
+
+    function clearImportPayload() {
+      localStorage.removeItem(IMPORT_KEY);
+      state.importPayload = null;
+    }
+
+    function isFreshGame(game) {
+      return Boolean(
+        game &&
+        game.plays.length === 0 &&
+        game.awayName === "Away" &&
+        game.homeName === "Home" &&
+        !game.venueName &&
+        !(game.notes || "").trim()
+      );
     }
 
     function syncLibrary() {
@@ -1124,7 +1414,6 @@
         state.library = createLibrary(state.game);
       }
       state.game.updatedAt = new Date().toISOString();
-      state.game.title = getGameLabel(state.game);
       state.library.activeGameId = state.game.id;
       const index = state.library.games.findIndex((game) => game.id === state.game.id);
       if (index >= 0) {
@@ -1136,10 +1425,14 @@
 
     function saveGame() {
       try {
+        setSaveStatus("saving");
         syncLibrary();
         localStorage.setItem(SAVE_KEY, JSON.stringify(state.library));
+        setSaveStatus("saved");
       } catch (error) {
         console.error("Failed to save scorekeeper state", error);
+        setSaveStatus("failed");
+        showToast("Save failed and storage may be full", "error", 8000);
       }
     }
 
@@ -1176,12 +1469,21 @@
       return replayGame(state.library.games[0]);
     }
 
-    function applyImportedVenue(payload) {
+    function applyImportedVenue(payload, options = {}) {
       if (!payload || !payload.venue) return;
       state.game.venueName = `${payload.venue.stadium} · ${payload.venue.city}`;
       state.game.importedVenue = payload.venue;
+      if (options.appendNote) {
+        const importNote = `Imported venue: ${payload.venue.stadium} · ${payload.venue.city}`;
+        if (!state.game.notes.includes(importNote)) {
+          state.game.notes = state.game.notes ? `${state.game.notes}\n${importNote}` : importNote;
+        }
+      }
       syncInputs();
       saveGame();
+      if (options.clearPending) {
+        clearImportPayload();
+      }
       render();
     }
 
@@ -1189,12 +1491,12 @@
       els.awayInput.value = state.game.awayName;
       els.homeInput.value = state.game.homeName;
       els.venueInput.value = state.game.venueName;
+      els.gameTitleInput.value = state.game.title || "";
       els.inningsSelect.value = String(state.game.innings);
       els.notesInput.value = state.game.notes || "";
     }
 
     function renderImportCard() {
-      state.importPayload = readImportPayload();
       const payload = state.importPayload;
       if (!payload || !payload.venue) {
         els.importSummary.textContent = "No tracker import is active yet. Open a park in Ballparks Quest and use the scorekeeper handoff link.";
@@ -1211,6 +1513,22 @@
         ${payload.venue.tier ? `<span class="mini-chip">Tier ${escapeHtml(payload.venue.tier)}</span>` : ""}
       `;
       els.useImportBtn.disabled = false;
+    }
+
+    function renderEditState() {
+      const index = state.editingPlayIndex;
+      if (index === null || !state.game.plays[index]) {
+        state.editingPlayIndex = null;
+        els.editModeChip.textContent = "Append mode";
+        els.editModeChip.classList.remove("is-live");
+        els.cancelEditBtn.hidden = true;
+        return;
+      }
+
+      const play = state.game.plays[index];
+      els.editModeChip.textContent = `Editing ${play.half === "top" ? "Top" : "Bottom"} ${play.inning} · ${play.event}`;
+      els.editModeChip.classList.add("is-live");
+      els.cancelEditBtn.hidden = false;
     }
 
     function renderScoreboard() {
@@ -1273,13 +1591,16 @@
     }
 
     function renderPlayLog() {
-      const plays = [...state.game.plays].reverse();
+      const plays = state.game.plays.map((play, originalIndex) => ({ ...play, originalIndex })).reverse();
       els.playLog.innerHTML = plays.length
         ? plays.map((play) => `
             <article class="play-row">
               <div class="play-top">
                 <strong>${play.half === "top" ? "Top" : "Bottom"} ${play.inning} · ${escapeHtml(play.batterName || "Batter")} · ${escapeHtml(play.event)}</strong>
-                <span class="mini-chip">${escapeHtml(play.battingSide)}</span>
+                <div class="play-actions">
+                  <span class="mini-chip">${escapeHtml(play.battingSide)}</span>
+                  <button class="play-edit-btn ${play.originalIndex === state.editingPlayIndex ? "is-active" : ""}" type="button" data-play-edit="${play.originalIndex}">Edit</button>
+                </div>
               </div>
               <p>${escapeHtml(EVENTS[play.event].label)}. ${play.runsScored ? `${play.runsScored} run${play.runsScored === 1 ? "" : "s"} scored.` : "No runs scored."} ${play.outsAdded ? `${play.outsAdded} out${play.outsAdded === 1 ? "" : "s"} added.` : ""}</p>
             </article>
@@ -1287,8 +1608,53 @@
         : `<div class="empty">No plays logged yet. Start with the next event in the play input panel.</div>`;
     }
 
+    function filterGames(games) {
+      const query = libraryState.search.trim().toLowerCase();
+      if (!query) return games.slice();
+      return games.filter((game) => {
+        const label = getGameLabel(game).toLowerCase();
+        return [
+          label,
+          String(game.awayName || "").toLowerCase(),
+          String(game.homeName || "").toLowerCase(),
+          String(game.venueName || "").toLowerCase()
+        ].some((value) => value.includes(query));
+      });
+    }
+
+    function sortGames(games) {
+      const next = games.slice();
+      if (libraryState.sort === "oldest") {
+        return next.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      }
+      if (libraryState.sort === "alphabetical") {
+        return next.sort((a, b) => getGameLabel(a).localeCompare(getGameLabel(b)));
+      }
+      if (libraryState.sort === "status") {
+        return next.sort((a, b) => {
+          if (a.status === "in progress" && b.status !== "in progress") return -1;
+          if (b.status === "in progress" && a.status !== "in progress") return 1;
+          return new Date(b.updatedAt) - new Date(a.updatedAt);
+        });
+      }
+      return next.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    }
+
     function renderGamesList() {
-      const games = state.library && Array.isArray(state.library.games) ? state.library.games : [];
+      const allGames = state.library && Array.isArray(state.library.games) ? state.library.games : [];
+      const games = sortGames(filterGames(allGames));
+      els.gameResultsCount.textContent = `${games.length} game${games.length === 1 ? "" : "s"}`;
+      if (!games.length) {
+        els.gamesList.innerHTML = `
+          <div class="empty">
+            No games match "${escapeHtml(libraryState.search)}"
+            <div class="setup-actions" style="margin-top:10px">
+              <button class="btn btn-secondary" type="button" data-clear-game-search>Clear search</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
       els.gamesList.innerHTML = games.map((game) => {
         const side = game.state && game.state.half === "bottom" ? "Bottom" : "Top";
         const venue = game.venueName || "No venue";
@@ -1347,7 +1713,32 @@
       renderLineups();
       renderScoreboard();
       renderStatus();
+      renderSaveStatus();
+      renderEditState();
       renderPlayLog();
+      if (state.game.plays.length > lastRenderedPlayCount) {
+        if (typeof els.playLog.scrollTo === "function") {
+          els.playLog.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          els.playLog.scrollTop = 0;
+        }
+      }
+      lastRenderedPlayCount = state.game.plays.length;
+    }
+
+    function updatePlayEvent(game, playIndex, eventKey) {
+      if (!EVENTS[eventKey] || playIndex === null || !game.plays[playIndex]) return game;
+      const next = clone(game);
+      next.plays[playIndex].event = eventKey;
+      return replayGame(next);
+    }
+
+    function processPendingImport() {
+      state.importPayload = readImportPayload();
+      if (!state.importPayload || !state.importPayload.venue) return;
+      if (isFreshGame(state.game)) {
+        applyImportedVenue(state.importPayload, { appendNote: true, clearPending: true });
+      }
     }
 
     function exportGame() {
@@ -1360,6 +1751,7 @@
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
+      showToast("Game JSON exported", "success", 2600);
     }
 
     function exportNotes() {
@@ -1397,6 +1789,7 @@
       anchor.click();
       anchor.remove();
       URL.revokeObjectURL(url);
+      showToast("Game notes exported", "success", 2600);
     }
 
     function bindEvents() {
@@ -1405,8 +1798,22 @@
       els.eventGrid.addEventListener("click", (event) => {
         const button = event.target.closest("[data-event]");
         if (!button) return;
-        state.game = applyEvent(state.game, button.getAttribute("data-event"));
+        const nextEvent = button.getAttribute("data-event");
+        maybeShowLineupTip();
+        if (state.editingPlayIndex !== null) {
+          state.game = updatePlayEvent(state.game, state.editingPlayIndex, nextEvent);
+          state.editingPlayIndex = null;
+        } else {
+          state.game = applyEvent(state.game, nextEvent);
+        }
         saveGame();
+        render();
+      });
+
+      els.playLog.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-play-edit]");
+        if (!button) return;
+        state.editingPlayIndex = Number(button.getAttribute("data-play-edit"));
         render();
       });
 
@@ -1414,23 +1821,32 @@
         const fresh = createNewGame();
         fresh.awayName = state.game.awayName;
         fresh.homeName = state.game.homeName;
-        fresh.venueName = state.game.venueName;
         fresh.innings = state.game.innings;
-        fresh.importedVenue = state.game.importedVenue;
         state.game = fresh;
+        state.importPayload = readImportPayload();
+        state.editingPlayIndex = null;
         saveGame();
         render();
+        showToast("Tracked game created", "success", 2600);
       });
 
       els.gamesList.addEventListener("click", (event) => {
         const selectButton = event.target.closest("[data-game-select]");
         const deleteButton = event.target.closest("[data-game-delete]");
+        const clearSearchButton = event.target.closest("[data-clear-game-search]");
+        if (clearSearchButton) {
+          libraryState.search = "";
+          els.gameSearch.value = "";
+          renderGamesList();
+          return;
+        }
         if (selectButton) {
           const id = selectButton.getAttribute("data-game-select");
           const found = state.library.games.find((game) => game.id === id);
           if (!found) return;
           state.library.activeGameId = id;
           state.game = replayGame(found);
+          state.editingPlayIndex = null;
           saveGame();
           render();
           return;
@@ -1438,13 +1854,25 @@
         if (deleteButton) {
           const id = deleteButton.getAttribute("data-game-delete");
           if (state.library.games.length === 1) return;
+          const removedIndex = state.library.games.findIndex((game) => game.id === id);
+          const removedGame = removedIndex >= 0 ? clone(state.library.games[removedIndex]) : null;
           state.library.games = state.library.games.filter((game) => game.id !== id);
           if (state.game.id === id) {
             state.library.activeGameId = state.library.games[0].id;
             state.game = replayGame(state.library.games[0]);
           }
+          state.editingPlayIndex = null;
           saveGame();
           render();
+          if (removedGame) {
+            showToast("Game removed", "undo", 5000, "Undo", () => {
+              state.library.games.splice(Math.max(0, removedIndex), 0, removedGame);
+              state.game = replayGame(removedGame);
+              state.library.activeGameId = removedGame.id;
+              saveGame();
+              render();
+            });
+          }
         }
       });
 
@@ -1464,6 +1892,12 @@
         state.game.venueName = event.target.value;
         saveGame();
         render();
+      });
+
+      els.gameTitleInput.addEventListener("input", (event) => {
+        state.game.title = event.target.value;
+        saveGame();
+        renderGamesList();
       });
 
       els.inningsSelect.addEventListener("change", (event) => {
@@ -1496,19 +1930,21 @@
         const fresh = createNewGame();
         fresh.awayName = state.game.awayName;
         fresh.homeName = state.game.homeName;
-        fresh.venueName = state.game.venueName;
         fresh.innings = state.game.innings;
-        fresh.importedVenue = state.game.importedVenue;
         fresh.lineups = clone(state.game.lineups);
         state.game = fresh;
+        state.importPayload = readImportPayload();
+        state.editingPlayIndex = null;
         saveGame();
         render();
+        showToast("New game ready", "success", 2600);
       });
 
       els.undoBtn.addEventListener("click", () => {
         if (!state.game.plays.length) return;
         state.game.plays.pop();
         state.game = replayGame(state.game);
+        state.editingPlayIndex = null;
         saveGame();
         render();
       });
@@ -1533,44 +1969,98 @@
         try {
           const text = await file.text();
           const parsed = JSON.parse(text);
+          const validation = validateGameImport(parsed);
+          if (!validation.ok) {
+            showToast(`Import failed: ${validation.reason}`, "error", 6000);
+            return;
+          }
           state.game = replayGame(parsed);
+          state.editingPlayIndex = null;
           saveGame();
           render();
+          showToast("Game imported", "success", 3200);
         } catch (error) {
           console.error("Import failed", error);
+          showToast("Import failed: file is not valid JSON", "error", 6000);
         }
       });
 
       els.resetBtn.addEventListener("click", () => {
+        const snapshot = clone(state.game);
         state.game = createNewGame();
+        state.importPayload = readImportPayload();
+        state.editingPlayIndex = null;
         saveGame();
         render();
+        showToast("Game reset", "undo", 5000, "Undo", () => {
+          state.game = replayGame(snapshot);
+          state.editingPlayIndex = null;
+          saveGame();
+          render();
+        });
       });
 
       els.useImportBtn.addEventListener("click", () => {
         if (!state.importPayload) return;
-        applyImportedVenue(state.importPayload);
+        applyImportedVenue(state.importPayload, { appendNote: true, clearPending: true });
+        showToast("Venue imported", "success", 2600);
       });
 
       els.refreshImportBtn.addEventListener("click", () => {
+        state.importPayload = readImportPayload();
         render();
       });
 
       els.clearImportBtn.addEventListener("click", () => {
-        localStorage.removeItem(IMPORT_KEY);
-        state.importPayload = null;
+        clearImportPayload();
         render();
+      });
+
+      els.cancelEditBtn.addEventListener("click", () => {
+        state.editingPlayIndex = null;
+        render();
+      });
+
+      els.gameSearch.addEventListener("input", (event) => {
+        libraryState.search = event.target.value;
+        renderGamesList();
+      });
+
+      els.gameSort.addEventListener("change", (event) => {
+        libraryState.sort = event.target.value;
+        renderGamesList();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        const tag = event.target && event.target.tagName ? event.target.tagName : "";
+        const inField = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+        const mod = event.metaKey || event.ctrlKey;
+        if (mod && event.key.toLowerCase() === "z") {
+          event.preventDefault();
+          if (state.game.plays.length) {
+            els.undoBtn.click();
+          }
+          return;
+        }
+        if (inField) return;
+        if (event.key === "Escape") {
+          if (activeToast) {
+            clearToast();
+            return;
+          }
+          if (state.editingPlayIndex !== null) {
+            state.editingPlayIndex = null;
+            render();
+          }
+        }
       });
     }
 
     function init() {
       state.library = loadLibrary() || createLibrary();
       state.game = getActiveGame();
-      state.importPayload = readImportPayload();
-      if (state.importPayload && state.importPayload.venue && !state.game.venueName) {
-        applyImportedVenue(state.importPayload);
-      }
       bindEvents();
+      processPendingImport();
       render();
     }
 
