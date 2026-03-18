@@ -50,10 +50,36 @@
     return hours + " hr " + remainder + " min";
   }
 
+  function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#x27;");
+  }
+
+  function safeToken(value, fallback) {
+    var token = String(value == null ? "" : value).trim();
+    if (/^[a-z0-9_-]+$/i.test(token)) return token;
+    return fallback || "";
+  }
+
+  function safeColor(value, fallback) {
+    var color = String(value == null ? "" : value).trim();
+    if (/^#[0-9a-f]{3,8}$/i.test(color)) return color;
+    if (/^rgb(a)?\([\d\s.,%]+\)$/i.test(color)) return color;
+    return fallback || "#0F1F38";
+  }
+
   global.BPQ = global.BPQ || {};
   global.BPQ.utils = {
     distanceMiles: distanceMiles,
     formatDate: formatDate,
-    minutesToReadable: minutesToReadable
+    minutesToReadable: minutesToReadable,
+    escapeHtml: escapeHtml,
+    safeToken: safeToken,
+    safeColor: safeColor
   };
 })(window);

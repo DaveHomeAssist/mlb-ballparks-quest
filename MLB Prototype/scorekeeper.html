@@ -4,13 +4,77 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · Scorekeeper</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F38">
 <style>
 /* ═══════════════════════════════════════════
    SCOREKEEPER · CENTERPIECE LAYOUT
    The grid is the hero. Everything serves it.
 ═══════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/playfair-display-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/playfair-display-italic-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/dm-mono-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/dm-mono-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('fonts/dm-sans-300.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/dm-sans-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/dm-sans-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Special Elite';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/special-elite-400.woff2') format('woff2');
+}
 
 :root {
   /* Page */
@@ -734,12 +798,29 @@ body {
   opacity: 0.7;
 }
 
-/* ─── Mobile ────────────────────────────── */
+/* ─── Mobile (JS-driven layout attr) ──── */
 [data-layout="mobile"] body { overflow: auto; }
 [data-layout="mobile"] .sk-main { flex-direction: column; overflow: visible; }
 [data-layout="mobile"] .sk-notes-panel { width: 100%; border-left: none; border-top: 1px solid rgba(200,168,100,0.12); }
 [data-layout="mobile"] .sk-input-bar { flex-direction: column; }
 [data-layout="mobile"] .sk-chip-row { flex-wrap: wrap; }
+
+/* ─── Responsive fallbacks (CSS-only) ─── */
+@media (max-width: 640px) {
+  :root { --cell-size: 56px; --lineup-w: 110px; --totals-w: 42px; }
+  body { overflow: auto; }
+  .sk-main { flex-direction: column; overflow: visible; }
+  .sk-notes-panel { width: 100%; border-left: none; border-top: 1px solid rgba(200,168,100,0.12); }
+  .sk-input-bar { flex-direction: column; gap: 6px; padding: 8px; }
+  .sk-chip-row { flex-wrap: wrap; }
+  .sk-nav { padding: 0 8px; gap: 6px; }
+  .sk-nav-actions { gap: 4px; }
+  .sk-btn { font-size: 9px; padding: 4px 8px; }
+}
+@media (max-width: 900px) and (min-width: 641px) {
+  :root { --cell-size: 72px; --lineup-w: 140px; }
+  .sk-notes-panel { width: 240px; }
+}
 
 /* ─── Pencil canvas overlay ─────────────── */
 .pencil-overlay {
@@ -927,6 +1008,7 @@ body {
 'use strict';
 
 const app = window.BPQ && window.BPQ.app;
+const utils = window.BPQ && window.BPQ.utils;
 const SESSION_KEY = 'bpq_scorekeeper_session_v1';
 const INNINGS = 9;
 const BATTERS = 9;
@@ -942,6 +1024,9 @@ function isOut(c)  { return OUT_RE.test(c) || /^\d+-\d+/.test(c) || /^F\d/.test(
 function isHit(c)  { return HIT_CODES.has(c); }
 function isErr(c)  { return ERR_RE.test(c); }
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
+function escapeHtml(value) {
+  return utils && utils.escapeHtml ? utils.escapeHtml(value) : String(value == null ? '' : value);
+}
 
 function emptyPlays() {
   return {
@@ -1151,7 +1236,7 @@ function renderDiamond(play, isActive) {
   }
 
   const codeColor = err ? '#C85050' : hit ? '#8AC4E8' : '#A89878';
-  const codeEl = `<text x="5" y="12" font-family="'DM Mono',monospace" font-size="9" fill="${codeColor}" font-weight="500">${code}</text>`;
+  const codeEl = `<text x="5" y="12" font-family="'DM Mono',monospace" font-size="9" fill="${codeColor}" font-weight="500">${escapeHtml(code)}</text>`;
 
   let outEl = '';
   if (outNum) {
@@ -1267,8 +1352,8 @@ function renderNotes() {
   feed.innerHTML = notes.length
     ? notes.map((entry) => `
       <div class="sk-note-entry">
-        <span class="sk-note-inning">${entry.label}</span>
-        <span class="sk-note-text ${entry.tone || ''}">${entry.text}</span>
+        <span class="sk-note-inning">${escapeHtml(entry.label)}</span>
+        <span class="sk-note-text ${entry.tone || ''}">${escapeHtml(entry.text)}</span>
       </div>
     `).join('')
     : `

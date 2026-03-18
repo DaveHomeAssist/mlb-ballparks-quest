@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · The Pilgrimage</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F38">
 <link rel="stylesheet" href="shared.css">
 <style>
 /* ═══ INDEX PAGE ════════════════════════════ */
@@ -528,16 +530,12 @@
 <script>
 (function() {
   const app = window.BPQ && window.BPQ.app;
-  if (!app) return;
+  const utils = window.BPQ && window.BPQ.utils;
+  if (!app || !utils) return;
 
-  function escapeHtml(value) {
-    return String(value == null ? '' : value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
+  const escapeHtml = utils.escapeHtml;
+  const safeColor = utils.safeColor;
+  const safeToken = utils.safeToken;
 
   function renderVisited() {
     const visited = app.getVisitedParks();
@@ -569,7 +567,7 @@
 
     visitedGrid.innerHTML = visited.slice(0, 4).map(({ park, meta }, index) => `
       <div class="visited-card fade-up fade-up-${Math.min(index + 2, 5)}">
-        <div class="visited-card-stripe" style="background:${park.color};"></div>
+        <div class="visited-card-stripe" style="background:${safeColor(park.color, '#7EB4E0')};"></div>
         <div class="visited-card-body">
           <div class="visited-card-header">
             <div>
@@ -614,7 +612,7 @@
           return `<circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="4.5" fill="#2E7D52" stroke="rgba(15,31,56,0.7)" stroke-width="1.4"></circle>`;
         }).join('')}
         ${targetPoints.map(({ park, point }) => `
-          <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6" fill="${park.color}" stroke="#F5EDD8" stroke-width="2"></circle>
+          <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6" fill="${safeColor(park.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="2"></circle>
           <text class="sidebar-map-label" x="${(point.x + 8).toFixed(1)}" y="${(point.y - 8).toFixed(1)}">${escapeHtml(park.city)}</text>
         `).join('')}
       </svg>
@@ -636,7 +634,7 @@
     }
     container.innerHTML = targets.map((park) => `
       <a href="route.html" class="sidebar-park-item">
-        <div class="tier-stamp tier-${park.tier}">${park.tier}</div>
+        <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
         <div>
           <div class="sidebar-park-name">${escapeHtml(park.name)}</div>
           <div class="sidebar-park-city">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>

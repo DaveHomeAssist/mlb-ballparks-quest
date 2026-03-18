@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · All 30 Parks</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F38">
 <link rel="stylesheet" href="shared.css">
 <style>
 /* ═══ PARKS PAGE ════════════════════════════ */
@@ -421,7 +423,12 @@
 <script>
 (function() {
   const app = window.BPQ && window.BPQ.app;
-  if (!app) return;
+  const utils = window.BPQ && window.BPQ.utils;
+  if (!app || !utils) return;
+
+  const escapeHtml = utils.escapeHtml;
+  const safeColor = utils.safeColor;
+  const safeToken = utils.safeToken;
 
   let selectedParkId = null;
   let activeFilter = 'all';
@@ -452,22 +459,13 @@
         ${routeLine ? `<polyline class="detail-map-line" points="${routeLine}"></polyline>` : ''}
         <circle class="detail-map-ring" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="14"></circle>
         ${routeParks.map(({ park: routePark, point: routePoint }) => `
-          <circle cx="${routePoint.x.toFixed(1)}" cy="${routePoint.y.toFixed(1)}" r="4.5" fill="${routePark.color}" stroke="#F5EDD8" stroke-width="1.4"></circle>
+          <circle cx="${routePoint.x.toFixed(1)}" cy="${routePoint.y.toFixed(1)}" r="4.5" fill="${safeColor(routePark.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="1.4"></circle>
         `).join('')}
-        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6.5" fill="${park.color}" stroke="#F5EDD8" stroke-width="2"></circle>
+        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6.5" fill="${safeColor(park.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="2"></circle>
         <text class="detail-map-label" x="${(point.x + 9).toFixed(1)}" y="${(point.y - 8).toFixed(1)}">${escapeHtml(park.city)}</text>
         ${onRoute ? `<text class="detail-map-label" x="16" y="${height - 12}" fill="rgba(240,188,67,0.92)">On current route</text>` : ''}
       </svg>
     `;
-  }
-
-  function escapeHtml(value) {
-    return String(value == null ? '' : value)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
   }
 
   function getFilteredParks() {
@@ -509,10 +507,10 @@
     const filtered = getFilteredParks();
     count.textContent = `${filtered.length} park${filtered.length !== 1 ? 's' : ''}`;
     list.innerHTML = filtered.map((park) => `
-      <div class="park-row ${selectedParkId === park.id ? 'selected' : ''}" data-park-id="${park.id}" tabindex="0" role="button" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
-        <div class="tier-stamp tier-${park.tier}">${park.tier}</div>
-        <div class="park-row-name">${park.name}</div>
-        <div class="park-row-city">${park.city}</div>
+      <div class="park-row ${selectedParkId === park.id ? 'selected' : ''}" data-park-id="${escapeHtml(park.id)}" tabindex="0" role="button" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
+        <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
+        <div class="park-row-name">${escapeHtml(park.name)}</div>
+        <div class="park-row-city">${escapeHtml(park.city)}</div>
         ${app.isVisited(park.id) ? '<span class="badge badge-visited">✓</span>' : '<span class="badge badge-unvisited">Open</span>'}
       </div>
     `).join('');
@@ -526,18 +524,18 @@
     const parkScratchpad = app.getParkScratchpad(park.id);
     const onRoute = app.getRouteStore().stops.includes(park.id);
     const specialEvents = Array.isArray(park.specialEvents) && park.specialEvents.length ? park.specialEvents : ['No current event signal'];
-    document.getElementById('detail-stripe').style.background = park.color;
+    document.getElementById('detail-stripe').style.background = safeColor(park.color, '#7EB4E0');
     document.getElementById('d-name').textContent = park.name;
     document.getElementById('d-team').textContent = `${park.team} · ${park.city}`;
     renderDetailMap(park, onRoute);
     document.getElementById('d-note').textContent = visitMeta && visitMeta.notes ? visitMeta.notes : (park.note || '');
     document.getElementById('d-grid').innerHTML = `
-      <div class="detail-datum"><div class="detail-datum-label">Opened</div><div class="detail-datum-value">${park.opened}</div></div>
-      <div class="detail-datum"><div class="detail-datum-label">Capacity</div><div class="detail-datum-value">${park.capacity.toLocaleString()}</div></div>
-      <div class="detail-datum"><div class="detail-datum-label">Roof</div><div class="detail-datum-value">${park.roof}</div></div>
-      <div class="detail-datum"><div class="detail-datum-label">Priority</div><div class="detail-datum-value">Tier ${park.tier}</div></div>
-      <div class="detail-datum"><div class="detail-datum-label">Visited</div><div class="detail-datum-value">${visitMeta ? visitMeta.visitDate || 'Marked' : 'Not yet'}</div></div>
-      <div class="detail-datum"><div class="detail-datum-label">Standout</div><div class="detail-datum-value">${visitMeta?.bestFeature || 'Still scouting'}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Opened</div><div class="detail-datum-value">${escapeHtml(park.opened)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Capacity</div><div class="detail-datum-value">${escapeHtml(park.capacity.toLocaleString())}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Roof</div><div class="detail-datum-value">${escapeHtml(park.roof)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Priority</div><div class="detail-datum-value">Tier ${escapeHtml(park.tier)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Visited</div><div class="detail-datum-value">${escapeHtml(visitMeta ? (visitMeta.visitDate || 'Marked') : 'Not yet')}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Standout</div><div class="detail-datum-value">${escapeHtml(visitMeta?.bestFeature || 'Still scouting')}</div></div>
     `;
     document.getElementById('d-signals').innerHTML = `
       <div class="detail-signal">

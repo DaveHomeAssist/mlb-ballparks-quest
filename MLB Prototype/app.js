@@ -376,7 +376,18 @@
     storage.flush(SCOREKEEPER_CONTEXT_KEY);
   }
 
+  function registerServiceWorker() {
+    if (!("serviceWorker" in global.navigator)) return;
+
+    global.addEventListener("load", function onLoad() {
+      global.navigator.serviceWorker.register("sw.js").catch(function onError(error) {
+        console.warn("SW registration failed:", error);
+      });
+    });
+  }
+
   data.initializeData();
+  registerServiceWorker();
 
   namespace.app = {
     LEG_STATUSES: LEG_STATUSES.slice(),

@@ -2,7 +2,9 @@
   "use strict";
 
   var app = global.BPQ && global.BPQ.app;
+  var utils = global.BPQ && global.BPQ.utils;
   if (!app) return;
+  if (!utils) return;
 
   var tripScratchpadEl = document.getElementById("tripScratchpad");
   var tripNotesContextEl = document.getElementById("tripNotesContext");
@@ -14,14 +16,9 @@
   var DATE_RE = /\b(?:(?:Mon|Tue|Tues|Wed|Thu|Thur|Thurs|Fri|Sat|Sun)(?:day)?\.?\s+)?(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2}(?:,\s*\d{4})?\b|\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/i;
   var PRICE_LINE_RE = /\$\s?\d+(?:\.\d{2})?(?:[^\n]*)/i;
 
-  function escapeHtml(value) {
-    return String(value == null ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+  var escapeHtml = utils.escapeHtml;
+  var safeColor = utils.safeColor;
+  var safeToken = utils.safeToken;
 
   function normalizeText(value) {
     return String(value == null ? "" : value).trim();
@@ -210,7 +207,7 @@
       points.map(function mapPoint(entry, index) {
         var point = entry.point;
         return [
-          '    <circle class="route-map-dot" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="' + (index === 0 ? '7' : '6') + '" fill="' + escapeHtml(entry.park.color || "#7EB4E0") + '"></circle>',
+          '    <circle class="route-map-dot" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="' + (index === 0 ? '7' : '6') + '" fill="' + safeColor(entry.park.color || "#7EB4E0", "#7EB4E0") + '"></circle>',
           '    <text class="route-map-label" x="' + (point.x + 10).toFixed(1) + '" y="' + (point.y - 10).toFixed(1) + '">' + escapeHtml(entry.park.city) + '</text>'
         ].join("");
       }).join(""),
@@ -280,14 +277,14 @@
 
       return [
         '<article class="route-card fade-up fade-up-' + Math.min(index + 2, 5) + '">',
-        '  <div class="route-card-stripe" style="background:' + park.color + ';"></div>',
+        '  <div class="route-card-stripe" style="background:' + safeColor(park.color, '#7EB4E0') + ';"></div>',
         '  <div class="route-card-inner">',
         '    <div class="route-card-top">',
         '      <div>',
         '        <div class="route-park-name">' + escapeHtml(park.name) + '</div>',
         '        <div class="route-team-city">' + escapeHtml(park.team) + ' · ' + escapeHtml(park.city) + '</div>',
         '      </div>',
-        '      <div class="tier-stamp tier-' + park.tier + '">' + escapeHtml(park.tier) + '</div>',
+        '      <div class="tier-stamp tier-' + safeToken(park.tier, 'C') + '">' + escapeHtml(park.tier) + '</div>',
         '    </div>',
         '    <div class="route-reason">' + escapeHtml(park.note) + '</div>',
         '    <div class="route-card-footer">',

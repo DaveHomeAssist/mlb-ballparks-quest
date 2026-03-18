@@ -1,0 +1,20 @@
+{
+  "name": "MLB Ballparks Quest",
+  "short_name": "Ballparks Quest",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#F5EDD8",
+  "theme_color": "#0F1F38",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
