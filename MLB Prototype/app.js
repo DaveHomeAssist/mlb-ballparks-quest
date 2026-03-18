@@ -209,6 +209,13 @@
     return sanitizeActiveTrip(storage.get(data.KEYS.activeTrip));
   }
 
+  function normalizeTripDate(value) {
+    if (value == null) return null;
+    var text = String(value).trim();
+    if (!text) return null;
+    return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
+  }
+
   function saveActiveTrip(nextTrip) {
     var sanitizedTrip = sanitizeActiveTrip(nextTrip);
     sanitizedTrip.updatedAt = nowIso();
@@ -238,6 +245,21 @@
   function saveRouteStore(store) {
     return updateActiveTrip(function applyRoute(currentTrip) {
       currentTrip.parkIds = Array.isArray(store && store.stops) ? store.stops.slice() : [];
+      return currentTrip;
+    });
+  }
+
+  function setTripWindow(startDate, endDate) {
+    return updateActiveTrip(function applyWindow(currentTrip) {
+      currentTrip.startDate = normalizeTripDate(startDate);
+      currentTrip.endDate = normalizeTripDate(endDate);
+
+      if (currentTrip.startDate && currentTrip.endDate && currentTrip.startDate > currentTrip.endDate) {
+        var swap = currentTrip.startDate;
+        currentTrip.startDate = currentTrip.endDate;
+        currentTrip.endDate = swap;
+      }
+
       return currentTrip;
     });
   }
@@ -406,6 +428,7 @@
     updateActiveTrip: updateActiveTrip,
     getRouteStore: getRouteStore,
     saveRouteStore: saveRouteStore,
+    setTripWindow: setTripWindow,
     getRouteParks: getRouteParks,
     addRouteStop: addRouteStop,
     removeRouteStop: removeRouteStop,

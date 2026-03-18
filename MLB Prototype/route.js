@@ -7,6 +7,8 @@
   if (!utils) return;
 
   var tripScratchpadEl = document.getElementById("tripScratchpad");
+  var tripStartDateEl = document.getElementById("tripStartDate");
+  var tripEndDateEl = document.getElementById("tripEndDate");
   var tripNotesContextEl = document.getElementById("tripNotesContext");
   var tripSummaryCardEl = document.getElementById("tripSummaryCard");
   var routeGridEl = document.getElementById("routeGrid");
@@ -162,6 +164,47 @@
     return routeParks[0].city + " to " + routeParks[routeParks.length - 1].city + " · " + routeParks.length + " stops in play";
   }
 
+  function hasTripWindow(trip) {
+    return Boolean(trip && trip.startDate && trip.endDate);
+  }
+
+  function formatTripWindow(trip) {
+    if (!hasTripWindow(trip)) return "Not set";
+    return app.formatDate(trip.startDate) + " to " + app.formatDate(trip.endDate);
+  }
+
+  function getLegGames(schedule, parkId, trip) {
+    if (!schedule) {
+      return {
+        label: "Schedule",
+        lines: [],
+        emptyMessage: "Schedule not loaded"
+      };
+    }
+
+    if (!schedule.getGamesForPark(parkId).length) {
+      return {
+        label: hasTripWindow(trip) ? "Games in trip window" : "Next home games",
+        lines: [],
+        emptyMessage: "Schedule not loaded"
+      };
+    }
+
+    if (hasTripWindow(trip)) {
+      return {
+        label: "Games in trip window",
+        lines: schedule.getGamesInWindow(parkId, trip.startDate, trip.endDate).slice(0, 3),
+        emptyMessage: "No games in this window"
+      };
+    }
+
+    return {
+      label: "Next home games",
+      lines: schedule.getUpcomingGames(parkId, 3),
+      emptyMessage: "No upcoming games loaded"
+    };
+  }
+
   function renderMapPanel(routeParks, activeTrip) {
     var width = 760;
     var height = 260;
@@ -242,10 +285,16 @@
       '<div class="route-summary-item">',
       '  <div class="route-summary-label">Starting point</div>',
       '  <div class="route-summary-value route-summary-text">' + escapeHtml(firstPark ? firstPark.name : "Still choosing") + '</div>',
+      '</div>',
+      '<div class="route-summary-item">',
+      '  <div class="route-summary-label">Trip window</div>',
+      '  <div class="route-summary-value route-summary-text">' + escapeHtml(formatTripWindow(trip)) + '</div>',
       '</div>'
     ].join("");
 
     tripScratchpadEl.value = (app.getTripScratchpad() && app.getTripScratchpad().text) || "";
+    tripStartDateEl.value = trip.startDate || "";
+    tripEndDateEl.value = trip.endDate || "";
     tripNotesContextEl.textContent = getRouteContextLine(routeParks);
   }
 
@@ -351,7 +400,7 @@
       var warningText = anchor.warning || deriveEventWarning(toPark || {});
       var ticketBadge = getTicketBadge(toPark ? toPark.ticketApproach : "");
       var schedule = global.BPQ && global.BPQ.schedule;
-      var upcomingGames = schedule ? schedule.getUpcomingGames(toPark ? toPark.id : "", 3) : [];
+      var scheduleState = getLegGames(schedule, toPark ? toPark.id : "", activeTrip);
 
       if (!fromPark || !toPark) return "";
 
@@ -366,17 +415,17 @@
         anchor.date ? '    <div class="leg-date-chip">' + escapeHtml(anchor.date) + '</div>' : '',
         '  </div>',
         renderAnchorBlock(anchor),
-        upcomingGames.length ? [
+        [
           '<div class="leg-schedule-block">',
-          '  <div class="leg-schedule-label">Next home games</div>',
-          upcomingGames.map(function mapGame(game) {
+          '  <div class="leg-schedule-label">' + escapeHtml(scheduleState.label) + '</div>',
+          scheduleState.lines.length ? scheduleState.lines.map(function mapGame(game) {
             return '<div class="leg-schedule-line' + (game.s ? ' leg-schedule-special' : '') + '">' +
               escapeHtml(schedule.formatGameLine(game)) +
               (game.s ? ' <span class="schedule-event-tag">' + escapeHtml(game.s) + '</span>' : '') +
             '</div>';
-          }).join(''),
+          }).join('') : '<div class="leg-schedule-line leg-schedule-empty">' + escapeHtml(scheduleState.emptyMessage) + '</div>',
           '</div>'
-        ].join('') : '',
+        ].join(''),
         renderSignalBlock(leg, toPark, anchor, warningText),
         '  <div class="ticket-badge ' + ticketBadge.tone + '">' + escapeHtml(ticketBadge.label) + '</div>',
         '  <div class="leg-status-row">',
@@ -437,6 +486,14 @@
   tripScratchpadEl.addEventListener("input", function handleTripNote(event) {
     app.saveTripScratchpad(event.target.value);
   });
+
+  function handleTripWindowChange() {
+    app.setTripWindow(tripStartDateEl.value, tripEndDateEl.value);
+    renderAll();
+  }
+
+  tripStartDateEl.addEventListener("input", handleTripWindowChange);
+  tripEndDateEl.addEventListener("input", handleTripWindowChange);
 
   logisticsGridEl.addEventListener("input", function handleLegNote(event) {
     if (!event.target.matches("[data-leg-note]")) return;
