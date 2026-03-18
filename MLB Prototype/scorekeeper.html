@@ -1231,7 +1231,9 @@ body {
 <script src="storage.js"></script>
 <script src="utils.js"></script>
 <script src="data.js"></script>
+<script src="logos.js"></script>
 <script src="device.js"></script>
+<script src="schedule.js"></script>
 <script src="app.js"></script>
 <script>
 /* ═══════════════════════════════════════════
@@ -1241,26 +1243,12 @@ body {
 
 const app = window.BPQ && window.BPQ.app;
 const utils = window.BPQ && window.BPQ.utils;
+const logos = window.BPQ && window.BPQ.logos;
 const SESSION_KEY = 'bpq_scorekeeper_session_v1';
 const INNINGS = 9;
 const BATTERS = 9;
-
-const ESPN_LOGO = {
-  'Arizona Diamondbacks':29,'Atlanta Braves':16,'Baltimore Orioles':1,
-  'Boston Red Sox':2,'Chicago Cubs':17,'Chicago White Sox':4,
-  'Cincinnati Reds':18,'Cleveland Guardians':5,'Colorado Rockies':19,
-  'Detroit Tigers':6,'Houston Astros':14,'Kansas City Royals':7,
-  'Los Angeles Angels':3,'Los Angeles Dodgers':20,'Miami Marlins':21,
-  'Milwaukee Brewers':22,'Minnesota Twins':8,'New York Mets':23,
-  'New York Yankees':9,'Athletics':10,'Oakland Athletics':10,
-  'Philadelphia Phillies':24,'Pittsburgh Pirates':25,'San Diego Padres':27,
-  'San Francisco Giants':28,'Seattle Mariners':11,'St. Louis Cardinals':26,
-  'Tampa Bay Rays':15,'Texas Rangers':12,'Toronto Blue Jays':13,
-  'Washington Nationals':30
-};
 function teamLogoUrl(name) {
-  const id = ESPN_LOGO[name];
-  return id ? 'https://a.espncdn.com/i/teamlogos/mlb/500/' + id + '.png' : '';
+  return logos && logos.getTeamLogo ? logos.getTeamLogo(name) : '';
 }
 const DEFAULT_POSITIONS = ['CF','SS','1B','LF','DH','3B','RF','C','2B'];
 const DEFAULT_NAMES = ['Stott','Schwarber','Harper','Castellanos','Realmuto','Bohm','Sosa','Marsh','Turner'];
@@ -1302,10 +1290,12 @@ function emptyLinescore() {
 function getInitialMeta() {
   const context = app && app.getScorekeeperContext ? app.getScorekeeperContext() : null;
   return {
-    title: context ? `${context.homeTeam} scorebook` : 'New Game',
+    title: context ? `${context.awayTeam ? context.awayTeam + ' at ' : ''}${context.homeTeam} scorebook` : 'New Game',
     venue: context ? context.venue : '',
     parkId: context ? context.parkId : '',
-    awayName: 'Away',
+    gameId: context ? context.gameId : '',
+    startDateTimeLocal: context ? context.startDateTimeLocal : '',
+    awayName: context && context.awayTeam ? context.awayTeam : 'Away',
     homeName: context ? context.homeTeam : 'Home'
   };
 }
@@ -1359,7 +1349,15 @@ function teamLogoImg(name) {
 
 function updateMetaLabels() {
   document.getElementById('sk-game-title').textContent = meta.title || 'New Game';
-  document.getElementById('sk-venue-label').textContent = meta.venue || '';
+  const venueBits = [meta.venue || ''];
+  if (meta.startDateTimeLocal) {
+    const start = new Date(meta.startDateTimeLocal);
+    if (Number.isFinite(start.getTime())) {
+      venueBits.push(start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+      venueBits.push(start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }));
+    }
+  }
+  document.getElementById('sk-venue-label').textContent = venueBits.filter(Boolean).join(' · ');
   const awayEl = document.getElementById('ls-away-name');
   const homeEl = document.getElementById('ls-home-name');
   const awayName = meta.awayName || 'Away';
@@ -1409,8 +1407,11 @@ function applyContextToSession(force) {
   if (force || sessionIsEmpty) {
     meta.venue = context.venue || meta.venue;
     meta.parkId = context.parkId || meta.parkId;
+    meta.gameId = context.gameId || meta.gameId;
+    meta.startDateTimeLocal = context.startDateTimeLocal || meta.startDateTimeLocal;
+    meta.awayName = context.awayTeam || meta.awayName;
     meta.homeName = context.homeTeam || meta.homeName;
-    if (!meta.title || meta.title === 'New Game') meta.title = `${meta.homeName} scorebook`;
+    if (!meta.title || meta.title === 'New Game') meta.title = `${meta.awayName} at ${meta.homeName} scorebook`;
     updateMetaLabels();
     saveSession();
   }
@@ -1913,6 +1914,8 @@ window.render_game_to_text = function renderGameToText() {
   return JSON.stringify({
     title: meta.title,
     venue: meta.venue,
+    gameId: meta.gameId,
+    startDateTimeLocal: meta.startDateTimeLocal,
     currentSide,
     viewSide,
     inning: curInning + 1,

@@ -125,6 +125,21 @@
   letter-spacing: -0.01em;
 }
 
+.park-row-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.park-team-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .park-row-team {
   font-family: var(--font-data);
   font-size: 9px;
@@ -165,11 +180,25 @@
 }
 
 .detail-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--font-data);
   font-size: 10px;
   letter-spacing: 0.1em;
   color: rgba(245,237,216,0.8);
   margin-bottom: 16px;
+}
+
+.detail-team-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.detail-team-text {
+  min-width: 0;
 }
 
 .detail-photo {
@@ -324,6 +353,23 @@
 
 .detail-schedule-list { display: flex; flex-direction: column; gap: 3px; }
 .detail-schedule-line { font-family: var(--font-data); font-size: 11px; color: rgba(245,237,216,0.82); padding: 2px 0; line-height: 1.5; }
+.detail-schedule-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+}
+.detail-schedule-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.detail-schedule-actions .btn {
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: 9px;
+}
 
 .detail-event-list {
   display: flex;
@@ -404,6 +450,7 @@
 <script src="storage.js"></script>
 <script src="utils.js"></script>
 <script src="data.js"></script>
+<script src="logos.js"></script>
 <script src="schedule.js"></script>
 <script src="device.js"></script>
 <script src="app.js"></script>
@@ -480,12 +527,18 @@
 (function() {
   const app = window.BPQ && window.BPQ.app;
   const utils = window.BPQ && window.BPQ.utils;
+  const logos = window.BPQ && window.BPQ.logos;
   if (!app || !utils) return;
 
   const escapeHtml = utils.escapeHtml;
   const safeColor = utils.safeColor;
   const safeToken = utils.safeToken;
   const projectPoint = utils.projectPoint;
+
+  function teamLogoImg(teamName, className) {
+    const src = logos && logos.getTeamLogo ? logos.getTeamLogo(teamName) : '';
+    return src ? `<img class="${className}" src="${escapeHtml(src)}" alt="${escapeHtml(teamName)} logo" loading="lazy">` : '';
+  }
 
   let selectedParkId = null;
   let activeFilter = 'all';
@@ -537,7 +590,7 @@
     const visitButton = document.getElementById('d-visit-toggle');
     const routeButton = document.getElementById('d-route-toggle');
     const scoreLink = document.getElementById('d-score-link');
-    const routeIds = app.getRouteStore().stops;
+    const routeIds = app.getRouteStore().stops.map((stop) => typeof stop === 'string' ? stop : stop.parkId);
     const visited = app.isVisited(park.id);
     const onRoute = routeIds.includes(park.id);
 
@@ -557,7 +610,10 @@
     list.innerHTML = filtered.map((park) => `
       <div class="park-row ${selectedParkId === park.id ? 'selected' : ''}" data-park-id="${escapeHtml(park.id)}" tabindex="0" role="button" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
         <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
-        <div class="park-row-name">${escapeHtml(park.name)}</div>
+        <div class="park-row-brand">
+          ${teamLogoImg(park.team, 'park-team-logo')}
+          <div class="park-row-name">${escapeHtml(park.name)}</div>
+        </div>
         <div class="park-row-city">${escapeHtml(park.city)}</div>
         ${app.isVisited(park.id) ? '<span class="badge badge-visited">✓</span>' : '<span class="badge badge-unvisited">Open</span>'}
       </div>
@@ -570,11 +626,14 @@
     selectedParkId = park.id;
     const visitMeta = app.getVisitedMeta(park.id);
     const parkScratchpad = app.getParkScratchpad(park.id);
-    const onRoute = app.getRouteStore().stops.includes(park.id);
+    const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === park.id);
     const specialEvents = Array.isArray(park.specialEvents) && park.specialEvents.length ? park.specialEvents : ['No current event signal'];
     document.getElementById('detail-stripe').style.background = safeColor(park.color, '#7EB4E0');
     document.getElementById('d-name').textContent = park.name;
-    document.getElementById('d-team').textContent = `${park.team} · ${park.city}`;
+    document.getElementById('d-team').innerHTML = `
+      ${teamLogoImg(park.team, 'detail-team-logo')}
+      <div class="detail-team-text">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
+    `;
     renderDetailMap(park, onRoute);
     document.getElementById('d-note').textContent = visitMeta && visitMeta.notes ? visitMeta.notes : (park.note || '');
     document.getElementById('d-grid').innerHTML = `
@@ -605,14 +664,22 @@
         <div class="detail-signal-text">${onRoute ? 'Already in the current run.' : 'Not on the route yet.'}</div>
       </div>
       ${(function() {
-        var schedule = window.BPQ && window.BPQ.schedule;
-        if (!schedule) return '';
-        var games = schedule.getUpcomingGames(park.id, 4);
+        var games = app.getUpcomingGamesByPark ? app.getUpcomingGamesByPark(park.id, 4) : [];
         if (!games.length) return '';
         return '<div class="detail-signal"><div class="detail-signal-label">Upcoming home games</div><div class="detail-schedule-list">' +
           games.map(function(g) {
-            return '<div class="detail-schedule-line">' + escapeHtml(schedule.formatGameLine(g)) +
-              (g.s ? ' <span class="detail-event-pill" style="margin-left:6px;font-size:8px;">' + escapeHtml(g.s) + '</span>' : '') + '</div>';
+            var onGameRoute = app.getRouteStore().stops.some(function(stop) {
+              return stop && typeof stop === 'object' && stop.gameId === g.gameId;
+            });
+            return '<div class="detail-schedule-card">' +
+              '<div class="detail-schedule-line">' + escapeHtml(window.BPQ.schedule.formatGameLine(g)) +
+              (g.s ? ' <span class="detail-event-pill" style="margin-left:6px;font-size:8px;">' + escapeHtml(g.s) + '</span>' : '') + '</div>' +
+              '<div class="detail-schedule-actions">' +
+                '<button type="button" class="btn btn-primary" data-route-game="' + escapeHtml(g.gameId) + '" data-route-park="' + escapeHtml(park.id) + '">' + (onGameRoute ? 'Game on route' : 'Add game to route') + '</button>' +
+                '<a href="scorekeeper.html" class="btn btn-red" data-score-game="' + escapeHtml(g.gameId) + '" data-score-park="' + escapeHtml(park.id) + '">Score this game</a>' +
+                '<button type="button" class="btn btn-ghost" data-calendar-game="' + escapeHtml(g.gameId) + '">Add to calendar</button>' +
+              '</div>' +
+            '</div>';
           }).join('') + '</div></div>';
       })()}
     `;
@@ -660,7 +727,7 @@
 
   document.getElementById('d-route-toggle').addEventListener('click', () => {
     if (!selectedParkId) return;
-    const onRoute = app.getRouteStore().stops.includes(selectedParkId);
+    const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === selectedParkId);
     if (onRoute) app.removeRouteStop(selectedParkId);
     else app.addRouteStop(selectedParkId);
     selectPark(selectedParkId);
@@ -671,13 +738,35 @@
     app.setScorekeeperContext(selectedParkId);
   });
 
+  document.getElementById('d-signals').addEventListener('click', (event) => {
+    const routeGame = event.target.closest('[data-route-game]');
+    if (routeGame) {
+      app.addRouteStop(routeGame.dataset.routePark, routeGame.dataset.routeGame);
+      selectPark(routeGame.dataset.routePark);
+      return;
+    }
+
+    const scoreGame = event.target.closest('[data-score-game]');
+    if (scoreGame) {
+      app.setScorekeeperContext({ parkId: scoreGame.dataset.scorePark, gameId: scoreGame.dataset.scoreGame });
+      return;
+    }
+
+    const calendarGame = event.target.closest('[data-calendar-game]');
+    if (calendarGame) {
+      const game = app.getGameById(calendarGame.dataset.calendarGame);
+      if (game) app.downloadGameICS(game);
+    }
+  });
+
   document.getElementById('d-scratchpad').addEventListener('input', (event) => {
     if (!selectedParkId) return;
     app.saveParkScratchpad(selectedParkId, event.target.value);
   });
 
   renderList();
-  const preferred = app.getRouteStore().stops[0] || app.getNextTargets(1)[0]?.id || app.getParks()[0]?.id;
+  const preferredStop = app.getRouteStore().stops[0];
+  const preferred = (typeof preferredStop === 'string' ? preferredStop : preferredStop && preferredStop.parkId) || app.getNextTargets(1)[0]?.id || app.getParks()[0]?.id;
   if (preferred) selectPark(preferred);
 })();
 </script>

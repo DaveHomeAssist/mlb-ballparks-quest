@@ -3,6 +3,7 @@
 
   var app = global.BPQ && global.BPQ.app;
   var utils = global.BPQ && global.BPQ.utils;
+  var logos = global.BPQ && global.BPQ.logos;
   if (!app) return;
   if (!utils) return;
 
@@ -22,6 +23,11 @@
   var safeColor = utils.safeColor;
   var safeToken = utils.safeToken;
   var projectPoint = utils.projectPoint;
+
+  function teamLogoImg(teamName) {
+    var src = logos && logos.getTeamLogo ? logos.getTeamLogo(teamName) : "";
+    return src ? '<img class="route-team-logo" src="' + escapeHtml(src) + '" alt="' + escapeHtml(teamName) + ' logo" loading="lazy">' : "";
+  }
 
   function normalizeText(value) {
     return String(value == null ? "" : value).trim();
@@ -107,7 +113,7 @@
   }
 
   function getRouteSelection() {
-    return app.getRouteParks();
+    return app.getRouteStops();
   }
 
   function renderEmptyState(title, text) {
@@ -160,8 +166,8 @@
 
   function getRouteContextLine(routeParks) {
     if (!routeParks.length) return "No stops locked yet";
-    if (routeParks.length === 1) return routeParks[0].city + " on deck";
-    return routeParks[0].city + " to " + routeParks[routeParks.length - 1].city + " · " + routeParks.length + " stops in play";
+    if (routeParks.length === 1) return routeParks[0].park.city + " on deck";
+    return routeParks[0].park.city + " to " + routeParks[routeParks.length - 1].park.city + " · " + routeParks.length + " stops in play";
   }
 
   function hasTripWindow(trip) {
@@ -260,9 +266,9 @@
   function renderTripSummary() {
     var trip = app.getActiveTrip();
     var routeParks = getRouteSelection();
-    var firstPark = routeParks[0] || null;
+    var firstStop = routeParks[0] || null;
     var visitedOnRoute = routeParks.filter(function countVisited(park) {
-      return app.isVisited(park.id);
+      return app.isVisited(park.park.id);
     }).length;
 
     tripSummaryCardEl.innerHTML = [
@@ -284,7 +290,7 @@
       '</div>',
       '<div class="route-summary-item">',
       '  <div class="route-summary-label">Starting point</div>',
-      '  <div class="route-summary-value route-summary-text">' + escapeHtml(firstPark ? firstPark.name : "Still choosing") + '</div>',
+      '  <div class="route-summary-value route-summary-text">' + escapeHtml(firstStop ? firstStop.park.name : "Still choosing") + '</div>',
       '</div>',
       '<div class="route-summary-item">',
       '  <div class="route-summary-label">Trip window</div>',
@@ -299,20 +305,22 @@
   }
 
   function renderRouteCards() {
-    var routeParks = getRouteSelection();
+    var routeStops = getRouteSelection();
     var routeStopIds = app.getRouteStore().stops;
     var activeTrip = app.getActiveTrip();
 
-    if (!routeParks.length) {
+    if (!routeStops.length) {
       routeGridEl.innerHTML = renderEmptyState("No stops yet. Start with a park.", "");
       return;
     }
 
-    routeGridEl.innerHTML = routeParks.map(function mapPark(park, index) {
-      var onRoute = routeStopIds.includes(park.id);
+    routeGridEl.innerHTML = routeStops.map(function mapStop(stop, index) {
+      var park = stop.park;
+      var game = stop.game;
+      var onRoute = routeStopIds.some(function(routeStop) { return (typeof routeStop === "string" ? routeStop : routeStop.parkId) === park.id; });
       var visitMeta = app.getVisitedMeta(park.id);
       var visited = Boolean(visitMeta);
-      var stopIndex = routeStopIds.indexOf(park.id);
+      var stopIndex = activeTrip.parkIds.indexOf(park.id);
       var priorLeg = stopIndex > 0 ? activeTrip.legs.find(function findLeg(leg) {
         return leg.toParkId === park.id;
       }) : null;
@@ -322,13 +330,17 @@
         '  <div class="route-card-stripe" style="background:' + safeColor(park.color, '#7EB4E0') + ';"></div>',
         '  <div class="route-card-inner">',
         '    <div class="route-card-top">',
-        '      <div>',
-        '        <div class="route-park-name">' + escapeHtml(park.name) + '</div>',
-        '        <div class="route-team-city">' + escapeHtml(park.team) + ' · ' + escapeHtml(park.city) + '</div>',
+        '      <div class="route-card-brand">',
+        teamLogoImg(park.team),
+        '        <div>',
+        '          <div class="route-park-name">' + escapeHtml(park.name) + '</div>',
+        '          <div class="route-team-city">' + escapeHtml(park.team) + ' · ' + escapeHtml(park.city) + '</div>',
+        game ? '        <div class="route-team-city">' + escapeHtml((window.BPQ.schedule && window.BPQ.schedule.formatGameLine ? window.BPQ.schedule.formatGameLine(game) : "")) + '</div>' : '',
+        '        </div>',
         '      </div>',
         '      <div class="tier-stamp tier-' + safeToken(park.tier, 'C') + '">' + escapeHtml(park.tier) + '</div>',
         '    </div>',
-        '    <div class="route-reason">' + escapeHtml(park.note) + '</div>',
+        '    <div class="route-reason">' + escapeHtml(game ? ((game.awayTeam || "Away") + " at " + (game.homeTeam || "Home")) : park.note) + '</div>',
         '    <div class="route-card-footer">',
         '      <div class="route-card-metrics">',
         '        <div class="route-meta-pair"><span class="route-meta-label">Leg in</span><span class="route-meta-value">' + escapeHtml(priorLeg ? priorLeg.distanceMiles + " mi" : "Start here") + '</span></div>',
@@ -338,11 +350,12 @@
         '      <div class="route-actions">',
         '        <button type="button" class="btn btn-success route-visit-btn" data-visit-toggle="' + escapeHtml(park.id) + '">' + (visited ? "Visited" : "Mark visited") + '</button>',
         '        <button type="button" class="btn ' + (onRoute ? 'btn-danger-outline' : 'btn-browse') + ' route-action-btn" data-route-toggle="' + escapeHtml(park.id) + '">' + (onRoute ? "Remove stop" : "Add stop") + '</button>',
-        '        <a href="scorekeeper.html" class="btn btn-score route-plan-link" data-score-park="' + escapeHtml(park.id) + '">Scorekeeper</a>',
+        game ? '        <button type="button" class="btn btn-ghost route-action-btn" data-calendar-game="' + escapeHtml(game.gameId) + '">Calendar</button>' : '',
+        '        <a href="scorekeeper.html" class="btn btn-score route-plan-link" data-score-park="' + escapeHtml(park.id) + '"' + (game ? ' data-score-game="' + escapeHtml(game.gameId) + '"' : '') + '>Scorekeeper</a>',
         '      </div>',
         '    </div>',
-        '  </div>',
-        '</article>'
+      '  </div>',
+      '</article>'
       ].join("");
     }).join("");
   }
@@ -379,7 +392,8 @@
 
   function renderLegs() {
     var activeTrip = app.getActiveTrip();
-    var routeParks = getRouteSelection();
+    var routeStops = getRouteSelection();
+    var routeParks = routeStops.map(function mapStop(stop) { return stop.park; });
 
     renderMapPanel(routeParks, activeTrip);
 
@@ -394,13 +408,19 @@
     logisticsGridEl.innerHTML = activeTrip.legs.map(function mapLeg(leg, index) {
       var fromPark = app.getParkById(leg.fromParkId);
       var toPark = app.getParkById(leg.toParkId);
+      var toStop = routeStops.find(function matchStop(stop) { return stop.parkId === leg.toParkId; });
+      var selectedGame = toStop && toStop.game ? toStop.game : null;
       var legNote = app.getLegScratchpad(leg.id);
       var noteText = legNote ? legNote.text : "";
       var anchor = extractAnchor(noteText);
       var warningText = anchor.warning || deriveEventWarning(toPark || {});
       var ticketBadge = getTicketBadge(toPark ? toPark.ticketApproach : "");
       var schedule = global.BPQ && global.BPQ.schedule;
-      var scheduleState = getLegGames(schedule, toPark ? toPark.id : "", activeTrip);
+      var scheduleState = selectedGame ? {
+        label: "Selected game",
+        lines: [selectedGame],
+        emptyMessage: ""
+      } : getLegGames(schedule, toPark ? toPark.id : "", activeTrip);
 
       if (!fromPark || !toPark) return "";
 
@@ -438,7 +458,9 @@
         '    <textarea class="leg-scratchpad" id="leg-note-' + escapeHtml(leg.id) + '" data-leg-note="' + escapeHtml(leg.id) + '" placeholder="Add dates, prices, seat sections, parking notes, or anything that changes the call.">' + escapeHtml(noteText) + '</textarea>',
         '  </div>',
         '  <div class="leg-actions">',
-        '    <a href="scorekeeper.html" class="btn btn-score leg-score-btn" data-score-park="' + escapeHtml(toPark.id) + '">Score a game here</a>',
+        selectedGame ? '    <button type="button" class="btn btn-ghost leg-score-btn" data-calendar-game="' + escapeHtml(selectedGame.gameId) + '">Add to calendar</button>' : '',
+        '    <a href="scorekeeper.html" class="btn btn-score leg-score-btn" data-score-park="' + escapeHtml(toPark.id) + '"' + (selectedGame ? ' data-score-game="' + escapeHtml(selectedGame.gameId) + '"' : '') + '>Score a game here</a>',
+        '    <a href="' + escapeHtml(app.buildMapsUrl(toPark.name + ', ' + toPark.city, fromPark.name + ', ' + fromPark.city, 'driving')) + '" class="btn btn-browse leg-score-btn" target="_blank" rel="noopener noreferrer">Open in Maps</a>',
         '  </div>',
         '</section>'
       ].join("");
@@ -454,7 +476,17 @@
   document.addEventListener("click", function handleClick(event) {
     var scoreLink = event.target.closest("[data-score-park]");
     if (scoreLink) {
-      app.setScorekeeperContext(scoreLink.dataset.scorePark);
+      app.setScorekeeperContext({
+        parkId: scoreLink.dataset.scorePark,
+        gameId: scoreLink.dataset.scoreGame || ""
+      });
+      return;
+    }
+
+    var calendarButton = event.target.closest("[data-calendar-game]");
+    if (calendarButton) {
+      var calendarGame = app.getGameById(calendarButton.dataset.calendarGame);
+      if (calendarGame) app.downloadGameICS(calendarGame);
       return;
     }
 
@@ -468,7 +500,9 @@
     var routeToggle = event.target.closest("[data-route-toggle]");
     if (routeToggle) {
       var parkId = routeToggle.dataset.routeToggle;
-      var onRoute = app.getRouteStore().stops.includes(parkId);
+      var onRoute = app.getRouteStore().stops.some(function(stop) {
+        return (typeof stop === "string" ? stop : stop.parkId) === parkId;
+      });
       if (onRoute) app.removeRouteStop(parkId);
       else app.addRouteStop(parkId);
       renderAll();

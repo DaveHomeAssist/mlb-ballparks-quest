@@ -276,6 +276,22 @@
   margin-bottom: 8px;
 }
 
+.visited-card-brand,
+.sidebar-park-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.visited-team-logo,
+.sidebar-team-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .visited-park-name {
   font-family: var(--font-display);
   font-size: 17px;
@@ -483,6 +499,7 @@
 <script src="storage.js"></script>
 <script src="utils.js"></script>
 <script src="data.js"></script>
+<script src="logos.js"></script>
 <script src="schedule.js"></script>
 <script src="device.js"></script>
 <script src="app.js"></script>
@@ -613,12 +630,18 @@
 (function() {
   const app = window.BPQ && window.BPQ.app;
   const utils = window.BPQ && window.BPQ.utils;
+  const logos = window.BPQ && window.BPQ.logos;
   if (!app || !utils) return;
 
   const escapeHtml = utils.escapeHtml;
   const safeColor = utils.safeColor;
   const safeToken = utils.safeToken;
   const projectPoint = utils.projectPoint;
+
+  function teamLogoImg(teamName, className) {
+    const src = logos && logos.getTeamLogo ? logos.getTeamLogo(teamName) : '';
+    return src ? `<img class="${className}" src="${escapeHtml(src)}" alt="${escapeHtml(teamName)} logo" loading="lazy">` : '';
+  }
 
   function renderVisited() {
     const visited = app.getVisitedParks();
@@ -653,9 +676,12 @@
         <div class="visited-card-stripe" style="background:${safeColor(park.color, '#7EB4E0')};"></div>
         <div class="visited-card-body">
           <div class="visited-card-header">
-            <div>
-              <div class="visited-park-name">${escapeHtml(park.name)}</div>
-              <div class="visited-team">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
+            <div class="visited-card-brand">
+              ${teamLogoImg(park.team, 'visited-team-logo')}
+              <div>
+                <div class="visited-park-name">${escapeHtml(park.name)}</div>
+                <div class="visited-team">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
+              </div>
             </div>
             <span class="badge badge-visited">✓ Visited</span>
           </div>
@@ -709,10 +735,13 @@
     container.innerHTML = targets.map((park) => `
       <a href="route.html" class="sidebar-park-item">
         <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
-        <div>
-          <div class="sidebar-park-name">${escapeHtml(park.name)}</div>
-          <div class="sidebar-park-city">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
-          <div class="sidebar-park-reason">${escapeHtml(park.note)}</div>
+        <div class="sidebar-park-brand">
+          ${teamLogoImg(park.team, 'sidebar-team-logo')}
+          <div>
+            <div class="sidebar-park-name">${escapeHtml(park.name)}</div>
+            <div class="sidebar-park-city">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
+            <div class="sidebar-park-reason">${escapeHtml(park.note)}</div>
+          </div>
         </div>
       </a>
     `).join('');

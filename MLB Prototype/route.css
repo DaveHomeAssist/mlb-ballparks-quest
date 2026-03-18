@@ -317,6 +317,20 @@
   margin-bottom: 12px;
 }
 
+.route-card-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.route-team-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .route-park-name {
   font-family: var(--font-display);
   font-size: 20px;
