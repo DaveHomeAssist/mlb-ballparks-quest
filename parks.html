@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · All 30 Parks</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#0F1F38">
 <link rel="stylesheet" href="shared.css">
 <style>
@@ -80,7 +82,7 @@
 }
 
 .filter-chip:hover { color: var(--text-primary); border-color: var(--border-mid); }
-.filter-chip.active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+.filter-chip.is-active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
 
 /* ─── Park list ─────────────────────────── */
 .park-count {
@@ -111,7 +113,7 @@
   box-shadow: 0 2px 8px rgba(15,31,56,0.06);
 }
 
-.park-row.selected {
+.park-row.is-selected {
   border-left-color: var(--red);
   background: rgba(200,48,42,0.04);
 }
@@ -462,7 +464,7 @@
   </a>
   <div class="nav-links">
     <a href="index.html"       class="nav-link">Home</a>
-    <a href="parks.html"       class="nav-link active">Parks</a>
+    <a href="parks.html"       class="nav-link is-active">Parks</a>
     <a href="route.html"       class="nav-link">Route</a>
     <a href="scorekeeper.html" class="nav-link nav-cta">⬥ Scorekeeper</a>
   </div>
@@ -480,7 +482,7 @@
 
     <div class="filter-strip fade-up fade-up-1">
       <input class="filter-search" id="park-search" placeholder="Search parks, cities, teams…">
-      <button class="filter-chip active" data-filter="all">All</button>
+      <button class="filter-chip is-active" data-filter="all">All</button>
       <button class="filter-chip" data-filter="visited">Visited</button>
       <button class="filter-chip" data-filter="unvisited">Not visited</button>
       <button class="filter-chip" data-filter="open">Open air</button>
@@ -610,7 +612,7 @@
     const filtered = getFilteredParks();
     count.textContent = `${filtered.length} park${filtered.length !== 1 ? 's' : ''}`;
     list.innerHTML = filtered.map((park) => `
-      <div class="park-row ${selectedParkId === park.id ? 'selected' : ''}" data-park-id="${escapeHtml(park.id)}" tabindex="0" role="button" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
+      <div class="park-row ${selectedParkId === park.id ? 'is-selected' : ''}" data-park-id="${escapeHtml(park.id)}" tabindex="0" role="button" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
         <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
         <div class="park-row-brand">
           ${teamLogoImg(park.team, 'park-team-logo')}
@@ -697,8 +699,8 @@
 
   document.querySelectorAll('.filter-chip').forEach((chip) => {
     chip.addEventListener('click', () => {
-      document.querySelectorAll('.filter-chip').forEach((node) => node.classList.remove('active'));
-      chip.classList.add('active');
+      document.querySelectorAll('.filter-chip').forEach((node) => node.classList.remove('is-active'));
+      chip.classList.add('is-active');
       activeFilter = chip.dataset.filter;
       renderList();
     });

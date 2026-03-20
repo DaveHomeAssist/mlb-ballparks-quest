@@ -768,7 +768,7 @@
   color: var(--text-primary);
 }
 
-.leg-status-chip.active {
+.leg-status-chip.is-active {
   background: var(--navy);
   border-color: var(--navy);
   color: var(--cream);

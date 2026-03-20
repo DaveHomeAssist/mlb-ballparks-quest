@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · Scorekeeper</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#0F1F38">
 <style>
 /* ═══════════════════════════════════════════
@@ -1000,9 +1002,9 @@ body {
 }
 
 .sk-chip:hover { border-color: rgba(200,168,100,0.4); color: var(--sc-ink); background: rgba(15,31,56,0.08); }
-.sk-chip.selected { background: rgba(42,74,138,0.48); border-color: #7EB4E0; color: #D8E8F8; }
-.sk-chip.hit-chip:hover, .sk-chip.hit-chip.selected { border-color: #4B8750; background: rgba(40,90,40,0.28); color: #A6E0AA; }
-.sk-chip.err-chip:hover, .sk-chip.err-chip.selected { border-color: var(--sc-red); background: rgba(176,48,48,0.22); color: #F1A4A4; }
+.sk-chip.is-selected { background: rgba(42,74,138,0.48); border-color: #7EB4E0; color: #D8E8F8; }
+.sk-chip.hit-chip:hover, .sk-chip.hit-chip.is-selected { border-color: #4B8750; background: rgba(40,90,40,0.28); color: #A6E0AA; }
+.sk-chip.err-chip:hover, .sk-chip.err-chip.is-selected { border-color: var(--sc-red); background: rgba(176,48,48,0.22); color: #F1A4A4; }
 
 .sk-code-input {
   background: rgba(255,252,243,0.9);
@@ -1195,7 +1197,7 @@ body {
   box-shadow: -4px 0 24px rgba(0,0,0,0.4);
 }
 
-[data-layout="ipad"] .sk-notes-panel.open { right: 0; }
+[data-layout="ipad"] .sk-notes-panel.is-open { right: 0; }
 
 [data-layout="ipad"] .sk-card-col { flex: 1; }
 
@@ -1307,7 +1309,7 @@ body {
   transition: opacity 180ms ease, transform 180ms ease;
   pointer-events: none;
 }
-.bpq-toast.visible {
+.bpq-toast.is-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
@@ -2003,7 +2005,7 @@ function showToast(message, tone, duration, actionLabel, onAction) {
   html += '<button class="bpq-toast-close" type="button" aria-label="Dismiss">×</button>';
   el.innerHTML = html;
   document.body.appendChild(el);
-  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('visible'); }); });
+  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('is-visible'); }); });
   el.querySelector('.bpq-toast-close').addEventListener('click', clearToast);
   if (actionLabel && onAction) {
     el.querySelector('.bpq-toast-action').addEventListener('click', function () { onAction(); clearToast(); });
@@ -2474,7 +2476,7 @@ function logPlay(code, count) {
   saveSession();
   document.getElementById('play-code').value = '';
   document.getElementById('play-count').value = '';
-  document.querySelectorAll('.sk-chip').forEach((chip) => chip.classList.remove('selected'));
+  document.querySelectorAll('.sk-chip').forEach((chip) => chip.classList.remove('is-selected'));
 }
 
 function addNote(text) {
@@ -2503,7 +2505,7 @@ function submitNoteFromField(fieldId) {
   if (!field) return;
   const value = field.value.trim();
   if (!value) return;
-  document.getElementById('notes-panel').classList.add('open');
+  document.getElementById('notes-panel').classList.add('is-open');
   addNote(value);
   clearNoteDrafts();
   field.focus();
@@ -2746,8 +2748,8 @@ document.querySelectorAll('.sk-chip').forEach((chip) => {
     const code = chip.dataset.guidedCode || chip.dataset.code;
     if (!code) return;
     document.getElementById('play-code').value = code;
-    document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('selected'));
-    chip.classList.add('selected');
+    document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('is-selected'));
+    chip.classList.add('is-selected');
     refreshGuidedPreview(code);
   });
 });
@@ -2764,7 +2766,7 @@ document.getElementById('play-code').addEventListener('keydown', (event) => {
 });
 
 document.getElementById('play-code').addEventListener('input', (event) => {
-  document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('selected'));
+  document.querySelectorAll('.sk-chip').forEach((item) => item.classList.remove('is-selected'));
   const normalized = String(event.target.value || '').trim().toUpperCase();
   if (!normalized) {
     playIntent = emptyPlayIntent();
@@ -2784,8 +2786,8 @@ document.addEventListener('keydown', (event) => {
 
 document.getElementById('btn-notes-toggle').addEventListener('click', () => {
   const panel = document.getElementById('notes-panel');
-  panel.classList.toggle('open');
-  if (panel.classList.contains('open')) {
+  panel.classList.toggle('is-open');
+  if (panel.classList.contains('is-open')) {
     const input = document.getElementById('note-input');
     if (input) input.focus();
   }

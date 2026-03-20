@@ -240,7 +240,7 @@ body::after {
 }
 
 .nav-link:hover { color: var(--cream); background: rgba(255,255,255,0.07); }
-.nav-link.active { color: var(--gold); background: rgba(200,146,10,0.12); }
+.nav-link.is-active { color: var(--gold); background: rgba(200,146,10,0.12); }
 .nav-link.nav-cta {
   background: var(--red);
   color: var(--cream);

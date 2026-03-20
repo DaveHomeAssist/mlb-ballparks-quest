@@ -450,7 +450,7 @@
         '  <div class="ticket-badge ' + ticketBadge.tone + '">' + escapeHtml(ticketBadge.label) + '</div>',
         '  <div class="leg-status-row">',
         app.LEG_STATUSES.map(function mapStatus(status) {
-          return '<button type="button" class="leg-status-chip ' + (status === leg.status ? 'active' : '') + '" data-leg-id="' + escapeHtml(leg.id) + '" data-leg-status="' + escapeHtml(status) + '">' + escapeHtml(status) + '</button>';
+          return '<button type="button" class="leg-status-chip ' + (status === leg.status ? 'is-active' : '') + '" data-leg-id="' + escapeHtml(leg.id) + '" data-leg-status="' + escapeHtml(status) + '">' + escapeHtml(status) + '</button>';
         }).join(""),
         '  </div>',
         '  <div class="leg-scratch-shell">',

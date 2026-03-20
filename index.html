@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · The Pilgrimage</title>
+<meta name="description" content="MLB Ballparks Quest — track your ballpark visits, plan game-day routes, and complete the pilgrimage across all 30 MLB stadiums.">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#0F1F38">
 <link rel="stylesheet" href="shared.css">
 <style>
@@ -520,7 +523,7 @@
   transition: opacity 180ms ease, transform 180ms ease;
   pointer-events: none;
 }
-.bpq-toast.visible {
+.bpq-toast.is-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
@@ -573,7 +576,7 @@
     <span class="nav-brand-mark">MLB · 30 Parks</span>
   </a>
   <div class="nav-links">
-    <a href="index.html"      class="nav-link active">Home</a>
+    <a href="index.html"      class="nav-link is-active">Home</a>
     <a href="parks.html"      class="nav-link">Parks</a>
     <a href="route.html"      class="nav-link">Route</a>
     <a href="scorekeeper.html" class="nav-link nav-cta">⬥ Scorekeeper</a>
@@ -711,7 +714,7 @@ function showToast(message, tone, duration, actionLabel, onAction) {
   html += '<button class="bpq-toast-close" type="button" aria-label="Dismiss">\u00d7</button>';
   el.innerHTML = html;
   document.body.appendChild(el);
-  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('visible'); }); });
+  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('is-visible'); }); });
   el.querySelector('.bpq-toast-close').addEventListener('click', clearToast);
   if (actionLabel && onAction) {
     el.querySelector('.bpq-toast-action').addEventListener('click', function () { onAction(); clearToast(); });
