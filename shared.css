@@ -226,6 +226,9 @@ body::after {
   flex: 1;
 }
 
+.nav-back{font-size:.7rem;opacity:.6;text-decoration:none;color:inherit;margin-right:auto;transition:opacity .15s}
+.nav-back:hover{opacity:1}
+
 .nav-link {
   font-family: var(--font-data);
   font-size: 10px;

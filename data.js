@@ -8,11 +8,14 @@
     throw new Error("BPQ.storage is required before loading data.js");
   }
 
+  var config = namespace.config || (global.__QUEST_PLATFORM__ && global.__QUEST_PLATFORM__.config && global.__QUEST_PLATFORM__.config.getProductConfig("mlb")) || {};
+  var storageKeys = (config.storage && config.storage.keys) || {};
+
   var KEYS = {
     parks: "parks",
-    activeTrip: "activeTrip",
-    visits: "visits",
-    planningNotes: "planningNotes"
+    activeTrip: storageKeys.activeTrip || "activeTrip",
+    visits: storageKeys.visits || "visits",
+    planningNotes: storageKeys.planningNotes || "planningNotes"
   };
 
   var VALID_NOTE_SCOPES = ["park", "leg", "trip"];
