@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MLB Ballparks Quest · The Pilgrimage</title>
 <meta name="description" content="MLB Ballparks Quest — track your ballpark visits, plan game-day routes, and complete the pilgrimage across all 30 MLB stadiums.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MLB Ballparks Quest · The Pilgrimage">
+<meta property="og:description" content="MLB Ballparks Quest — track your ballpark visits, plan game-day routes, and complete the pilgrimage across all 30 MLB stadiums.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MLB Ballparks Quest · The Pilgrimage">
+<meta name="twitter:description" content="MLB Ballparks Quest — track your ballpark visits, plan game-day routes, and complete the pilgrimage across all 30 MLB stadiums.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -497,6 +503,10 @@
   .hero-stat-num { font-size: 28px; }
 }
 
+/* ─── Skip link ────────────────────────── */
+.skip-link { position:absolute; left:-9999px; top:auto; padding:8px 16px; z-index:10000; background:#222; color:#fff; text-decoration:none; border-radius:4px; font-size:14px; }
+.skip-link:focus { left:10px; top:10px; }
+
 /* ─── Toast notifications ──────────────── */
 .bpq-toast {
   position: fixed;
@@ -561,19 +571,7 @@
 </style>
 </head>
 <body>
-<script src="shared/js/core/config.js"></script>
-<script src="config.js"></script>
-<script src="shared/js/core/storage.js"></script>
-<script src="storage.js"></script>
-<script src="shared/js/core/utils.js"></script>
-<script src="utils.js"></script>
-<script src="data.js"></script>
-<script src="logos.js"></script>
-<script src="schedule.js"></script>
-<script src="shared/js/core/device.js"></script>
-<script src="device.js"></script>
-<script src="app.js"></script>
-
+<a href="#main" class="skip-link">Skip to content</a>
 <!-- ═══ NAV ══════════════════════════════════ -->
 <nav class="site-nav">
   <a href="https://davehomeassist.github.io/" class="nav-back">&larr; All Projects</a>
@@ -589,7 +587,7 @@
   </div>
 </nav>
 
-<main class="page-wrap">
+<main class="page-wrap" id="main">
 
   <!-- ═══ HERO ══════════════════════════════ -->
   <section class="hero fade-up">
@@ -697,6 +695,18 @@
   </p>
 </footer>
 
+<script src="shared/js/core/config.js"></script>
+<script src="config.js"></script>
+<script src="shared/js/core/storage.js"></script>
+<script src="storage.js"></script>
+<script src="shared/js/core/utils.js"></script>
+<script src="utils.js"></script>
+<script src="data.js"></script>
+<script src="logos.js"></script>
+<script src="schedule.js"></script>
+<script src="shared/js/core/device.js"></script>
+<script src="device.js"></script>
+<script src="app.js"></script>
 <script>
 /* ── Toast system (shared with scorekeeper) ── */
 var activeToast = null;
