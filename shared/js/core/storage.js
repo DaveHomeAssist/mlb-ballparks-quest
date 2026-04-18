@@ -66,12 +66,30 @@
       if (!storageEnabled) return cloneValue(value);
 
       if (value === undefined) {
-        global.localStorage.removeItem(fullKey);
+        try {
+          global.localStorage.removeItem(fullKey);
+        } catch (err) {
+          emitStorageError(fullKey, err);
+        }
         return undefined;
       }
 
-      global.localStorage.setItem(fullKey, JSON.stringify(value));
+      try {
+        global.localStorage.setItem(fullKey, JSON.stringify(value));
+      } catch (err) {
+        emitStorageError(fullKey, err);
+      }
       return cloneValue(value);
+    }
+
+    function emitStorageError(fullKey, err) {
+      try {
+        if (global.dispatchEvent && typeof CustomEvent === "function") {
+          global.dispatchEvent(new CustomEvent("quest:storage-error", {
+            detail: { key: fullKey, err: String(err && err.message || err) }
+          }));
+        }
+      } catch {}
     }
 
     function flushKey(fullKey) {
