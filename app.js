@@ -571,9 +571,7 @@
     if (!("serviceWorker" in global.navigator)) return;
 
     global.addEventListener("load", function onLoad() {
-      global.navigator.serviceWorker.register("sw.js").catch(function onError(error) {
-        console.warn("SW registration failed:", error);
-      });
+      global.navigator.serviceWorker.register("sw.js").catch(function onError() {});
     });
   }
 
