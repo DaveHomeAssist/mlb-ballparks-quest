@@ -1720,7 +1720,10 @@ function isHit(c)  { return HIT_CODES.has(c); }
 function isErr(c)  { return ERR_RE.test(c); }
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function escapeHtml(value) {
-  return utils && utils.escapeHtml ? utils.escapeHtml(value) : String(value == null ? '' : value);
+  if (utils && utils.escapeHtml) return utils.escapeHtml(value);
+  var div = document.createElement('div');
+  div.textContent = value == null ? '' : value;
+  return div.innerHTML;
 }
 
 function emptyBasesState() {
@@ -1982,12 +1985,12 @@ function updateMetaLabels() {
   const homeEl = document.getElementById('ls-home-name');
   const awayName = meta.awayName || 'Away';
   const homeName = meta.homeName || 'Home';
-  awayEl.innerHTML = teamLogoImg(awayName) + awayName;
-  homeEl.innerHTML = teamLogoImg(homeName) + homeName;
+  awayEl.innerHTML = teamLogoImg(awayName) + escapeHtml(awayName);
+  homeEl.innerHTML = teamLogoImg(homeName) + escapeHtml(homeName);
   const storyPark = document.getElementById('sk-story-park');
   const storyMatchup = document.getElementById('sk-story-matchup');
   if (storyPark) storyPark.textContent = meta.venue || 'Waiting on the park';
-  if (storyMatchup) storyMatchup.innerHTML = `${teamLogoImg(awayName)}${awayName} at ${teamLogoImg(homeName)}${homeName}`;
+  if (storyMatchup) storyMatchup.innerHTML = `${teamLogoImg(awayName)}${escapeHtml(awayName)} at ${teamLogoImg(homeName)}${escapeHtml(homeName)}`;
 }
 
 /* ── Toast system ─────────────────────── */
