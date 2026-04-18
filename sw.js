@@ -1,4 +1,4 @@
-const CACHE_NAME = "bpq-prototype-v3";
+const CACHE_NAME = "bpq-prototype-v4";
 const PRECACHE = [
   "./",
   "index.html",
