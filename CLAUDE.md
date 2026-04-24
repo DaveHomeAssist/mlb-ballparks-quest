@@ -61,6 +61,23 @@ Two-page Progressive Web App for tracking MLB ballpark visits, planning stadium 
 - **Process:** `git push` triggers deploy
 - **Entry points:** `index.html` (tracker), `scorekeeper.html` (scoring)
 
+## Repo Surfaces
+
+| File | Role | Status |
+|---|---|---|
+| `index.html` | Parks explorer + route planner (primary tracker) | Active, first-class |
+| `scorekeeper.html` | Standalone scorekeeping app | Active, first-class sibling |
+| `phillies-2026-schedule.html` | Redirect stub pointing to Wire's `/schedule/` | Stub only since 2026-04-22 Ballparks Quest Cutover; keeps legacy bookmarks working. **Do not reintroduce live Phillies schedule content here** — it lives in `phillies-wire`. |
+| `schedule-import.html` | Manual-run developer utility that populates the Notion "2026 MLB Home Game Schedules" database (ID `81502c83ace04301906091ab238ce2c3`) | Active dev-only tool; not linked from any app surface |
+
+### `schedule-import.html` details
+
+- **Runs in the browser.** Open the file directly; not part of the deployed app.
+- **Data source:** MLB Stats API `https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=2026&gameType=R`. One fetch returns the full 2433-game regular season; rows are grouped client-side by home team ID. (Before the 2026-04-24 refactor this tool used Gemini 2.5 Flash with Google Search grounding and required a pasted API key.)
+- **Workflow:** click Run → fetches all 30 teams' home schedules → click Export → downloads `mlb-2026-home-schedules-{YYYY-MM-DD}.json` → import into Notion via Claude Code's Notion MCP or the Notion API directly.
+- **Export shape:** one row per home game with `team, teamAbbr, teamEmoji, teamId, division, date, day, opponent, time, doubleHeader, gamePk, specialEvent`. `SPECIAL` map inside the file tags known dates (Jackie Robinson Day, etc.).
+- **When to run:** after a schedule revision (MLB doubleheaders, postponements, rainout makeups) to refresh the Notion DB. For Phillies-specific data, `phillies-wire` is authoritative — this tool is league-wide context only.
+
 ## What Not To Do
 
 - Do not add a backend, database, or server requirement
