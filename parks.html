@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Explore all 30 MLB ballparks with photos, stats, and visit tracking for your ballpark quest.">
+<meta name="description" content="Explore all 30 MLB ballparks with park identity cards, stats, and visit tracking for your ballpark quest.">
 <title>MLB Ballparks Quest · All 30 Parks</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -204,41 +204,185 @@
   min-width: 0;
 }
 
-.detail-photo {
+.park-identity-card {
   margin-bottom: 16px;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.025)),
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--park-accent, #7EB4E0) 38%, transparent), transparent 28%);
   position: relative;
+  min-height: 230px;
 }
 
-.detail-photo::after {
+.park-identity-card::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(15,31,56,0.02), rgba(15,31,56,0.26));
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: var(--park-accent, #7EB4E0);
   pointer-events: none;
 }
 
-.detail-photo img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+.park-identity-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 13px;
+  padding: 15px;
 }
 
-.detail-photo-caption {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 10px;
-  z-index: 1;
+.park-identity-header {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 11px;
+  align-items: center;
+}
+
+.park-identity-logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  padding: 5px;
+  border-radius: 12px;
+  background: rgba(245,237,216,0.94);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+
+.park-identity-logo-fallback {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--navy);
+}
+
+.park-identity-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--cream);
+  letter-spacing: -0.01em;
+}
+
+.park-identity-subtitle {
+  margin-top: 4px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.74);
+}
+
+.park-identity-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.park-identity-chip {
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.085);
+}
+
+.park-identity-chip-label {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.62);
+}
+
+.park-identity-chip-value {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  overflow-wrap: anywhere;
+}
+
+.park-identity-field {
+  min-height: 106px;
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(12,24,42,0.72), rgba(12,24,42,0.18)),
+    repeating-linear-gradient(90deg, rgba(245,237,216,0.05) 0 1px, transparent 1px 18px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.park-identity-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.identity-sky {
+  fill: rgba(245,237,216,0.035);
+}
+
+.identity-stands {
+  fill: rgba(245,237,216,0.14);
+  stroke: rgba(245,237,216,0.18);
+  stroke-width: 1.4;
+}
+
+.identity-lower {
+  fill: color-mix(in srgb, var(--park-accent, #7EB4E0) 54%, rgba(245,237,216,0.16));
+}
+
+.identity-field-shape {
+  fill: rgba(42,108,70,0.7);
+  stroke: rgba(245,237,216,0.16);
+  stroke-width: 1.2;
+}
+
+.identity-roof {
+  fill: none;
+  stroke: rgba(245,237,216,0.28);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.identity-roof-fill {
+  fill: rgba(245,237,216,0.08);
+  stroke: rgba(245,237,216,0.22);
+  stroke-width: 1.2;
+}
+
+.identity-detail {
+  fill: rgba(245,237,216,0.78);
   font-family: var(--font-data);
   font-size: 9px;
   letter-spacing: 0.12em;
+}
+
+.park-identity-era {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(245,237,216,0.9);
+  color: rgba(245,237,216,0.68);
+}
+
+.park-identity-era strong {
+  color: var(--cream);
+  font-weight: 500;
 }
 
 .detail-map {
@@ -442,6 +586,15 @@
 }
 
 @media (max-width: 640px) {
+  .site-nav {
+    padding: 0 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .nav-back { display: none; }
+  .nav-brand { margin-right: 12px; }
+  .nav-links { flex: 0 0 auto; }
   .filter-strip { flex-direction: column; align-items: stretch; }
   .filter-search { width: 100%; }
   .detail-actions .btn,
@@ -514,10 +667,17 @@
           <button type="button" class="btn btn-primary" style="justify-content:center;flex:1;" id="d-route-toggle">Add to route</button>
           <button type="button" class="btn btn-success" style="justify-content:center;" id="d-visit-toggle">Mark as visited</button>
         </div>
-        <div class="detail-photo">
-          <img src="assets/baseball1.jpg" alt="Baseball scorecard close up">
-          <div class="detail-photo-caption">Scouting board</div>
-        </div>
+        <section class="park-identity-card" id="d-identity" aria-labelledby="d-identity-name">
+          <div class="park-identity-inner">
+            <div class="park-identity-header">
+              <div aria-hidden="true"></div>
+              <div>
+                <div class="park-identity-title" id="d-identity-name">Select a park</div>
+                <div class="park-identity-subtitle">Identity card will appear here</div>
+              </div>
+            </div>
+          </div>
+        </section>
         <div class="detail-map" id="d-map"></div>
         <div class="detail-grid" id="d-grid"></div>
         <div class="detail-note" id="d-note">Park details will appear here.</div>
@@ -580,6 +740,107 @@
     `;
   }
 
+  function hashText(value) {
+    return String(value || '').split('').reduce((hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0, 0);
+  }
+
+  function getTeamInitials(teamName) {
+    return String(teamName || '').split(/\s+/).filter(Boolean).slice(-2).map((part) => part.charAt(0).toUpperCase()).join('');
+  }
+
+  function getParkEra(opened) {
+    const year = Number(opened) || 2000;
+    if (year < 1920) return 'Original era';
+    if (year < 1980) return 'Classic bowl';
+    if (year < 2000) return 'Retro wave';
+    if (year < 2010) return 'Modern era';
+    return 'New build';
+  }
+
+  function renderIdentitySvg(park) {
+    const hash = Math.abs(hashText(park.id));
+    const opened = Number(park.opened) || 2000;
+    const capacity = Number(park.capacity) || 40000;
+    const bowlDepth = Math.min(34, Math.max(16, Math.round(capacity / 1800)));
+    const standTop = 36 + (hash % 18);
+    const lowerTop = 72 + (hash % 8);
+    const leftInset = 30 + (hash % 16);
+    const rightInset = 290 - ((hash >> 3) % 16);
+    const boardX = 34 + (hash % 188);
+    const boardWidth = 58 + (hash % 30);
+    const tierLetter = String(park.tier || 'C').toUpperCase();
+    const roof = String(park.roof || 'Open').toLowerCase();
+    const coords = park.coordinates || {};
+    const coordText = [coords.lat, coords.lng].every((value) => typeof value === 'number')
+      ? `${coords.lat.toFixed(1)} ${coords.lng.toFixed(1)}`
+      : 'Local data';
+    const roofMarkup = roof === 'fixed'
+      ? `<path class="identity-roof-fill" d="M28 76 C62 22 258 22 292 76 L270 76 C238 44 82 44 50 76 Z"></path>`
+      : roof === 'retractable'
+        ? `<path class="identity-roof" d="M38 68 C78 32 242 32 282 68"></path><path class="identity-roof" d="M74 55 L246 55"></path><path class="identity-roof" d="M105 43 L214 43"></path>`
+        : `<path class="identity-roof" d="M42 88 L42 52 M278 88 L278 52"></path><circle cx="42" cy="47" r="5" fill="rgba(245,237,216,0.34)"></circle><circle cx="278" cy="47" r="5" fill="rgba(245,237,216,0.34)"></circle>`;
+
+    return `
+      <svg class="park-identity-svg" viewBox="0 0 320 132" role="img" aria-hidden="true" focusable="false">
+        <rect class="identity-sky" x="0" y="0" width="320" height="132"></rect>
+        ${roofMarkup}
+        <path class="identity-stands" d="M${leftInset} ${standTop} C82 ${standTop - bowlDepth} 238 ${standTop - bowlDepth} ${rightInset} ${standTop} L276 99 C224 82 96 82 44 99 Z"></path>
+        <path class="identity-lower" d="M49 ${lowerTop} C98 ${lowerTop - 16} 222 ${lowerTop - 16} 271 ${lowerTop} L258 102 C210 91 110 91 62 102 Z"></path>
+        <path class="identity-field-shape" d="M87 116 L160 75 L233 116 Q160 130 87 116 Z"></path>
+        <path d="M160 75 L160 119 M125 94 L194 94" stroke="rgba(245,237,216,0.24)" stroke-width="1.2"></path>
+        <rect x="${boardX}" y="15" width="${boardWidth}" height="25" rx="3" fill="rgba(8,16,28,0.62)" stroke="rgba(245,237,216,0.2)"></rect>
+        <text class="identity-detail" x="${boardX + 8}" y="31">${escapeHtml(tierLetter)}-${escapeHtml(opened)}</text>
+        <circle cx="${72 + (hash % 22)}" cy="${101 - (hash % 18)}" r="4" fill="var(--park-accent, #7EB4E0)" opacity="0.92"></circle>
+        <circle cx="${244 - ((hash >> 4) % 22)}" cy="${98 - ((hash >> 2) % 18)}" r="4" fill="rgba(245,237,216,0.78)"></circle>
+        <text class="identity-detail" x="18" y="121">${escapeHtml(coordText)}</text>
+        <text class="identity-detail" x="232" y="121">${escapeHtml(park.roof || 'Open')}</text>
+      </svg>
+    `;
+  }
+
+  function renderParkIdentityCard(park) {
+    const accent = safeColor(park.color, '#7EB4E0');
+    const logoMarkup = teamLogoImg(park.team, 'park-identity-logo') ||
+      `<div class="park-identity-logo park-identity-logo-fallback" aria-hidden="true">${escapeHtml(getTeamInitials(park.team) || 'MLB')}</div>`;
+    const accessibleLabel = `${park.name}, ${park.team}, ${park.city}. Opened ${park.opened}. ${park.roof} roof. Tier ${park.tier}.`;
+    const identity = document.getElementById('d-identity');
+
+    identity.style.setProperty('--park-accent', accent);
+    identity.innerHTML = `
+      <div class="park-identity-inner">
+        <div class="park-identity-header">
+          ${logoMarkup}
+          <div>
+            <div class="park-identity-title" id="d-identity-name">${escapeHtml(park.name)}</div>
+            <div class="park-identity-subtitle">${escapeHtml(park.team)} / ${escapeHtml(park.city)}</div>
+          </div>
+        </div>
+        <div class="park-identity-chips" aria-label="Park identity facts">
+          <div class="park-identity-chip">
+            <span class="park-identity-chip-label">Opened</span>
+            <span class="park-identity-chip-value">${escapeHtml(park.opened)}</span>
+          </div>
+          <div class="park-identity-chip">
+            <span class="park-identity-chip-label">Roof</span>
+            <span class="park-identity-chip-value">${escapeHtml(park.roof)}</span>
+          </div>
+          <div class="park-identity-chip">
+            <span class="park-identity-chip-label">Tier</span>
+            <span class="park-identity-chip-value">Tier ${escapeHtml(park.tier)}</span>
+          </div>
+        </div>
+        <div class="park-identity-field" aria-hidden="true">
+          ${renderIdentitySvg(park)}
+        </div>
+        <div class="park-identity-era">
+          <span>${escapeHtml(getParkEra(park.opened))}</span>
+          <strong>${escapeHtml(park.city)}</strong>
+        </div>
+        <p class="sr-only">${escapeHtml(accessibleLabel)}</p>
+      </div>
+    `;
+  }
+
   function getFilteredParks() {
     return app.getParks().filter((park) => {
       const q = searchTerm.toLowerCase();
@@ -631,9 +892,10 @@
     `).join('');
   }
 
-  function selectPark(id) {
+  function selectPark(id, options) {
     const park = app.getParkById(id);
     if (!park) return;
+    const shouldScrollDetail = options && options.scrollDetail;
     selectedParkId = park.id;
     const visitMeta = app.getVisitedMeta(park.id);
     const parkScratchpad = app.getParkScratchpad(park.id);
@@ -645,6 +907,7 @@
       ${teamLogoImg(park.team, 'detail-team-logo')}
       <div class="detail-team-text">${escapeHtml(park.team)} · ${escapeHtml(park.city)}</div>
     `;
+    renderParkIdentityCard(park);
     renderDetailMap(park, onRoute);
     document.getElementById('d-note').textContent = visitMeta && visitMeta.notes ? visitMeta.notes : (park.note || '');
     document.getElementById('d-grid').innerHTML = `
@@ -697,6 +960,12 @@
     document.getElementById('d-scratchpad').value = parkScratchpad ? parkScratchpad.text : '';
     updateDetailActions(park);
     renderList();
+    if (shouldScrollDetail && window.matchMedia('(max-width: 900px)').matches) {
+      const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+      window.requestAnimationFrame(() => {
+        document.getElementById('detail-panel').scrollIntoView({ behavior: behavior, block: 'start' });
+      });
+    }
   }
 
   document.getElementById('park-search').addEventListener('input', (event) => {
@@ -716,7 +985,7 @@
   document.getElementById('parks-list').addEventListener('click', (event) => {
     const row = event.target.closest('[data-park-id]');
     if (!row) return;
-    selectPark(row.dataset.parkId);
+    selectPark(row.dataset.parkId, { scrollDetail: true });
   });
 
   document.getElementById('parks-list').addEventListener('keydown', (event) => {
@@ -724,7 +993,7 @@
     if (!row) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      selectPark(row.dataset.parkId);
+      selectPark(row.dataset.parkId, { scrollDetail: true });
     }
   });
 

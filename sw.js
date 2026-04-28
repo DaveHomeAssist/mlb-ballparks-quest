@@ -11,6 +11,7 @@ const PRECACHE = [
   "storage.js",
   "utils.js",
   "data.js",
+  "logos.js",
   "resolver.js",
   "app.js",
   "route.js",
