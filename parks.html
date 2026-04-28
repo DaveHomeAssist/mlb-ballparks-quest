@@ -547,7 +547,7 @@
 
 .park-identity-chips {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -587,6 +587,41 @@
     linear-gradient(180deg, rgba(12,24,42,0.72), rgba(12,24,42,0.18)),
     repeating-linear-gradient(90deg, rgba(245,237,216,0.05) 0 1px, transparent 1px 18px);
   border: 1px solid rgba(255,255,255,0.08);
+}
+
+.park-identity-field-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.park-identity-field-fact,
+.field-context-stat {
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 9px;
+  background: rgba(8,16,28,0.22);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.park-identity-field-fact span,
+.field-context-stat span {
+  display: block;
+  font-family: var(--font-data);
+  font-size: 7px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.58);
+}
+
+.park-identity-field-fact strong,
+.field-context-stat strong {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--cream);
+  font-weight: 700;
 }
 
 .park-identity-svg {
@@ -657,39 +692,65 @@
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)),
+    radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--park-accent, #7EB4E0) 28%, transparent), transparent 32%);
 }
 
-.detail-map-svg {
-  display: block;
-  width: 100%;
-  height: auto;
+.field-context-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
 }
 
-.detail-map-base {
-  fill: rgba(245,237,216,0.04);
-  stroke: rgba(245,237,216,0.1);
-  stroke-width: 1.2;
+.field-context-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
 }
 
-.detail-map-ring {
-  fill: none;
-  stroke: rgba(126,180,224,0.22);
-  stroke-width: 16;
-}
-
-.detail-map-line {
-  fill: none;
-  stroke: rgba(245,237,216,0.18);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.detail-map-label {
+.field-context-title {
   font-family: var(--font-data);
   font-size: 9px;
-  letter-spacing: 0.08em;
-  fill: rgba(245,237,216,0.9);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.64);
+}
+
+.field-context-bias {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--cream);
+}
+
+.field-context-chip {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 7px 9px;
+  color: var(--cream);
+  background: rgba(8,16,28,0.22);
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.field-context-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.field-context-summary {
+  margin: 0;
+  color: rgba(245,237,216,0.78);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .detail-grid {
@@ -881,7 +942,7 @@ button.detail-event-pill {
 
 .compare-table {
   width: 100%;
-  min-width: 720px;
+  min-width: 900px;
   border-collapse: collapse;
   font-family: var(--font-data);
   font-size: 11px;
@@ -1358,7 +1419,38 @@ button.detail-event-pill {
   const escapeHtml = utils.escapeHtml;
   const safeColor = utils.safeColor;
   const safeToken = utils.safeToken;
-  const projectPoint = utils.projectPoint;
+  const FIELD_CONTEXT = {
+    "chase-field": { lf: 330, cf: 407, rf: 334, bias: "Balanced", tag: "Roof + gaps", note: "A retractable-roof park with fair alleys and a deeper center field profile." },
+    "truist-park": { lf: 335, cf: 400, rf: 325, bias: "Balanced", tag: "Corner pull", note: "Right field is reachable, but the overall shape plays closer to neutral." },
+    "camden-yards": { lf: 333, cf: 400, rf: 318, bias: "Balanced", tag: "Short RF", note: "The right-field corner plays inviting, while left field has been tuned back toward balance." },
+    "fenway-park": { lf: 310, cf: 420, rf: 302, bias: "Hitter lean", tag: "Wall doubles", note: "The Green Monster and short right-field line create a park that turns contact into weird, useful damage." },
+    "wrigley-field": { lf: 355, cf: 400, rf: 353, bias: "Wind swing", tag: "Weather park", note: "The dimensions are honest, but wind direction can flip the park from pitcher-friendly to homer-happy." },
+    "guaranteed-rate-field": { lf: 330, cf: 400, rf: 335, bias: "Hitter lean", tag: "Home run lift", note: "Compact power alleys make it friendlier to fly balls than the plain dimensions suggest." },
+    "great-american-ball-park": { lf: 328, cf: 404, rf: 325, bias: "Hitter park", tag: "HR boost", note: "One of the clearest home-run environments, especially for lifted contact to the corners." },
+    "progressive-field": { lf: 325, cf: 410, rf: 325, bias: "Balanced", tag: "Deep center", note: "Shorter lines are offset by a deeper center field and a generally moderate run environment." },
+    "coors-field": { lf: 347, cf: 415, rf: 350, bias: "Hitter park", tag: "Altitude + gaps", note: "Huge outfield space and altitude make this the classic run-scoring environment." },
+    "comerica-park": { lf: 345, cf: 412, rf: 330, bias: "Gap-friendly", tag: "Big center", note: "Center field still plays large, rewarding doubles and triples more than cheap homers." },
+    "minute-maid-park": { lf: 315, cf: 409, rf: 326, bias: "Pull power", tag: "Short LF", note: "The Crawford Boxes make left field a target, while center still asks for real carry." },
+    "kauffman-stadium": { lf: 330, cf: 410, rf: 330, bias: "Pitcher lean", tag: "Big outfield", note: "Large alleys suppress cheap homers and reward speed, defense, and contact." },
+    "angel-stadium": { lf: 347, cf: 396, rf: 350, bias: "Balanced", tag: "LF/RF room", note: "The lines are not especially cheap, though right-field wall changes have helped lefty lift." },
+    "dodger-stadium": { lf: 330, cf: 395, rf: 330, bias: "Pitcher lean", tag: "Heavy night air", note: "Symmetric fences and evening conditions often keep it from playing like a launch pad." },
+    "loandepot-park": { lf: 344, cf: 407, rf: 335, bias: "Pitcher lean", tag: "Deep gaps", note: "Deep alleys and controlled indoor conditions tend to mute easy offense." },
+    "american-family-field": { lf: 344, cf: 400, rf: 345, bias: "Hitter lean", tag: "Carry indoors", note: "Retractable-roof conditions and friendly carry can make fly-ball contact play up." },
+    "target-field": { lf: 339, cf: 404, rf: 328, bias: "Balanced", tag: "Weather swing", note: "Cool weather can pull offense down, while the right-field corner gives lefties a target." },
+    "citi-field": { lf: 335, cf: 408, rf: 330, bias: "Pitcher lean", tag: "Deep center", note: "The broad center-field shape generally asks hitters to earn extra-base damage." },
+    "yankee-stadium": { lf: 318, cf: 408, rf: 314, bias: "Split park", tag: "Short RF", note: "Right field is famous for lefty pull power, but left-center and center keep it from being simple." },
+    "sutter-health-park": { lf: 330, cf: 403, rf: 325, bias: "Hitter lean", tag: "Temporary MLB", note: "A smaller temporary MLB setting where heat and carry can matter more than the listed fences." },
+    "citizens-bank-park": { lf: 329, cf: 401, rf: 330, bias: "Hitter park", tag: "Power alleys", note: "Compact corners and lively power alleys make pulled fly balls feel dangerous." },
+    "pnc-park": { lf: 325, cf: 399, rf: 320, bias: "Pitcher lean", tag: "Deep left-center", note: "The short right-field line is balanced by a big left-center gap and a tall wall." },
+    "petco-park": { lf: 334, cf: 396, rf: 322, bias: "Pitcher lean", tag: "Marine layer", note: "Even after fence changes, the air and deeper alleys often keep offense controlled." },
+    "oracle-park": { lf: 339, cf: 399, rf: 309, bias: "Pitcher lean", tag: "Triples alley", note: "Right field is quirky, but deep right-center and bay air suppress routine home runs." },
+    "t-mobile-park": { lf: 331, cf: 401, rf: 326, bias: "Pitcher park", tag: "Heavy air", note: "Seattle has long played tough for hitters, especially on balls that need carry." },
+    "busch-stadium": { lf: 336, cf: 400, rf: 335, bias: "Balanced", tag: "Even alleys", note: "A fairly even shape that rarely screams extreme in either direction." },
+    "tropicana-field": { lf: 315, cf: 404, rf: 322, bias: "Pitcher lean", tag: "Fixed roof", note: "Indoor certainty helps planning, while center field and the fixed-roof environment mute chaos." },
+    "globe-life-field": { lf: 329, cf: 407, rf: 326, bias: "Pitcher lean", tag: "Roof control", note: "A controlled roof environment with enough center-field depth to dampen free offense." },
+    "rogers-centre": { lf: 328, cf: 400, rf: 328, bias: "Hitter lean", tag: "Symmetric lift", note: "Renovated outfield spaces and symmetric corners can reward fly-ball power." },
+    "nationals-park": { lf: 337, cf: 402, rf: 335, bias: "Balanced", tag: "Neutral shape", note: "Moderate dimensions and a conventional shape make it more context-dependent than extreme." }
+  };
 
   function teamLogoImg(teamName, className) {
     const src = logos && logos.getTeamLogo ? logos.getTeamLogo(teamName) : '';
@@ -1392,28 +1484,37 @@ button.detail-event-pill {
     return Number(value || 0).toLocaleString();
   }
 
-  function renderDetailMap(park, onRoute) {
-    const width = 280;
-    const height = 170;
-    const point = projectPoint(park.coordinates, width, height, { left: 22, top: 18, horizontalInset: 44, verticalInset: 36 });
-    const routeParks = app.getRouteParks().slice(0, 4).map((item) => ({
-      park: item,
-      point: projectPoint(item.coordinates, width, height, { left: 22, top: 18, horizontalInset: 44, verticalInset: 36 })
-    }));
-    const routeLine = routeParks.map((entry) => `${entry.point.x.toFixed(1)},${entry.point.y.toFixed(1)}`).join(' ');
+  function getFieldContext(park) {
+    return FIELD_CONTEXT[park.id] || {
+      lf: "Data",
+      cf: "TBD",
+      rf: "TBD",
+      bias: "Context TBD",
+      tag: "Field profile",
+      note: "Field dimensions and park tendency notes have not been added for this park yet."
+    };
+  }
 
+  function renderDetailMap(park, onRoute) {
+    const context = getFieldContext(park);
+
+    document.getElementById('d-map').style.setProperty('--park-accent', safeColor(park.color, '#7EB4E0'));
     document.getElementById('d-map').innerHTML = `
-      <svg class="detail-map-svg" viewBox="0 0 ${width} ${height}" aria-label="Park location context">
-        <path class="detail-map-base" d="M34 32 L60 24 L96 30 L126 24 L166 31 L205 44 L228 68 L238 100 L224 126 L188 140 L146 146 L98 138 L62 124 L38 98 L28 70 Z"></path>
-        ${routeLine ? `<polyline class="detail-map-line" points="${routeLine}"></polyline>` : ''}
-        <circle class="detail-map-ring" cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="14"></circle>
-        ${routeParks.map(({ park: routePark, point: routePoint }) => `
-          <circle cx="${routePoint.x.toFixed(1)}" cy="${routePoint.y.toFixed(1)}" r="4.5" fill="${safeColor(routePark.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="1.4"></circle>
-        `).join('')}
-        <circle cx="${point.x.toFixed(1)}" cy="${point.y.toFixed(1)}" r="6.5" fill="${safeColor(park.color, '#7EB4E0')}" stroke="#F5EDD8" stroke-width="2"></circle>
-        <text class="detail-map-label" x="${(point.x + 9).toFixed(1)}" y="${(point.y - 8).toFixed(1)}">${escapeHtml(park.city)}</text>
-        ${onRoute ? `<text class="detail-map-label" x="16" y="${height - 12}" fill="rgba(240,188,67,0.92)">On current route</text>` : ''}
-      </svg>
+      <section class="field-context-card" aria-label="Field dimensions and park tendency for ${escapeHtml(park.name)}">
+        <div class="field-context-head">
+          <div>
+            <div class="field-context-title">Field context</div>
+            <div class="field-context-bias">${escapeHtml(context.bias)}</div>
+          </div>
+          <div class="field-context-chip">${escapeHtml(context.tag)}</div>
+        </div>
+        <div class="field-context-stats" aria-label="Fence distances">
+          <div class="field-context-stat"><span>Left</span><strong>${escapeHtml(context.lf)} ft</strong></div>
+          <div class="field-context-stat"><span>Center</span><strong>${escapeHtml(context.cf)} ft</strong></div>
+          <div class="field-context-stat"><span>Right</span><strong>${escapeHtml(context.rf)} ft</strong></div>
+        </div>
+        <p class="field-context-summary">${escapeHtml(context.note)}${onRoute ? ' This park is already on your route.' : ''}</p>
+      </section>
     `;
   }
 
@@ -1438,6 +1539,7 @@ button.detail-event-pill {
     const hash = Math.abs(hashText(park.id));
     const opened = Number(park.opened) || 2000;
     const capacity = Number(park.capacity) || 40000;
+    const context = getFieldContext(park);
     const bowlDepth = Math.min(34, Math.max(16, Math.round(capacity / 1800)));
     const standTop = 36 + (hash % 18);
     const lowerTop = 72 + (hash % 8);
@@ -1447,10 +1549,7 @@ button.detail-event-pill {
     const boardWidth = 58 + (hash % 30);
     const tierLetter = String(park.tier || 'C').toUpperCase();
     const roof = String(park.roof || 'Open').toLowerCase();
-    const coords = park.coordinates || {};
-    const coordText = [coords.lat, coords.lng].every((value) => typeof value === 'number')
-      ? `${coords.lat.toFixed(1)} ${coords.lng.toFixed(1)}`
-      : 'Local data';
+    const fenceText = `${context.lf}/${context.cf}/${context.rf} ft`;
     const roofMarkup = roof === 'fixed'
       ? `<path class="identity-roof-fill" d="M28 76 C62 22 258 22 292 76 L270 76 C238 44 82 44 50 76 Z"></path>`
       : roof === 'retractable'
@@ -1469,17 +1568,18 @@ button.detail-event-pill {
         <text class="identity-detail" x="${boardX + 8}" y="31">${escapeHtml(tierLetter)}-${escapeHtml(opened)}</text>
         <circle cx="${72 + (hash % 22)}" cy="${101 - (hash % 18)}" r="4" fill="var(--park-accent, #7EB4E0)" opacity="0.92"></circle>
         <circle cx="${244 - ((hash >> 4) % 22)}" cy="${98 - ((hash >> 2) % 18)}" r="4" fill="rgba(245,237,216,0.78)"></circle>
-        <text class="identity-detail" x="18" y="121">${escapeHtml(coordText)}</text>
-        <text class="identity-detail" x="232" y="121">${escapeHtml(park.roof || 'Open')}</text>
+        <text class="identity-detail" x="18" y="121">${escapeHtml(fenceText)}</text>
+        <text class="identity-detail" x="226" y="121">${escapeHtml(context.bias)}</text>
       </svg>
     `;
   }
 
   function renderParkIdentityCard(park) {
     const accent = safeColor(park.color, '#7EB4E0');
+    const context = getFieldContext(park);
     const logoMarkup = teamLogoImg(park.team, 'park-identity-logo') ||
       `<div class="park-identity-logo park-identity-logo-fallback" aria-hidden="true">${escapeHtml(getTeamInitials(park.team) || 'MLB')}</div>`;
-    const accessibleLabel = `${park.name}, ${park.team}, ${park.city}. Opened ${park.opened}. ${park.roof} roof. Tier ${park.tier}.`;
+    const accessibleLabel = `${park.name}, ${park.team}, ${park.city}. Opened ${park.opened}. ${park.roof} roof. Tier ${park.tier}. Fence distances left field ${context.lf} feet, center field ${context.cf} feet, right field ${context.rf} feet. Park tendency: ${context.bias}.`;
     const identity = document.getElementById('d-identity');
 
     identity.style.setProperty('--park-accent', accent);
@@ -1505,9 +1605,18 @@ button.detail-event-pill {
             <span class="park-identity-chip-label">Tier</span>
             <span class="park-identity-chip-value">Tier ${escapeHtml(park.tier)}</span>
           </div>
+          <div class="park-identity-chip">
+            <span class="park-identity-chip-label">Plays</span>
+            <span class="park-identity-chip-value">${escapeHtml(context.bias)}</span>
+          </div>
         </div>
         <div class="park-identity-field" aria-hidden="true">
           ${renderIdentitySvg(park)}
+        </div>
+        <div class="park-identity-field-facts" aria-label="Fence distances">
+          <div class="park-identity-field-fact"><span>LF</span><strong>${escapeHtml(context.lf)} ft</strong></div>
+          <div class="park-identity-field-fact"><span>CF</span><strong>${escapeHtml(context.cf)} ft</strong></div>
+          <div class="park-identity-field-fact"><span>RF</span><strong>${escapeHtml(context.rf)} ft</strong></div>
         </div>
         <div class="park-identity-era">
           <span>${escapeHtml(getParkEra(park.opened))}</span>
@@ -1616,6 +1725,8 @@ button.detail-event-pill {
             <th>Opened</th>
             <th>Capacity</th>
             <th>Roof</th>
+            <th>Fences</th>
+            <th>Plays</th>
             <th>Tier</th>
             <th>Visited</th>
             <th>Route</th>
@@ -1627,6 +1738,7 @@ button.detail-event-pill {
           ${parks.map((park) => {
             const visit = app.getVisitedMeta(park.id);
             const note = app.getParkScratchpad(park.id);
+            const context = getFieldContext(park);
             return `
               <tr>
                 <td><strong>${escapeHtml(park.name)}</strong></td>
@@ -1635,6 +1747,8 @@ button.detail-event-pill {
                 <td>${escapeHtml(park.opened)}</td>
                 <td>${escapeHtml(formatCapacity(park.capacity))}</td>
                 <td>${escapeHtml(park.roof)}</td>
+                <td>${escapeHtml(context.lf)} / ${escapeHtml(context.cf)} / ${escapeHtml(context.rf)}</td>
+                <td>${escapeHtml(context.bias)}</td>
                 <td>Tier ${escapeHtml(park.tier)}</td>
                 <td>${visit ? escapeHtml(visit.visitDate || 'Visited') : 'Not yet'}</td>
                 <td>${routeIds.includes(park.id) ? 'On route' : 'Not on route'}</td>
@@ -1706,6 +1820,7 @@ button.detail-event-pill {
       const visited = app.isVisited(park.id);
       const onRoute = routeIds.includes(park.id);
       const compared = compareParkIds.includes(park.id);
+      const context = getFieldContext(park);
       return `
         <article class="park-row ${selectedParkId === park.id ? 'is-selected' : ''}">
           <button type="button" class="park-row-select" data-park-id="${escapeHtml(park.id)}" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
@@ -1720,7 +1835,9 @@ button.detail-event-pill {
             <div class="park-row-meta">
               <span class="row-stat">Opened ${escapeHtml(park.opened)}</span>
               <span class="row-stat">${escapeHtml(formatCapacity(park.capacity))}</span>
+              <span class="row-stat">LF/CF/RF ${escapeHtml(context.lf)}/${escapeHtml(context.cf)}/${escapeHtml(context.rf)}</span>
               <span class="row-pill">${escapeHtml(park.roof)}</span>
+              <span class="row-pill">${escapeHtml(context.bias)}</span>
               <span class="row-pill">Tier ${escapeHtml(park.tier)}</span>
               <span class="row-pill">${visited ? 'Visited' : 'Not visited'}</span>
               <span class="row-pill ${onRoute ? 'is-route' : ''}">${onRoute ? 'On route' : 'Not on route'}</span>
@@ -1748,6 +1865,7 @@ button.detail-event-pill {
     const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === park.id);
     const specialEvents = Array.isArray(park.specialEvents) && park.specialEvents.length ? park.specialEvents : ['No current event signal'];
     const nearbyParks = getNearbyParks(park, 3);
+    const fieldContext = getFieldContext(park);
     document.getElementById('detail-stripe').style.background = safeColor(park.color, '#7EB4E0');
     document.getElementById('d-name').textContent = park.name;
     document.getElementById('d-team').innerHTML = `
@@ -1762,6 +1880,8 @@ button.detail-event-pill {
       <div class="detail-datum"><div class="detail-datum-label">Capacity</div><div class="detail-datum-value">${escapeHtml(park.capacity.toLocaleString())}</div></div>
       <div class="detail-datum"><div class="detail-datum-label">Roof</div><div class="detail-datum-value">${escapeHtml(park.roof)}</div></div>
       <div class="detail-datum"><div class="detail-datum-label">Priority</div><div class="detail-datum-value">Tier ${escapeHtml(park.tier)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Fences</div><div class="detail-datum-value">${escapeHtml(fieldContext.lf)} / ${escapeHtml(fieldContext.cf)} / ${escapeHtml(fieldContext.rf)}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Plays</div><div class="detail-datum-value">${escapeHtml(fieldContext.bias)}</div></div>
       <div class="detail-datum"><div class="detail-datum-label">Visited</div><div class="detail-datum-value">${escapeHtml(visitMeta ? (visitMeta.visitDate || 'Marked') : 'Not yet')}</div></div>
       <div class="detail-datum"><div class="detail-datum-label">Standout</div><div class="detail-datum-value">${escapeHtml(visitMeta?.standout || visitMeta?.bestFeature || 'Still scouting')}</div></div>
     `;
