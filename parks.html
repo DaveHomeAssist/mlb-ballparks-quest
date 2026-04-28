@@ -15,19 +15,47 @@
 
 .parks-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  gap: 28px;
   padding-top: 32px;
   padding-bottom: 64px;
   align-items: start;
 }
 
+.parks-page-wrap {
+  max-width: 1320px;
+}
+
 .parks-main { min-width: 0; }
 
+.nav-brand-mark {
+  color: #F0BC43;
+  opacity: 1;
+}
+
+.parks-page-wrap .btn-success {
+  background: #246343;
+}
+
+.detail-panel .btn-ghost {
+  color: var(--cream);
+  border-color: rgba(245,237,216,0.35);
+}
+
+.detail-panel .btn-ghost:hover {
+  color: var(--cream);
+  border-color: rgba(245,237,216,0.55);
+  background: rgba(245,237,216,0.08);
+}
+
 .parks-hero {
-  padding: 40px 0 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 430px);
+  gap: 24px;
+  align-items: end;
+  padding: 40px 0 24px;
   border-bottom: 1px solid var(--border-light);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .parks-headline {
@@ -38,6 +66,51 @@
   color: var(--navy);
   line-height: 1.1;
   margin-bottom: 6px;
+}
+
+.parks-subhead {
+  max-width: 580px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.progress-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.progress-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-md);
+  padding: 12px;
+}
+
+.progress-label {
+  font-family: var(--font-data);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.progress-value {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--navy);
+  line-height: 1;
+}
+
+.progress-note {
+  margin-top: 3px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  color: var(--text-secondary);
 }
 
 /* ─── Filter strip ──────────────────────── */
@@ -85,6 +158,122 @@
 .filter-chip:hover { color: var(--text-primary); border-color: var(--border-mid); }
 .filter-chip.is-active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
 
+.filter-select {
+  min-height: 34px;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 28px 6px 10px;
+}
+
+.route-strip {
+  position: sticky;
+  top: 52px;
+  z-index: 30;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  background: rgba(250,248,241,0.96);
+  box-shadow: 0 8px 22px rgba(15,31,56,0.06);
+}
+
+.route-strip-head,
+.compare-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.route-strip-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.route-strip-title,
+.compare-title {
+  font-family: var(--font-data);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.route-strip-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.route-stop-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  max-width: 240px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: var(--surface-card);
+  padding: 5px 8px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  color: var(--text-primary);
+}
+
+.route-stop-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-stop-remove,
+.compare-remove {
+  border: 0;
+  background: rgba(200,48,42,0.08);
+  color: var(--red);
+  border-radius: 999px;
+  min-width: 28px;
+  min-height: 28px;
+  cursor: pointer;
+  font-family: var(--font-data);
+}
+
+.empty-inline,
+.selection-notice,
+.parks-empty {
+  border: 1px dashed var(--border-light);
+  border-radius: var(--r-md);
+  padding: 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  background: rgba(255,255,255,0.45);
+}
+
+.selection-notice {
+  display: none;
+  margin-bottom: 12px;
+}
+
+.parks-empty {
+  display: none;
+  text-align: center;
+}
+
 /* ─── Park list ─────────────────────────── */
 .park-count {
   font-family: var(--font-data);
@@ -97,14 +286,13 @@
 .parks-list { display: flex; flex-direction: column; gap: 6px; }
 
 .park-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 10px;
   background: var(--surface-card);
   border: 1px solid var(--border-light);
   border-radius: var(--r-md);
-  cursor: pointer;
   transition: all 140ms;
   border-left: 3px solid transparent;
 }
@@ -119,9 +307,37 @@
   background: rgba(200,48,42,0.04);
 }
 
+.park-row-select {
+  display: grid;
+  grid-template-columns: auto minmax(190px, 1.2fr) minmax(280px, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.park-row-select:focus-visible,
+.filter-chip:focus-visible,
+.filter-search:focus-visible,
+.filter-select:focus-visible,
+.row-action-button:focus-visible,
+.route-stop-remove:focus-visible,
+.compare-remove:focus-visible,
+.detail-event-pill:focus-visible,
+.modal-close:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid rgba(200,168,100,0.45);
+  outline-offset: 2px;
+}
+
 .park-row-name {
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--navy);
   flex: 1;
@@ -132,7 +348,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
   min-width: 0;
 }
 
@@ -148,14 +363,66 @@
   font-size: 9px;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
-  white-space: nowrap;
 }
 
 .park-row-city {
   font-family: var(--font-data);
   font-size: 9px;
   color: var(--text-secondary);
-  white-space: nowrap;
+}
+
+.park-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.row-stat,
+.row-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  background: rgba(15,31,56,0.04);
+  border: 1px solid rgba(15,31,56,0.06);
+}
+
+.row-pill.is-route {
+  color: var(--navy);
+  background: rgba(126,180,224,0.14);
+}
+
+.row-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.row-action-button {
+  min-height: 34px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  padding: 5px 9px;
+}
+
+.row-action-button.is-active {
+  color: var(--navy);
+  border-color: rgba(200,168,100,0.38);
+  background: rgba(200,168,100,0.12);
 }
 
 /* ─── Detail panel ──────────────────────── */
@@ -537,6 +804,11 @@
   color: var(--cream);
 }
 
+button.detail-event-pill {
+  cursor: pointer;
+  min-height: 44px;
+}
+
 .detail-scratch-label {
   display: block;
   font-family: var(--font-data);
@@ -576,13 +848,249 @@
   flex-direction: column;
 }
 
+.detail-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.detail-action-grid .btn {
+  justify-content: center;
+  min-height: 44px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.compare-drawer {
+  margin: 0 0 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-xl);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+
+.compare-head {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.compare-table-wrap {
+  overflow-x: auto;
+}
+
+.compare-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-family: var(--font-data);
+  font-size: 11px;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+  vertical-align: top;
+}
+
+.compare-table th {
+  color: var(--text-secondary);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: rgba(15,31,56,0.03);
+}
+
+.compare-table td {
+  color: var(--text-primary);
+}
+
+.compare-empty {
+  padding: 18px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 250;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  max-width: min(92vw, 520px);
+  border-radius: 999px;
+  background: var(--navy);
+  color: var(--cream);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 12px 30px rgba(15,31,56,0.26);
+  padding: 10px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 13px;
+  transition: opacity 160ms, transform 160ms;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.toast button {
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: var(--cream);
+  border-radius: 999px;
+  min-height: 32px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.visit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8,16,28,0.56);
+}
+
+.visit-modal.is-open {
+  display: grid;
+}
+
+.visit-dialog {
+  width: min(560px, 100%);
+  max-height: min(720px, 92vh);
+  overflow-y: auto;
+  border-radius: var(--r-xl);
+  background: var(--cream);
+  color: var(--text-primary);
+  box-shadow: 0 28px 80px rgba(8,16,28,0.36);
+}
+
+.visit-dialog-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.visit-dialog-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--navy);
+  line-height: 1.1;
+}
+
+.modal-close {
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  background: var(--surface-card);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.visit-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px 22px 22px;
+}
+
+.visit-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.visit-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-data);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.visit-field input,
+.visit-field select,
+.visit-field textarea {
+  width: 100%;
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-md);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.visit-field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.visit-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.visit-check input {
+  width: 20px;
+  height: 20px;
+}
+
+.visit-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 1200px) {
-  .parks-layout { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+  .parks-layout { grid-template-columns: minmax(0, 1fr) minmax(340px, 400px); gap: 20px; }
+  .park-row-select { grid-template-columns: auto minmax(170px, 1fr); }
+  .park-row-meta { grid-column: 2; }
 }
 
 @media (max-width: 900px) {
   .parks-layout { grid-template-columns: 1fr; }
   .detail-panel { position: static; }
+  .parks-hero { grid-template-columns: 1fr; }
+  .route-strip { top: 52px; }
+  .filter-chip,
+  .filter-select,
+  .filter-search,
+  .row-action-button,
+  .route-stop-remove,
+  .compare-remove,
+  .modal-close,
+  .parks-page-wrap .btn {
+    min-height: 44px;
+  }
+  .route-stop-remove,
+  .compare-remove,
+  .modal-close {
+    min-width: 44px;
+  }
+  .row-action-button {
+    min-width: 44px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -595,10 +1103,44 @@
   .nav-back { display: none; }
   .nav-brand { margin-right: 12px; }
   .nav-links { flex: 0 0 auto; }
+  .parks-page-wrap { padding: 0 14px; }
+  .parks-layout { padding-top: 18px; }
+  .parks-hero { padding-top: 28px; }
+  .progress-strip { grid-template-columns: 1fr; }
   .filter-strip { flex-direction: column; align-items: stretch; }
   .filter-search { width: 100%; }
+  .filter-chip,
+  .filter-select,
+  .row-action-button,
+  .detail-schedule-actions .btn,
+  .btn {
+    min-height: 44px;
+  }
+  .park-row { grid-template-columns: 1fr; }
+  .park-row-select { grid-template-columns: auto minmax(0, 1fr); }
+  .park-row-meta { grid-column: 1 / -1; }
+  .row-actions { justify-content: stretch; }
+  .row-action-button { flex: 1; }
+  .detail-action-grid,
+  .visit-form-row {
+    grid-template-columns: 1fr;
+  }
   .detail-actions .btn,
   .detail-actions a { width: 100%; text-align: center; justify-content: center; }
+  .visit-modal { align-items: end; padding: 0; }
+  .visit-dialog {
+    width: 100%;
+    max-height: 90vh;
+    border-radius: 18px 18px 0 0;
+  }
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  .site-nav { height: 46px; }
+  .parks-layout { grid-template-columns: 1fr; padding-top: 14px; }
+  .detail-panel { position: static; }
+  .parks-hero { grid-template-columns: 1fr; padding: 20px 0 16px; }
+  .progress-strip { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
 </head>
@@ -630,15 +1172,47 @@
   </div>
 </nav>
 
-<div class="page-wrap">
+<div class="page-wrap parks-page-wrap">
 <div class="parks-layout">
 
   <!-- Left: park list -->
   <div class="parks-main">
     <div class="parks-hero fade-up">
-      <div class="section-label">Park directory</div>
-      <h1 class="parks-headline">All 30 parks.<br>Compare fast.</h1>
+      <div>
+        <div class="section-label">Park directory</div>
+        <h1 class="parks-headline">All 30 parks.<br>Compare fast.</h1>
+        <p class="parks-subhead">Compare, plan, and track your ballpark quest from one local-first workspace.</p>
+      </div>
+      <div class="progress-strip" id="progress-strip" aria-label="Quest progress">
+        <div class="progress-card">
+          <div class="progress-label">Visited</div>
+          <div class="progress-value" id="progress-visited">0/30</div>
+          <div class="progress-note">Logged parks</div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-label">Route</div>
+          <div class="progress-value" id="progress-route">0</div>
+          <div class="progress-note">Planned stops</div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-label">Compare</div>
+          <div class="progress-value" id="progress-compare">0</div>
+          <div class="progress-note">Pinned parks</div>
+        </div>
+      </div>
     </div>
+
+    <section class="compare-drawer fade-up fade-up-1" id="compare-drawer" aria-labelledby="compare-title">
+      <div class="compare-head">
+        <div>
+          <div class="compare-title" id="compare-title">Compare parks</div>
+          <div class="progress-note" id="compare-count">Pin 2 to 4 parks</div>
+        </div>
+        <button type="button" class="btn btn-ghost" id="compare-clear">Clear compare</button>
+      </div>
+      <div class="compare-empty" id="compare-empty">Pin parks to compare opened year, roof, capacity, tier, route state, and visit notes.</div>
+      <div class="compare-table-wrap" id="compare-table-wrap"></div>
+    </section>
 
     <div class="filter-strip fade-up fade-up-1">
       <input class="filter-search" id="park-search" placeholder="Search parks, cities, teams…">
@@ -647,12 +1221,34 @@
       <button class="filter-chip" data-filter="unvisited">Not visited</button>
       <button class="filter-chip" data-filter="open">Open air</button>
       <button class="filter-chip" data-filter="retractable">Retractable</button>
+      <select class="filter-select" id="park-sort" aria-label="Sort parks">
+        <option value="tier">Sort by priority</option>
+        <option value="opened">Oldest first</option>
+        <option value="capacity">Capacity</option>
+        <option value="city">City</option>
+      </select>
     </div>
 
+    <section class="route-strip fade-up fade-up-1" id="route-strip" aria-labelledby="route-strip-title">
+      <div class="route-strip-head">
+        <div class="route-strip-title" id="route-strip-title">Route: <span id="route-count">0 parks</span></div>
+        <div class="route-strip-actions">
+          <button type="button" class="btn btn-ghost" id="route-clear">Clear route</button>
+        </div>
+      </div>
+      <div class="route-strip-list" id="route-strip-list" aria-label="Ordered route stops">
+        <div class="empty-inline">Add parks to start a route.</div>
+      </div>
+    </section>
+
     <div class="park-count fade-up fade-up-2" id="park-count">30 parks</div>
+    <div class="selection-notice" id="selection-notice">Selected park is hidden by the current filters.</div>
 
     <div class="parks-list fade-up fade-up-2" id="parks-list">
       <!-- JS populated -->
+    </div>
+    <div class="parks-empty" id="parks-empty">
+      No parks match this search. <button type="button" class="btn btn-ghost" id="clear-filters">Clear filters</button>
     </div>
   </div>
 
@@ -663,9 +1259,11 @@
       <div class="detail-body">
         <div class="detail-park-name" id="d-name">Select a park</div>
         <div class="detail-team" id="d-team">Click any row to inspect</div>
-        <div class="detail-actions" style="margin:12px 0;">
-          <button type="button" class="btn btn-primary" style="justify-content:center;flex:1;" id="d-route-toggle">Add to route</button>
-          <button type="button" class="btn btn-success" style="justify-content:center;" id="d-visit-toggle">Mark as visited</button>
+        <div class="detail-action-grid">
+          <button type="button" class="btn btn-primary" id="d-route-toggle">Add to route</button>
+          <button type="button" class="btn btn-success" id="d-visit-toggle">Log visit</button>
+          <button type="button" class="btn btn-ghost" id="d-compare-toggle">Compare</button>
+          <button type="button" class="btn btn-ghost" id="d-share">Share</button>
         </div>
         <section class="park-identity-card" id="d-identity" aria-labelledby="d-identity-name">
           <div class="park-identity-inner">
@@ -692,13 +1290,69 @@
   </div>
 
 </div>
+
 </div>
+
+<div class="visit-modal" id="visit-modal" role="dialog" aria-modal="true" aria-labelledby="visit-modal-title" aria-describedby="visit-modal-desc">
+  <div class="visit-dialog">
+    <div class="visit-dialog-head">
+      <div>
+        <div class="visit-dialog-title" id="visit-modal-title">Log visit</div>
+        <div class="progress-note" id="visit-modal-desc">Save the details you actually remember. Blank fields stay blank.</div>
+      </div>
+      <button type="button" class="modal-close" id="visit-close" aria-label="Close visit log">x</button>
+    </div>
+    <form class="visit-form" id="visit-form">
+      <label class="visit-check">
+        <input type="checkbox" id="visit-visited" checked>
+        Mark this park as visited
+      </label>
+      <div class="visit-form-row">
+        <div class="visit-field">
+          <label for="visit-date">Visit date</label>
+          <input type="date" id="visit-date">
+        </div>
+        <div class="visit-field">
+          <label for="visit-rating">Rating</label>
+          <select id="visit-rating">
+            <option value="">No rating</option>
+            <option value="S">S</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+      </div>
+      <div class="visit-field">
+        <label for="visit-game">Game or opponent</label>
+        <input type="text" id="visit-game" placeholder="Red Sox vs Yankees">
+      </div>
+      <div class="visit-field">
+        <label for="visit-standout">Standout memory</label>
+        <input type="text" id="visit-standout" placeholder="What stood out?">
+      </div>
+      <div class="visit-field">
+        <label for="visit-notes">Notes</label>
+        <textarea id="visit-notes" placeholder="Transit, seats, food, weather, people, anything worth remembering."></textarea>
+      </div>
+      <div class="visit-form-actions">
+        <button type="button" class="btn btn-danger-outline" id="visit-remove">Remove visited mark</button>
+        <button type="button" class="btn btn-ghost" id="visit-cancel">Cancel</button>
+        <button type="submit" class="btn btn-success">Save visit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function() {
   const app = window.BPQ && window.BPQ.app;
   const utils = window.BPQ && window.BPQ.utils;
   const logos = window.BPQ && window.BPQ.logos;
+  const storage = window.BPQ && window.BPQ.storage;
   if (!app || !utils) return;
 
   const escapeHtml = utils.escapeHtml;
@@ -714,6 +1368,29 @@
   let selectedParkId = null;
   let activeFilter = 'all';
   let searchTerm = '';
+  let activeSort = 'tier';
+  let compareParkIds = loadStoredList('compare').slice(0, 4);
+  let visitTrigger = null;
+  let toastUndo = null;
+
+  function loadStoredList(key) {
+    const value = storage && storage.get ? storage.get(key) : [];
+    return Array.isArray(value) ? value.filter((id) => app.getParkById(id)) : [];
+  }
+
+  function saveStoredList(key, value) {
+    if (!storage || !storage.set) return;
+    storage.set(key, value);
+    if (storage.flush) storage.flush(key);
+  }
+
+  function getRouteIds() {
+    return app.getRouteStore().stops.map((stop) => typeof stop === 'string' ? stop : stop.parkId);
+  }
+
+  function formatCapacity(value) {
+    return Number(value || 0).toLocaleString();
+  }
 
   function renderDetailMap(park, onRoute) {
     const width = 280;
@@ -841,6 +1518,23 @@
     `;
   }
 
+  function getNearbyParks(park, limit) {
+    if (!park || !park.coordinates || !utils.distanceMiles) return [];
+    return app.getParks()
+      .filter((candidate) => candidate.id !== park.id && candidate.coordinates)
+      .map((candidate) => ({
+        park: candidate,
+        distance: utils.distanceMiles(
+          park.coordinates.lat,
+          park.coordinates.lng,
+          candidate.coordinates.lat,
+          candidate.coordinates.lng
+        )
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, limit || 3);
+  }
+
   function getFilteredParks() {
     return app.getParks().filter((park) => {
       const q = searchTerm.toLowerCase();
@@ -855,21 +1549,127 @@
         activeFilter === 'open' ? park.roof === 'Open' :
         activeFilter === 'retractable' ? park.roof === 'Retractable' : true;
       return matchSearch && matchFilter;
+    }).sort((a, b) => {
+      if (activeSort === 'opened') return Number(a.opened) - Number(b.opened);
+      if (activeSort === 'capacity') return Number(b.capacity) - Number(a.capacity);
+      if (activeSort === 'city') return a.city.localeCompare(b.city);
+      return app.priorityScore(b) - app.priorityScore(a);
     });
+  }
+
+  function updateUrlState() {
+    const url = new URL(window.location.href);
+    if (selectedParkId) url.searchParams.set('park', selectedParkId);
+    else url.searchParams.delete('park');
+    if (compareParkIds.length) url.searchParams.set('compare', compareParkIds.join(','));
+    else url.searchParams.delete('compare');
+    window.history.replaceState({}, '', url);
+    if (storage && storage.set && selectedParkId) {
+      storage.set('selectedPark', selectedParkId);
+      if (storage.flush) storage.flush('selectedPark');
+    }
+  }
+
+  function renderProgress() {
+    const total = app.getParks().length;
+    const visited = app.getVisitedParks().length;
+    const routeCount = getRouteIds().length;
+    document.getElementById('progress-visited').textContent = `${visited}/${total}`;
+    document.getElementById('progress-route').textContent = String(routeCount);
+    document.getElementById('progress-compare').textContent = String(compareParkIds.length);
+  }
+
+  function renderRouteStrip() {
+    const stops = app.getRouteStops();
+    const routeList = document.getElementById('route-strip-list');
+    document.getElementById('route-count').textContent = `${stops.length} park${stops.length === 1 ? '' : 's'}`;
+    document.getElementById('route-clear').disabled = !stops.length;
+    routeList.innerHTML = stops.length ? stops.map((stop, index) => `
+      <div class="route-stop-chip">
+        <strong>${index + 1}</strong>
+        <span>${escapeHtml(stop.park.name)}</span>
+        <button type="button" class="route-stop-remove" data-route-remove="${escapeHtml(stop.parkId)}" aria-label="Remove ${escapeHtml(stop.park.name)} from route">x</button>
+      </div>
+    `).join('') : '<div class="empty-inline">Add parks to start a route.</div>';
+  }
+
+  function renderCompareDrawer() {
+    const tableWrap = document.getElementById('compare-table-wrap');
+    const empty = document.getElementById('compare-empty');
+    const parks = compareParkIds.map((id) => app.getParkById(id)).filter(Boolean);
+    const routeIds = getRouteIds();
+    document.getElementById('compare-count').textContent = parks.length ? `${parks.length}/4 pinned` : 'Pin 2 to 4 parks';
+    document.getElementById('compare-clear').disabled = !parks.length;
+    empty.style.display = parks.length ? 'none' : 'block';
+    if (!parks.length) {
+      tableWrap.innerHTML = '';
+      return;
+    }
+
+    tableWrap.innerHTML = `
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Park</th>
+            <th>Team</th>
+            <th>City</th>
+            <th>Opened</th>
+            <th>Capacity</th>
+            <th>Roof</th>
+            <th>Tier</th>
+            <th>Visited</th>
+            <th>Route</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${parks.map((park) => {
+            const visit = app.getVisitedMeta(park.id);
+            const note = app.getParkScratchpad(park.id);
+            return `
+              <tr>
+                <td><strong>${escapeHtml(park.name)}</strong></td>
+                <td>${escapeHtml(park.team)}</td>
+                <td>${escapeHtml(park.city)}</td>
+                <td>${escapeHtml(park.opened)}</td>
+                <td>${escapeHtml(formatCapacity(park.capacity))}</td>
+                <td>${escapeHtml(park.roof)}</td>
+                <td>Tier ${escapeHtml(park.tier)}</td>
+                <td>${visit ? escapeHtml(visit.visitDate || 'Visited') : 'Not yet'}</td>
+                <td>${routeIds.includes(park.id) ? 'On route' : 'Not on route'}</td>
+                <td>${escapeHtml((visit && (visit.standout || visit.bestFeature || visit.notes)) || (note && note.text) || 'No note')}</td>
+                <td><button type="button" class="compare-remove" data-compare-remove="${escapeHtml(park.id)}" aria-label="Remove ${escapeHtml(park.name)} from compare">x</button></td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderLoopState() {
+    renderProgress();
+    renderRouteStrip();
+    renderCompareDrawer();
   }
 
   function updateDetailActions(park) {
     const visitButton = document.getElementById('d-visit-toggle');
     const routeButton = document.getElementById('d-route-toggle');
+    const compareButton = document.getElementById('d-compare-toggle');
     const scoreLink = document.getElementById('d-score-link');
-    const routeIds = app.getRouteStore().stops.map((stop) => typeof stop === 'string' ? stop : stop.parkId);
+    const routeIds = getRouteIds();
     const visited = app.isVisited(park.id);
     const onRoute = routeIds.includes(park.id);
+    const compared = compareParkIds.includes(park.id);
 
-    visitButton.textContent = visited ? 'Remove visited mark' : 'Mark as visited';
+    visitButton.textContent = visited ? 'Edit visit' : 'Log visit';
     routeButton.textContent = onRoute ? 'Remove from route' : 'Add to route';
+    compareButton.textContent = compared ? 'Unpin compare' : 'Compare';
     visitButton.className = `btn ${visited ? 'btn-danger-outline' : 'btn-success'}`;
     routeButton.className = `btn ${onRoute ? 'btn-danger-outline' : 'btn-primary'}`;
+    compareButton.className = `btn ${compared ? 'btn-danger-outline' : 'btn-ghost'}`;
     scoreLink.href = 'scorekeeper.html';
     scoreLink.dataset.parkId = park.id;
   }
@@ -892,6 +1692,52 @@
     `).join('');
   }
 
+  function renderListV2() {
+    const list = document.getElementById('parks-list');
+    const count = document.getElementById('park-count');
+    const empty = document.getElementById('parks-empty');
+    const notice = document.getElementById('selection-notice');
+    const filtered = getFilteredParks();
+    const routeIds = getRouteIds();
+    count.textContent = `${filtered.length} park${filtered.length !== 1 ? 's' : ''}`;
+    empty.style.display = filtered.length ? 'none' : 'block';
+    notice.style.display = selectedParkId && !filtered.some((park) => park.id === selectedParkId) ? 'block' : 'none';
+    list.innerHTML = filtered.map((park) => {
+      const visited = app.isVisited(park.id);
+      const onRoute = routeIds.includes(park.id);
+      const compared = compareParkIds.includes(park.id);
+      return `
+        <article class="park-row ${selectedParkId === park.id ? 'is-selected' : ''}">
+          <button type="button" class="park-row-select" data-park-id="${escapeHtml(park.id)}" aria-pressed="${selectedParkId === park.id ? 'true' : 'false'}">
+            <div class="tier-stamp tier-${safeToken(park.tier, 'C')}">${escapeHtml(park.tier)}</div>
+            <div class="park-row-brand">
+              ${teamLogoImg(park.team, 'park-team-logo')}
+              <div>
+                <div class="park-row-name">${escapeHtml(park.name)}</div>
+                <div class="park-row-city">${escapeHtml(park.city)} / ${escapeHtml(park.team)}</div>
+              </div>
+            </div>
+            <div class="park-row-meta">
+              <span class="row-stat">Opened ${escapeHtml(park.opened)}</span>
+              <span class="row-stat">${escapeHtml(formatCapacity(park.capacity))}</span>
+              <span class="row-pill">${escapeHtml(park.roof)}</span>
+              <span class="row-pill">Tier ${escapeHtml(park.tier)}</span>
+              <span class="row-pill">${visited ? 'Visited' : 'Not visited'}</span>
+              <span class="row-pill ${onRoute ? 'is-route' : ''}">${onRoute ? 'On route' : 'Not on route'}</span>
+            </div>
+          </button>
+          <div class="row-actions">
+            <button type="button" class="row-action-button ${compared ? 'is-active' : ''}" data-compare-toggle="${escapeHtml(park.id)}" aria-label="${compared ? 'Remove' : 'Add'} ${escapeHtml(park.name)} ${compared ? 'from' : 'to'} compare">${compared ? 'Pinned' : 'Pin'}</button>
+            <button type="button" class="row-action-button ${onRoute ? 'is-active' : ''}" data-route-toggle="${escapeHtml(park.id)}" aria-label="${onRoute ? 'Remove' : 'Add'} ${escapeHtml(park.name)} ${onRoute ? 'from' : 'to'} route">${onRoute ? 'Route' : 'Route +'}</button>
+            <button type="button" class="row-action-button ${visited ? 'is-active' : ''}" data-visit-open="${escapeHtml(park.id)}" aria-label="${visited ? 'Edit visit for' : 'Log visit for'} ${escapeHtml(park.name)}">${visited ? 'Edit' : 'Log'}</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+    renderLoopState();
+    updateUrlState();
+  }
+
   function selectPark(id, options) {
     const park = app.getParkById(id);
     if (!park) return;
@@ -901,6 +1747,7 @@
     const parkScratchpad = app.getParkScratchpad(park.id);
     const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === park.id);
     const specialEvents = Array.isArray(park.specialEvents) && park.specialEvents.length ? park.specialEvents : ['No current event signal'];
+    const nearbyParks = getNearbyParks(park, 3);
     document.getElementById('detail-stripe').style.background = safeColor(park.color, '#7EB4E0');
     document.getElementById('d-name').textContent = park.name;
     document.getElementById('d-team').innerHTML = `
@@ -916,7 +1763,7 @@
       <div class="detail-datum"><div class="detail-datum-label">Roof</div><div class="detail-datum-value">${escapeHtml(park.roof)}</div></div>
       <div class="detail-datum"><div class="detail-datum-label">Priority</div><div class="detail-datum-value">Tier ${escapeHtml(park.tier)}</div></div>
       <div class="detail-datum"><div class="detail-datum-label">Visited</div><div class="detail-datum-value">${escapeHtml(visitMeta ? (visitMeta.visitDate || 'Marked') : 'Not yet')}</div></div>
-      <div class="detail-datum"><div class="detail-datum-label">Standout</div><div class="detail-datum-value">${escapeHtml(visitMeta?.bestFeature || 'Still scouting')}</div></div>
+      <div class="detail-datum"><div class="detail-datum-label">Standout</div><div class="detail-datum-value">${escapeHtml(visitMeta?.standout || visitMeta?.bestFeature || 'Still scouting')}</div></div>
     `;
     document.getElementById('d-signals').innerHTML = `
       <div class="detail-signal">
@@ -936,6 +1783,12 @@
       <div class="detail-signal">
         <div class="detail-signal-label">Route status</div>
         <div class="detail-signal-text">${onRoute ? 'Already in the current run.' : 'Not on the route yet.'}</div>
+      </div>
+      <div class="detail-signal">
+        <div class="detail-signal-label">Nearby route ideas</div>
+        <div class="detail-event-list">
+          ${nearbyParks.map(({ park: nearby, distance }) => `<button type="button" class="detail-event-pill" data-nearby-route="${escapeHtml(nearby.id)}">${escapeHtml(nearby.name)} / ${escapeHtml(distance)} mi</button>`).join('')}
+        </div>
       </div>
       ${(function() {
         var games = app.getUpcomingGamesByPark ? app.getUpcomingGamesByPark(park.id, 4) : [];
@@ -959,7 +1812,7 @@
     `;
     document.getElementById('d-scratchpad').value = parkScratchpad ? parkScratchpad.text : '';
     updateDetailActions(park);
-    renderList();
+    renderListV2();
     if (shouldScrollDetail && window.matchMedia('(max-width: 900px)').matches) {
       const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
       window.requestAnimationFrame(() => {
@@ -968,9 +1821,178 @@
     }
   }
 
+  function toggleCompare(parkId) {
+    const park = app.getParkById(parkId);
+    if (!park) return;
+    if (compareParkIds.includes(parkId)) {
+      compareParkIds = compareParkIds.filter((id) => id !== parkId);
+      showToast(`${park.name} removed from compare.`);
+    } else {
+      if (compareParkIds.length >= 4) {
+        showToast('Compare is full. Remove a park before pinning another.');
+        return;
+      }
+      compareParkIds = compareParkIds.concat(parkId);
+      showToast(`${park.name} pinned for compare.`, () => toggleCompare(parkId));
+    }
+    saveStoredList('compare', compareParkIds);
+    renderListV2();
+    if (selectedParkId) updateDetailActions(app.getParkById(selectedParkId));
+  }
+
+  function toggleRoute(parkId) {
+    const park = app.getParkById(parkId);
+    if (!park) return;
+    const routeIds = getRouteIds();
+    if (routeIds.includes(parkId)) {
+      app.removeRouteStop(parkId);
+      showToast(`${park.name} removed from route.`, () => {
+        app.addRouteStop(parkId);
+        renderListV2();
+        if (selectedParkId) selectPark(selectedParkId);
+      });
+    } else {
+      app.addRouteStop(parkId);
+      showToast(`${park.name} added to route.`, () => {
+        app.removeRouteStop(parkId);
+        renderListV2();
+        if (selectedParkId) selectPark(selectedParkId);
+      });
+    }
+    renderListV2();
+    if (selectedParkId) updateDetailActions(app.getParkById(selectedParkId));
+  }
+
+  function clearRoute() {
+    const previous = app.getRouteStore().stops.slice();
+    if (!previous.length) return;
+    if (!window.confirm('Clear every park from the current route?')) return;
+    app.saveRouteStore({ stops: [] });
+    showToast('Route cleared.', () => {
+      app.saveRouteStore({ stops: previous });
+      renderListV2();
+      if (selectedParkId) selectPark(selectedParkId);
+    });
+    renderListV2();
+    if (selectedParkId) updateDetailActions(app.getParkById(selectedParkId));
+  }
+
+  function showToast(message, undo) {
+    const toast = document.getElementById('toast');
+    toastUndo = typeof undo === 'function' ? undo : null;
+    toast.innerHTML = `${escapeHtml(message)}${toastUndo ? ' <button type="button" id="toast-undo">Undo</button>' : ''}`;
+    toast.classList.add('is-visible');
+    window.clearTimeout(showToast.timer);
+    showToast.timer = window.setTimeout(() => {
+      toast.classList.remove('is-visible');
+      toastUndo = null;
+    }, 4800);
+  }
+
+  function openVisitModal(parkId, trigger) {
+    const park = app.getParkById(parkId);
+    if (!park) return;
+    const visit = app.getVisitedMeta(parkId) || {};
+    visitTrigger = trigger || document.activeElement;
+    selectedParkId = parkId;
+    document.getElementById('visit-modal-title').textContent = `Log visit: ${park.name}`;
+    document.getElementById('visit-visited').checked = true;
+    document.getElementById('visit-date').value = visit.visitDate || '';
+    document.getElementById('visit-rating').value = visit.rating || '';
+    document.getElementById('visit-game').value = visit.game || '';
+    document.getElementById('visit-standout').value = visit.standout || visit.bestFeature || '';
+    document.getElementById('visit-notes').value = visit.notes || '';
+    document.getElementById('visit-remove').style.display = visit.parkId ? 'inline-flex' : 'none';
+    document.getElementById('visit-modal').classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    window.requestAnimationFrame(() => document.getElementById('visit-date').focus());
+  }
+
+  function closeVisitModal() {
+    document.getElementById('visit-modal').classList.remove('is-open');
+    document.body.style.overflow = '';
+    if (visitTrigger && typeof visitTrigger.focus === 'function') visitTrigger.focus();
+    visitTrigger = null;
+  }
+
+  function saveVisitFromModal(event) {
+    event.preventDefault();
+    if (!selectedParkId) return;
+    const park = app.getParkById(selectedParkId);
+    const previous = app.getVisitedMeta(selectedParkId);
+    if (!document.getElementById('visit-visited').checked) {
+      app.unmarkVisited(selectedParkId);
+      closeVisitModal();
+      showToast(`${park.name} marked not visited.`, () => {
+        if (previous) app.markVisited(selectedParkId, previous);
+        renderListV2();
+        selectPark(selectedParkId);
+      });
+      renderListV2();
+      selectPark(selectedParkId);
+      return;
+    }
+
+    const payload = {
+      visited: true,
+      visitDate: document.getElementById('visit-date').value,
+      rating: document.getElementById('visit-rating').value || null,
+      game: document.getElementById('visit-game').value.trim(),
+      standout: document.getElementById('visit-standout').value.trim(),
+      bestFeature: document.getElementById('visit-standout').value.trim(),
+      notes: document.getElementById('visit-notes').value.trim()
+    };
+    app.markVisited(selectedParkId, payload);
+    closeVisitModal();
+    showToast(`${park.name} visit saved.`, () => {
+      if (previous) app.markVisited(selectedParkId, previous);
+      else app.unmarkVisited(selectedParkId);
+      renderListV2();
+      selectPark(selectedParkId);
+    });
+    renderListV2();
+    selectPark(selectedParkId);
+  }
+
+  function removeVisitFromModal() {
+    if (!selectedParkId) return;
+    const park = app.getParkById(selectedParkId);
+    const previous = app.getVisitedMeta(selectedParkId);
+    app.unmarkVisited(selectedParkId);
+    closeVisitModal();
+    showToast(`${park.name} visit removed.`, () => {
+      if (previous) app.markVisited(selectedParkId, previous);
+      renderListV2();
+      selectPark(selectedParkId);
+    });
+    renderListV2();
+    selectPark(selectedParkId);
+  }
+
+  function trapVisitModalFocus(event) {
+    const modal = document.getElementById('visit-modal');
+    if (!modal.classList.contains('is-open')) return;
+    if (event.key === 'Escape') {
+      closeVisitModal();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusables = Array.from(modal.querySelectorAll('button, input, select, textarea')).filter((node) => !node.disabled && node.offsetParent !== null);
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   document.getElementById('park-search').addEventListener('input', (event) => {
     searchTerm = event.target.value;
-    renderList();
+    renderListV2();
   });
 
   document.querySelectorAll('.filter-chip').forEach((chip) => {
@@ -978,17 +2000,49 @@
       document.querySelectorAll('.filter-chip').forEach((node) => node.classList.remove('is-active'));
       chip.classList.add('is-active');
       activeFilter = chip.dataset.filter;
-      renderList();
+      renderListV2();
     });
   });
 
+  document.getElementById('park-sort').addEventListener('change', (event) => {
+    activeSort = event.target.value;
+    renderListV2();
+  });
+
+  document.getElementById('clear-filters').addEventListener('click', () => {
+    searchTerm = '';
+    activeFilter = 'all';
+    document.getElementById('park-search').value = '';
+    document.querySelectorAll('.filter-chip').forEach((node) => node.classList.toggle('is-active', node.dataset.filter === 'all'));
+    renderListV2();
+  });
+
   document.getElementById('parks-list').addEventListener('click', (event) => {
+    const compareToggle = event.target.closest('[data-compare-toggle]');
+    if (compareToggle) {
+      toggleCompare(compareToggle.dataset.compareToggle);
+      return;
+    }
+
+    const routeToggle = event.target.closest('[data-route-toggle]');
+    if (routeToggle) {
+      toggleRoute(routeToggle.dataset.routeToggle);
+      return;
+    }
+
+    const visitOpen = event.target.closest('[data-visit-open]');
+    if (visitOpen) {
+      openVisitModal(visitOpen.dataset.visitOpen, visitOpen);
+      return;
+    }
+
     const row = event.target.closest('[data-park-id]');
     if (!row) return;
     selectPark(row.dataset.parkId, { scrollDetail: true });
   });
 
   document.getElementById('parks-list').addEventListener('keydown', (event) => {
+    if (event.target.matches('button')) return;
     const row = event.target.closest('[data-park-id]');
     if (!row) return;
     if (event.key === 'Enter' || event.key === ' ') {
@@ -999,18 +2053,28 @@
 
   document.getElementById('d-visit-toggle').addEventListener('click', () => {
     if (!selectedParkId) return;
-    const park = app.getParkById(selectedParkId);
-    const nowVisited = app.toggleVisited(selectedParkId, { bestFeature: park.tier === 'S' ? 'Must-see atmosphere' : 'Route stop', notes: park.note });
-    if (nowVisited) app.addRouteStop(selectedParkId);
-    selectPark(selectedParkId);
+    openVisitModal(selectedParkId, document.getElementById('d-visit-toggle'));
   });
 
   document.getElementById('d-route-toggle').addEventListener('click', () => {
     if (!selectedParkId) return;
-    const onRoute = app.getRouteStore().stops.some((stop) => (typeof stop === 'string' ? stop : stop.parkId) === selectedParkId);
-    if (onRoute) app.removeRouteStop(selectedParkId);
-    else app.addRouteStop(selectedParkId);
+    toggleRoute(selectedParkId);
     selectPark(selectedParkId);
+  });
+
+  document.getElementById('d-compare-toggle').addEventListener('click', () => {
+    if (!selectedParkId) return;
+    toggleCompare(selectedParkId);
+  });
+
+  document.getElementById('d-share').addEventListener('click', () => {
+    updateUrlState();
+    const url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => showToast('Selected park URL copied.'));
+    } else {
+      showToast('Selected park URL is in the address bar.');
+    }
   });
 
   document.getElementById('d-score-link').addEventListener('click', () => {
@@ -1022,7 +2086,14 @@
     const routeGame = event.target.closest('[data-route-game]');
     if (routeGame) {
       app.addRouteStop(routeGame.dataset.routePark, routeGame.dataset.routeGame);
+      showToast('Game added to route.');
       selectPark(routeGame.dataset.routePark);
+      return;
+    }
+
+    const nearbyRoute = event.target.closest('[data-nearby-route]');
+    if (nearbyRoute) {
+      toggleRoute(nearbyRoute.dataset.nearbyRoute);
       return;
     }
 
@@ -1039,14 +2110,70 @@
     }
   });
 
+  document.getElementById('route-strip-list').addEventListener('click', (event) => {
+    const remove = event.target.closest('[data-route-remove]');
+    if (!remove) return;
+    toggleRoute(remove.dataset.routeRemove);
+  });
+
+  document.getElementById('route-clear').addEventListener('click', clearRoute);
+
+  document.getElementById('compare-drawer').addEventListener('click', (event) => {
+    const remove = event.target.closest('[data-compare-remove]');
+    if (remove) toggleCompare(remove.dataset.compareRemove);
+  });
+
+  document.getElementById('compare-clear').addEventListener('click', () => {
+    if (!compareParkIds.length) return;
+    const previous = compareParkIds.slice();
+    compareParkIds = [];
+    saveStoredList('compare', compareParkIds);
+    showToast('Compare pins cleared.', () => {
+      compareParkIds = previous;
+      saveStoredList('compare', compareParkIds);
+      renderListV2();
+    });
+    renderListV2();
+  });
+
+  document.getElementById('visit-form').addEventListener('submit', saveVisitFromModal);
+  document.getElementById('visit-cancel').addEventListener('click', closeVisitModal);
+  document.getElementById('visit-close').addEventListener('click', closeVisitModal);
+  document.getElementById('visit-remove').addEventListener('click', removeVisitFromModal);
+  document.getElementById('visit-modal').addEventListener('click', (event) => {
+    if (event.target.id === 'visit-modal') closeVisitModal();
+  });
+  document.addEventListener('keydown', trapVisitModalFocus);
+
+  document.getElementById('toast').addEventListener('click', (event) => {
+    if (!event.target.closest('#toast-undo') || !toastUndo) return;
+    const undo = toastUndo;
+    document.getElementById('toast').classList.remove('is-visible');
+    toastUndo = null;
+    undo();
+  });
+
   document.getElementById('d-scratchpad').addEventListener('input', (event) => {
     if (!selectedParkId) return;
     app.saveParkScratchpad(selectedParkId, event.target.value);
   });
 
-  renderList();
+  const params = new URLSearchParams(window.location.search);
+  const urlCompare = (params.get('compare') || '').split(',').filter((id) => app.getParkById(id)).slice(0, 4);
+  if (urlCompare.length) {
+    compareParkIds = urlCompare;
+    saveStoredList('compare', compareParkIds);
+  }
+
+  renderListV2();
+  const urlPark = params.get('park');
+  const storedPark = storage && storage.get ? storage.get('selectedPark') : '';
   const preferredStop = app.getRouteStore().stops[0];
-  const preferred = (typeof preferredStop === 'string' ? preferredStop : preferredStop && preferredStop.parkId) || app.getNextTargets(1)[0]?.id || app.getParks()[0]?.id;
+  const preferred = (urlPark && app.getParkById(urlPark) ? urlPark : '') ||
+    (storedPark && app.getParkById(storedPark) ? storedPark : '') ||
+    (typeof preferredStop === 'string' ? preferredStop : preferredStop && preferredStop.parkId) ||
+    app.getNextTargets(1)[0]?.id ||
+    app.getParks()[0]?.id;
   if (preferred) selectPark(preferred);
 })();
 </script>

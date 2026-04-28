@@ -72,7 +72,7 @@
 
     var patchValue = patch || {};
     var timestamp = nowIso();
-    var visitDate = patchValue.visitDate || timestamp.slice(0, 10);
+    var visitDate = patchValue.visitDate || "";
     var nextVisit = null;
 
     storage.update(data.KEYS.visits, function updateVisits(currentVisits) {
@@ -84,9 +84,12 @@
       nextVisit = {
         id: existingIndex >= 0 ? visits[existingIndex].id : createId("visit"),
         parkId: parkId,
+        visited: patchValue.visited !== false,
         visitDate: visitDate,
         rating: patchValue.rating != null ? patchValue.rating : (existingIndex >= 0 ? visits[existingIndex].rating : null),
-        bestFeature: patchValue.bestFeature || (existingIndex >= 0 ? visits[existingIndex].bestFeature : "") || "Ballpark memory",
+        game: patchValue.game || (existingIndex >= 0 ? visits[existingIndex].game : "") || "",
+        standout: patchValue.standout || patchValue.bestFeature || (existingIndex >= 0 ? (visits[existingIndex].standout || visits[existingIndex].bestFeature) : "") || "",
+        bestFeature: patchValue.bestFeature || patchValue.standout || (existingIndex >= 0 ? (visits[existingIndex].bestFeature || visits[existingIndex].standout) : "") || "",
         notes: patchValue.notes || (existingIndex >= 0 ? visits[existingIndex].notes : "") || "",
         createdAt: existingIndex >= 0 ? visits[existingIndex].createdAt : timestamp,
         updatedAt: timestamp
