@@ -1,4 +1,4 @@
-const CACHE_NAME = "bpq-prototype-v6";
+const CACHE_NAME = "bpq-prototype-v7";
 const PRECACHE = [
   "./",
   "index.html",
@@ -12,6 +12,7 @@ const PRECACHE = [
   "utils.js",
   "data.js",
   "logos.js",
+  "park-photos.js",
   "resolver.js",
   "app.js",
   "route.js",

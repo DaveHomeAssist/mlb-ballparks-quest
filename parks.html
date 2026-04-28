@@ -500,6 +500,44 @@
   padding: 15px;
 }
 
+.park-photo {
+  margin: -15px -15px 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(8,16,28,0.32);
+}
+
+.park-photo-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: rgba(8,16,28,0.38);
+}
+
+.park-photo-credit {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px 8px;
+  font-family: var(--font-data);
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245,237,216,0.66);
+}
+
+.park-photo-credit a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: rgba(245,237,216,0.86);
+  text-decoration: none;
+}
+
+.park-photo-credit a:hover {
+  color: var(--cream);
+}
+
 .park-identity-header {
   display: grid;
   grid-template-columns: 46px 1fr;
@@ -1214,6 +1252,7 @@ button.detail-event-pill {
 <script src="utils.js"></script>
 <script src="data.js"></script>
 <script src="logos.js"></script>
+<script src="park-photos.js"></script>
 <script src="schedule.js"></script>
 <script src="shared/js/core/device.js"></script>
 <script src="device.js"></script>
@@ -1419,6 +1458,7 @@ button.detail-event-pill {
   const escapeHtml = utils.escapeHtml;
   const safeColor = utils.safeColor;
   const safeToken = utils.safeToken;
+  const parkPhotos = (window.BPQ && window.BPQ.parkPhotos) || {};
   const FIELD_CONTEXT = {
     "chase-field": { lf: 330, cf: 407, rf: 334, bias: "Balanced", tag: "Roof + gaps", note: "A retractable-roof park with fair alleys and a deeper center field profile." },
     "truist-park": { lf: 335, cf: 400, rf: 325, bias: "Balanced", tag: "Corner pull", note: "Right field is reachable, but the overall shape plays closer to neutral." },
@@ -1493,6 +1533,27 @@ button.detail-event-pill {
       tag: "Field profile",
       note: "Field dimensions and park tendency notes have not been added for this park yet."
     };
+  }
+
+  function renderParkPhoto(park) {
+    const photo = parkPhotos[park.id];
+    if (!photo || !photo.src) return '';
+    const licenseLabel = photo.license || 'Wikimedia Commons';
+    const sourceLink = photo.sourceUrl
+      ? `<a href="${escapeHtml(photo.sourceUrl)}" target="_blank" rel="noopener">Source</a>`
+      : '<span>Source: local file</span>';
+    const licenseLink = photo.licenseUrl
+      ? `<a href="${escapeHtml(photo.licenseUrl)}" target="_blank" rel="noopener">${escapeHtml(licenseLabel)}</a>`
+      : `<span>${escapeHtml(licenseLabel)}</span>`;
+    return `
+      <figure class="park-photo">
+        <img class="park-photo-image" src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.alt || `${park.name} ballpark photograph`)}" loading="eager" decoding="async">
+        <figcaption class="park-photo-credit">
+          <span>${escapeHtml(photo.credit || 'Wikimedia Commons')}</span>
+          <span>${licenseLink} / ${sourceLink}</span>
+        </figcaption>
+      </figure>
+    `;
   }
 
   function renderDetailMap(park, onRoute) {
@@ -1585,6 +1646,7 @@ button.detail-event-pill {
     identity.style.setProperty('--park-accent', accent);
     identity.innerHTML = `
       <div class="park-identity-inner">
+        ${renderParkPhoto(park)}
         <div class="park-identity-header">
           ${logoMarkup}
           <div>
