@@ -1,4 +1,4 @@
-const CACHE_NAME = "bpq-prototype-v7";
+const CACHE_NAME = "bpq-prototype-v8";
 const PRECACHE = [
   "./",
   "index.html",
@@ -7,6 +7,12 @@ const PRECACHE = [
   "scorekeeper.html",
   "shared.css",
   "route.css",
+  "shared/js/core/config.js",
+  "shared/js/core/storage.js",
+  "shared/js/core/utils.js",
+  "shared/js/core/device.js",
+  "config.js",
+  "schedule.js",
   "device.js",
   "storage.js",
   "utils.js",

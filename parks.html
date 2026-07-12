@@ -1241,9 +1241,13 @@ button.detail-event-pill {
   .parks-hero { grid-template-columns: 1fr; padding: 20px 0 16px; }
   .progress-strip { grid-template-columns: repeat(3, 1fr); }
 }
+.skip-link { position:absolute; left:-9999px; top:auto; padding:8px 16px; z-index:10000; background:#222; color:#fff; text-decoration:none; border-radius:4px; font-size:14px; }
+.skip-link:focus { left:10px; top:10px; }
 </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to content</a>
+
 <script src="shared/js/core/config.js"></script>
 <script src="config.js"></script>
 <script src="shared/js/core/storage.js"></script>
@@ -1258,7 +1262,7 @@ button.detail-event-pill {
 <script src="device.js"></script>
 <script src="app.js"></script>
 
-<nav class="site-nav">
+<nav class="site-nav" aria-label="Primary">
   <a href="https://davehomeassist.github.io/" class="nav-back">&larr; All Projects</a>
   <a href="index.html" class="nav-brand">
     <span class="nav-brand-name">Ballparks Quest</span>
@@ -1272,7 +1276,7 @@ button.detail-event-pill {
   </div>
 </nav>
 
-<div class="page-wrap parks-page-wrap">
+<div class="page-wrap parks-page-wrap" id="main">
 <div class="parks-layout">
 
   <!-- Left: park list -->
