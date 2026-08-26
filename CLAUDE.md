@@ -100,6 +100,7 @@ Two-page Progressive Web App for tracking MLB ballpark visits, planning stadium 
 |----|----------|--------|-------|-------|
 | 001 | P2 | resolved | Promote prototype to primary root app | Archived the old root build as v0.7 and promoted the prototype to the root entry path as v0.8 |
 | 002 | P2 | resolved | Make scorekeeper notes reachable before first pitch | Added a visible quick note composer in the cover card and enlarged the notes rail composer |
+| 003 | P1 | resolved | SCHEDULE_2026 data drifted from real MLB schedule | Audit fix 2026-08-26. Regenerated `SCHEDULE_2026` from the official MLB Stats API (30 parks, 2420 home games, `9dd5455`), rewrote `schedule-import.html` against the Stats API (`4db8fde`), and bumped the SW cache to v9 so installed clients pick up the corrected schedule (`ca5229d`) |
 
 ## Session Log
 
@@ -109,3 +110,6 @@ Two-page Progressive Web App for tracking MLB ballpark visits, planning stadium 
 [2026-03-18] [MLB] [fix] Harden Phillies 2026 schedule page interactions
 [2026-03-18] [MLB] [feat] Add guided resolver engine to scorekeeper
 [2026-03-18] [MLB] [fix] Make scorekeeper notes composer visible and easier to reach
+[2026-08-26] [MLB] [fix] Regenerate SCHEDULE_2026 from the official MLB Stats API (30 parks, 2420 home games)
+[2026-08-26] [MLB] [refactor] Rewrite schedule-import.html against the MLB Stats API
+[2026-08-26] [MLB] [chore] Bump SW cache to v9 so the corrected schedule ships to installed clients
