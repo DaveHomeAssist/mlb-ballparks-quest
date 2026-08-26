@@ -69,6 +69,7 @@ Two-page Progressive Web App for tracking MLB ballpark visits, planning stadium 
 | `scorekeeper.html` | Standalone scorekeeping app | Active, first-class sibling |
 | `phillies-2026-schedule.html` | Redirect stub pointing to Wire's `/schedule/` | Stub only since 2026-04-22 Ballparks Quest Cutover; keeps legacy bookmarks working. **Do not reintroduce live Phillies schedule content here** — it lives in `phillies-wire`. |
 | `schedule-import.html` | Manual-run developer utility that populates the Notion "2026 MLB Home Game Schedules" database (ID `81502c83ace04301906091ab238ce2c3`) | Active dev-only tool; not linked from any app surface |
+| `tests/run-tests.mjs` | Zero-dependency Node test suite (syntax, schedule data integrity, resolver rules, storage, ICS export). Run `node tests/run-tests.mjs`. CI gate: the Pages deploy job in `.github/workflows/deploy.yml` requires it to pass. | Active; keep green before push |
 
 ### `schedule-import.html` details
 
@@ -101,6 +102,8 @@ Two-page Progressive Web App for tracking MLB ballpark visits, planning stadium 
 | 001 | P2 | resolved | Promote prototype to primary root app | Archived the old root build as v0.7 and promoted the prototype to the root entry path as v0.8 |
 | 002 | P2 | resolved | Make scorekeeper notes reachable before first pitch | Added a visible quick note composer in the cover card and enlarged the notes rail composer |
 | 003 | P1 | resolved | SCHEDULE_2026 data drifted from real MLB schedule | Audit fix 2026-08-26. Regenerated `SCHEDULE_2026` from the official MLB Stats API (30 parks, 2420 home games, `9dd5455`), rewrote `schedule-import.html` against the Stats API (`4db8fde`), and bumped the SW cache to v9 so installed clients pick up the corrected schedule (`ca5229d`) |
+| 004 | P2 | resolved | ICS export shifted times for non-Eastern users and invented 7:05 PM starts for TBD games | Audit fix 2026-08-26 (M-3). `buildGameICS` now converts the US Eastern schedule wall time to the exact UTC instant (DST-aware, via Intl) and exports TBD games as date-only reminders labeled "(start time TBD)" |
+| 005 | P2 | resolved | No automated test suite or CI gate protected tracker/scorekeeper behavior | Audit fix 2026-08-26 (M-2). Added `tests/run-tests.mjs` (35 scenarios: syntax, schedule integrity, resolver rules, storage, ICS) and made the Pages deploy job require it to pass |
 
 ## Session Log
 
@@ -113,3 +116,6 @@ Two-page Progressive Web App for tracking MLB ballpark visits, planning stadium 
 [2026-08-26] [MLB] [fix] Regenerate SCHEDULE_2026 from the official MLB Stats API (30 parks, 2420 home games)
 [2026-08-26] [MLB] [refactor] Rewrite schedule-import.html against the MLB Stats API
 [2026-08-26] [MLB] [chore] Bump SW cache to v9 so the corrected schedule ships to installed clients
+[2026-08-26] [MLB] [fix] Convert ICS exports from Eastern wall time to exact UTC and export TBD games as date-only reminders
+[2026-08-26] [MLB] [test] Add zero-dependency Node test suite (35 scenarios) and gate the Pages deploy on it
+[2026-08-26] [MLB] [chore] Bump SW cache to v10 so the corrected ICS export ships to installed clients

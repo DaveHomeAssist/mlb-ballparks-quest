@@ -70,3 +70,6 @@ Original prompt: vFast, one handed game scoring. Log plate appearances, track ru
 [2026-03-18] [MLB] [refactor] Sync scorekeeper base state through guided play resolution while preserving manual fallback logging
 [2026-03-18] [MLB] [fix] Add visible quick note composer to scorekeeper cover and enlarge notes rail input
 [2026-03-18] [MLB] [todo] Add correction chips, stranded runner cell annotation, and retroactive diamond writeback using runner cellRef
+[2026-08-26] [MLB] [fix] Export ICS events as exact UTC instants converted from the US Eastern schedule contract, and turn TBD start times into date-only reminders instead of invented 7:05 PM events (audit M-3)
+[2026-08-26] [MLB] [test] Add tests/run-tests.mjs, a zero-dependency Node suite: syntax across all shipped scripts, schedule data integrity, resolver scorekeeping rules, storage round-trips, and ICS time-zone/TBD behavior; 35 scenarios pass (audit M-2)
+[2026-08-26] [MLB] [chore] Gate the GitHub Pages deploy on the automated test suite in deploy.yml and bump the SW cache to v10
