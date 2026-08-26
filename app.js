@@ -391,6 +391,10 @@
     return game;
   }
 
+  /* Time-zone contract: every schedule time is a US Eastern wall-clock
+     value for every park (see the schedule.js header). The string this
+     builds carries no zone marker, so it must never be fed to new Date()
+     for cross-zone math — use easternWallToUtcDate for exact instants. */
   function buildLocalStartDateTime(game) {
     if (!game || !game.d || !game.t || /tbd/i.test(game.t)) return "";
     var match = String(game.t).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -401,6 +405,36 @@
     var hh = String(hours).padStart(2, "0");
     var mm = String(minutes).padStart(2, "0");
     return game.d + "T" + hh + ":" + mm + ":00";
+  }
+
+  function easternOffsetMs(utcMillis) {
+    var parts = {};
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      hour12: false
+    }).formatToParts(new Date(utcMillis)).forEach(function collect(part) {
+      parts[part.type] = part.value;
+    });
+    var wallAsUtc = Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour) % 24,
+      Number(parts.minute),
+      Number(parts.second)
+    );
+    return wallAsUtc - utcMillis;
+  }
+
+  /* Convert a US Eastern wall-clock time to the exact UTC instant,
+     independent of the visitor's browser time zone (DST-aware). */
+  function easternWallToUtcDate(year, month, day, hours, minutes) {
+    var wallAsUtc = Date.UTC(year, month - 1, day, hours, minutes, 0);
+    var utcMillis = wallAsUtc - easternOffsetMs(wallAsUtc);
+    utcMillis = wallAsUtc - easternOffsetMs(utcMillis);
+    return new Date(utcMillis);
   }
 
   function getGamesByPark(parkId) {
@@ -435,33 +469,55 @@
   function buildGameICS(game) {
     if (!game) return "";
 
-    function toIcsDate(date) {
+    function toIcsDateTime(date) {
       return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
     }
 
-    var startRaw = game.startDateTimeLocal || (game.d ? game.d + "T19:05:00" : "");
-    var startDate = new Date(startRaw);
-    if (!Number.isFinite(startDate.getTime())) startDate = new Date(game.d + "T19:05:00");
-    var endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
+    var dateMatch = game.d ? String(game.d).match(/^(\d{4})-(\d{2})-(\d{2})$/) : null;
+    if (!dateMatch) return "";
+
+    var wall = game.startDateTimeLocal || buildLocalStartDateTime(game);
+    var timeMatch = wall ? String(wall).match(/T(\d{2}):(\d{2})/) : null;
+
     var park = getParkById(game.parkId);
     var location = game.venue || (park ? park.name : "");
     var summary = (game.awayTeam || "Away") + " at " + (game.homeTeam || "Home");
     var uid = "bpq-" + (game.gameId || createId("game")) + "@ballparksquest.local";
 
-    return [
+    var lines = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
       "PRODID:-//Ballparks Quest//EN",
       "BEGIN:VEVENT",
       "UID:" + uid,
-      "DTSTAMP:" + toIcsDate(new Date()),
-      "DTSTART:" + toIcsDate(startDate),
-      "DTEND:" + toIcsDate(endDate),
-      "SUMMARY:" + summary,
-      "LOCATION:" + location,
-      "END:VEVENT",
-      "END:VCALENDAR"
-    ].join("\r\n");
+      "DTSTAMP:" + toIcsDateTime(new Date())
+    ];
+
+    if (timeMatch) {
+      var startDate = easternWallToUtcDate(
+        Number(dateMatch[1]), Number(dateMatch[2]), Number(dateMatch[3]),
+        Number(timeMatch[1]), Number(timeMatch[2])
+      );
+      var endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
+      lines.push("DTSTART:" + toIcsDateTime(startDate));
+      lines.push("DTEND:" + toIcsDateTime(endDate));
+      lines.push("SUMMARY:" + summary);
+    } else {
+      /* Start time is TBD: export a date-only reminder instead of
+         inventing a start time that MLB has not announced. */
+      var nextDay = new Date(Date.UTC(
+        Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]) + 1
+      ));
+      lines.push("DTSTART;VALUE=DATE:" + dateMatch[1] + dateMatch[2] + dateMatch[3]);
+      lines.push("DTEND;VALUE=DATE:" + toIcsDateTime(nextDay).slice(0, 8));
+      lines.push("SUMMARY:" + summary + " (start time TBD)");
+      lines.push("DESCRIPTION:MLB has not announced a start time for this game yet.");
+    }
+
+    lines.push("LOCATION:" + location);
+    lines.push("END:VEVENT");
+    lines.push("END:VCALENDAR");
+    return lines.join("\r\n");
   }
 
   function downloadICS(filename, content) {
